@@ -35,6 +35,7 @@ class Action:
     def __camera(self, images):
 ***REMOVED***
         处理 `镜头` 相关的动作，例如切换焦点，镜头拉近、拉远
+        ***一个活动中不能有两个`镜头`动作***
 ***REMOVED***
         original_center = utils.covert_pos(self.activity.scenario.focus)  ***REMOVED*** 原有的焦点
         self.activity.scenario.focus = self.obj.get("焦点", "中心") ***REMOVED*** 新焦点

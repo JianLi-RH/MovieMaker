@@ -78,20 +78,20 @@ class Activity:
             视频片段clip
 ***REMOVED***
         images = self.__check_images()
+        char_in_actions = [a.char.name for a in self.actions if a.char]
 
-        char_in_actions = []
-        for action in self.actions:
-            if action.char:
-                action.char.display = True
-                char_in_actions.append(action.char.name)
-            images = action.to_video(images)
-
-        ***REMOVED*** 先在背景图片上显示非action的角色 （这样的好处是action的角色可以覆盖这种角色）
+        ***REMOVED*** 先在背景图片上显示非action的角色 （这样的好处是焦点变换时，这些角色会移动）
         for char in self.scenario.chars:
             if not char.name in char_in_actions:
                 if char.display:
-                    for i in range(len(images)):
+                    for i in range(0, len(images)): ***REMOVED*** 第一张图片存在问题
                         images[i] = ImageHelper.merge_two_image(images[i], char.image, char.size, char.pos, overwrite=True)
+
+        for action in self.actions:
+            ***REMOVED*** 注意：一个活动（activity）中不能有两个`镜头`动作（action）
+            if action.char and action.char.name != "消失":
+                action.char.display = True
+            images = action.to_video(images)
 
         ***REMOVED*** 先把图片转换成视频
         video = VideoHelper.create_video_clip_from_images(images, self.timespan)

@@ -1,5 +1,7 @@
 import yaml
 
+import utils
+
 try:
     from libs import ImageHelper, SuCaiHelper
 except ImportError:
@@ -10,10 +12,10 @@ class Character():
     def __init__(self, obj) -> None:
         self.name = obj.get("名字")
         self.image = SuCaiHelper.get_sucai(obj.get("素材"))
-        self.pos = None ***REMOVED*** 位置
-        self.size = None    ***REMOVED***大小
-        self.rotate = 0 ***REMOVED*** 显示角度
-        self.display = False ***REMOVED*** 默认不显示
+        self.pos = utils.covert_pos(obj.get("位置", None)) ***REMOVED*** 位置
+        self.size = obj.get("大小", None) ***REMOVED*** 位置    ***REMOVED***大小
+        self.rotate = obj.get("角度", None) ***REMOVED*** 显示角度
+        self.display = True if obj.get("显示", None) == '是' else False ***REMOVED*** 默认不显示
         pass
 
 

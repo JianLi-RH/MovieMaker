@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+***REMOVED*** MovieMaker
+output/
+
 ***REMOVED*** C extensions
 *.so
 

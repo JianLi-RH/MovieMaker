@@ -1,6 +1,8 @@
 
 import numbers
+
 import config_reader
+
 
 def get_time(script_time):
     """
@@ -30,6 +32,16 @@ def get_time(script_time):
     return time_number
 
 def covert_pos(pos):
+    """
+    将系统中可能用的位置数据转换为像素值。
+
+    Params:
+        pos: 可能的位置数据，如： '中心', [0.1, 0.5], [140, 200], [左侧, 顶侧]
+    Return:
+        位置的像素值， 标准的最大值是config里的g_width, g_height
+    """
+    if not pos:
+        return None
 
     if pos == '中心':
         pos = [0.5, 0.5]
@@ -49,9 +61,9 @@ def covert_pos(pos):
     elif y_center == '底部':
         y_center = 1
 
-    if x_center < 1:
+    if x_center <= 1:
         x_center = config_reader.g_width * x_center
-    if y_center < 1:
+    if y_center <= 1:
         y_center = config_reader.g_height * y_center
 
-    return (x_center, y_center)
+    return (int(x_center), int(y_center))
