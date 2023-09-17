@@ -51,6 +51,24 @@ class Activity:
 
         return images
 
+    def __get_display_list(self):
+***REMOVED***获取显示列表， index小的最先显示"""
+        display_list = []
+        char_in_actions = []
+        for a in self.actions:
+            if a.char:
+                char_in_actions.append(a.char.name)
+                display_list.append({"index": a.char.index, "action": a***REMOVED***)
+***REMOVED***
+                display_list.append({"index": -1, "action": a***REMOVED***)
+
+        for char in self.scenario.chars:
+            if not char.name in char_in_actions:
+                display_list.append({"index": char.index, "char": char***REMOVED***)
+
+        display_list.sort(key=lambda x: x.get("index", 0))
+        return display_list
+
     def __init__(self, scenario, obj):
 ***REMOVED***
         初始化Activity
@@ -78,20 +96,34 @@ class Activity:
             视频片段clip
 ***REMOVED***
         images = self.__check_images()
-        char_in_actions = [a.char.name for a in self.actions if a.char]
+        display_list = self.__get_display_list()
 
-        ***REMOVED*** 先在背景图片上显示非action的角色 （这样的好处是焦点变换时，这些角色会移动）
-        for char in self.scenario.chars:
-            if not char.name in char_in_actions:
-                if char.display:
+        for display in display_list:
+            if 'action' in display:
+                ***REMOVED*** 注意：一个活动（activity）中不能有两个`镜头`动作（action）
+                if display["action"].char and display["action"].char.name != "消失":
+                    display["action"].char.display = True
+                images = display["action"].to_video(images)
+            if 'char' in display:
+                if display["char"].display:
+                    char = display["char"]
                     for i in range(0, len(images)): ***REMOVED*** 第一张图片存在问题
                         images[i] = ImageHelper.merge_two_image(images[i], char.image, char.size, char.pos, overwrite=True)
 
-        for action in self.actions:
-            ***REMOVED*** 注意：一个活动（activity）中不能有两个`镜头`动作（action）
-            if action.char and action.char.name != "消失":
-                action.char.display = True
-            images = action.to_video(images)
+        ***REMOVED*** char_in_actions = [a.char.name for a in self.actions if a.char]
+
+        ***REMOVED*** ***REMOVED*** 先在背景图片上显示非action的角色 （这样的好处是焦点变换时，这些角色会移动）
+        ***REMOVED*** for char in self.scenario.chars:
+        ***REMOVED***     if not char.name in char_in_actions:
+        ***REMOVED***         if char.display:
+        ***REMOVED***             for i in range(0, len(images)): ***REMOVED*** 第一张图片存在问题
+        ***REMOVED***                 images[i] = ImageHelper.merge_two_image(images[i], char.image, char.size, char.pos, overwrite=True)
+
+        ***REMOVED*** for action in self.actions:
+        ***REMOVED***     ***REMOVED*** 注意：一个活动（activity）中不能有两个`镜头`动作（action）
+        ***REMOVED***     if action.char and action.char.name != "消失":
+        ***REMOVED***         action.char.display = True
+        ***REMOVED***     images = action.to_video(images)
 
         ***REMOVED*** 先把图片转换成视频
         video = VideoHelper.create_video_clip_from_images(images, self.timespan)
@@ -102,6 +134,7 @@ class Activity:
             pass
 
         return video
+        pass
 
 ***REMOVED***
     with open('script.yaml', 'r') as file:
