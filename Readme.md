@@ -1,4 +1,6 @@
 
+程序入口： run.py
+
 Prerequests:
 https://imagemagick.org/script/download.php
 https://imagemagick.org/script/install-source.php
