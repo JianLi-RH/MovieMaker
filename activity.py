@@ -56,11 +56,15 @@ class Activity:
         display_list = []
         char_in_actions = []
         for a in self.actions:
-            if a.char:
-                char_in_actions.append(a.char.name)
-                display_list.append({"index": a.char.index, "action": a***REMOVED***)
+            if a.obj.get("名称", None) == "镜头":
+                ***REMOVED*** 镜头相关动作会改变背景图片尺寸，但是不会改变角色位置，所以镜头需要最后进行渲染
+                display_list.append({"index": 999, "action": a***REMOVED***)
 ***REMOVED***
-                display_list.append({"index": -1, "action": a***REMOVED***)
+                if a.char:
+                    char_in_actions.append(a.char.name)
+                    display_list.append({"index": a.char.index, "action": a***REMOVED***)
+    ***REMOVED***
+                    display_list.append({"index": -1, "action": a***REMOVED***)
 
         for char in self.scenario.chars:
             if not char.name in char_in_actions:
@@ -107,7 +111,7 @@ class Activity:
             if 'char' in display:
                 if display["char"].display:
                     char = display["char"]
-                    for i in range(0, len(images)): ***REMOVED*** 第一张图片存在问题
+                    for i in range(0, len(images)):
                         images[i] = ImageHelper.merge_two_image(images[i], char.image, char.size, char.pos, overwrite=True)
 
         ***REMOVED*** char_in_actions = [a.char.name for a in self.actions if a.char]
