@@ -109,12 +109,19 @@ class Action:
         ***REMOVED*** 每一步在x,y方向的进度以及缩放比例
         step_x = (end_pos[0] - start_pos[0]) / self.activity.total_frame
         step_y = (end_pos[1] - start_pos[1]) / self.activity.total_frame
-        step_ration = (ratio[1] - ratio[0]) / self.activity.total_frame
+        if isinstance(ratio[0], list): ***REMOVED*** [(100,120), (100,120) -- 具体像素
+            step_ration_x = (ratio[1][0] - ratio[0][0]) / self.activity.total_frame
+            step_ration_y = (ratio[1][1] - ratio[0][1]) / self.activity.total_frame
+            start_size = ratio[0]
+        else:   ***REMOVED*** [0.2, 0.2] -- 百分比
+            step_ration_x = (ratio[1] - ratio[0]) / self.activity.total_frame * img_w
+            step_ration_y = (ratio[1] - ratio[0]) / self.activity.total_frame * img_h
+            start_size = (ratio[0] * img_w, ratio[0] * img_h)
+        step_ration = (step_ration_x, step_ration_y)
 
         if mode in ["自然", "旋转"]:
             for i in range(0, self.activity.total_frame):
-                ***REMOVED*** tmp_pos = (int((start_pos[0] + step_x * i) * config_reader.g_width), int((start_pos[1] + step_y * i) * config_reader.g_height))
-                tmp_size = (int(img_w * (ratio[0] + step_ration * i)), int(img_h * (ratio[0] + step_ration * i)))
+                tmp_size = (int(start_size[0] + step_ration[0] * i), int(start_size[1] + step_ration[1] * i))
                 tmp_pos = (int(start_pos[0] + step_x * i), int(start_pos[1] + step_y * i))
                 rotate = None
                 if mode == "旋转":

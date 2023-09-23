@@ -3,6 +3,7 @@
 """
 import yaml
 
+import config_reader
 import utils
 from action import *
 from libs import SuCaiHelper
@@ -10,14 +11,6 @@ from libs import SuCaiHelper
 
 class Activity:
     """The Activity(活动) class"""
-
-    def __create_bg_image(self):
-        original_image = self.scenario.background_image
-        if original_image.lower().endswith(".gif"):
-            return original_image
-        focus = self.scenario.focus
-        ratio = self.scenario.ratio
-        return ImageHelper.zoom_in_out_image(original_image, focus, ratio)
 
     def __check_images(self):
 ***REMOVED***第一次执行action的时候, images会是空的, 所以需要生成一组图片
@@ -30,7 +23,7 @@ class Activity:
             os.mkdir(path)
 
         images = []
-        background_image = self.__create_bg_image()
+        background_image = self.scenario.background_image ***REMOVED*** 已经resize之后的图片
         if background_image.lower().endswith(".gif"):
             bg_frames = ImageHelper.get_frames_from_gif(background_image)
 
@@ -46,8 +39,8 @@ class Activity:
             for i in range(0, self.total_frame):
                 new_path = os.path.join(path, f"{i***REMOVED***.{ext***REMOVED***")
                 shutil.copy(background_image, new_path)
-                Image.open(new_path).resize((config_reader.g_width, config_reader.g_height)).save(new_path)
-                images.append(path)
+                Image.open(new_path).save(new_path)
+                images.append(new_path)
 
         return images
 
@@ -82,11 +75,16 @@ class Activity:
             obj: script里面的脚本片段
 ***REMOVED***
         self.scenario = scenario
-        self.timespan = utils.get_time(obj.get("持续时间"))   ***REMOVED*** 单位：秒
+        self.bgm = SuCaiHelper.get_shengyin(obj.get("背景音乐", None))
+
+        if obj.get("持续时间", None):
+            self.timespan = utils.get_time(obj.get("持续时间"))   ***REMOVED*** 单位：秒
+        else:
+            self.timespan = AudioFileClip(self.bgm).duration
+
         self.total_frame = int(self.timespan * config_reader.fps)   ***REMOVED*** 根据当前活动的总时长，得到当前活动所需的视频帧数
         self.name = obj.get("名字")
         self.description = obj.get("描述", "")
-        self.bgm = SuCaiHelper.get_shengyin(obj.get("背景音乐", None))
         self.subtitle = obj.get("字幕", None)
         self.actions = []
         for action in obj["动作"]:

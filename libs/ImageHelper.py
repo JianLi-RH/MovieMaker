@@ -1,4 +1,7 @@
 ***REMOVED***
+***REMOVED***
+
+sys.path.append('../')
 
 from PIL import Image, ImageDraw, ImageFont, ImageSequence
 
@@ -32,7 +35,7 @@ def add_text_to_image(image, text, save_image = False):
         ***REMOVED*** Display edited image on which we have added the text
         i.show()
 
-def zoom_in_out_image(origin_image_path, center, ratio):
+def zoom_in_out_image(origin_image_path, center, ratio, new_path=None):
     """
     zoom in or zoom out. 拉近、拉远镜头 (覆盖原图), 也可切换焦点
 
@@ -41,7 +44,7 @@ def zoom_in_out_image(origin_image_path, center, ratio):
         center: the focus point of camera (zoom in / zoom out by this point),
             it format will be like: (123, 234) or (0.2, 0.4) or (123, 0.3)
         ratio: zoom in, zoom out ratio, in percentage. like: 0.1, 0.9
-
+        new_path: 如果new_path是None就直接修改当前图片，否则在new_path保存新图片
     Return:
         新图片路径
     """
@@ -52,10 +55,12 @@ def zoom_in_out_image(origin_image_path, center, ratio):
     top = y_center * (1 - ratio)
     right = config_reader.g_width * ratio
     bottom = config_reader.g_height * ratio
-    new_im = im.crop((left, top, right, bottom))
-    new_im = new_im.resize((config_reader.g_width, config_reader.g_height)) ***REMOVED*** 将缩放后的图片重新放大为完全尺寸
-    new_im.save(origin_image_path)
-    return origin_image_path
+    new_im = im.resize((config_reader.g_width, config_reader.g_height)) ***REMOVED*** 将缩放后的图片重新放大为完全尺寸
+    new_im = new_im.crop((left, top, right, bottom))
+    if not new_path:
+        new_path = origin_image_path
+    new_im.save(new_path)
+    return new_path
 
 def get_frames_from_gif(gif):
     """从gif图片中取得每一帧的图片
@@ -110,22 +115,10 @@ def merge_two_image(big_image, small_image, size, pos, rotate=None, overwrite=Fa
             img1.save(new_path)
             return new_path
 
-def test(img1, img2):
-    img = Image.open(img1).convert("RGBA")
-    mask = Image.new("L", img.size, 0)
-    draw = ImageDraw.Draw(mask)
-    draw.rectangle(((100, 80), (520, 350)), fill=185)
-
-    x,y = img.size
-    img2 = Image.open(img2).convert("RGBA").resize((x,y))
-
-    img3 = Image.composite(img2, img, mask=mask)
-    img3.show()
-
 ***REMOVED***
-    ***REMOVED*** add_text_to_image("resources/JiChuSuCai/BeiJing/1.jpg", r'中文阿斯asdsad顿萨杜萨的', save_image=True)
+    add_text_to_image("resources/JiChuSuCai/BeiJing/太空.jpg", r'中文阿斯asdsad顿萨杜萨的', save_image=False)
     ***REMOVED*** zoom_in_out_image("resources/JiChuSuCai/BeiJing/1.jpg", (0.5, 0.5), 0.9)
     ***REMOVED*** test("resources/JiChuSuCai/BeiJing/1.jpg", "resources/SuCai/watermark.gif")
     ***REMOVED*** get_frames_from_gif("resources/SuCai/watermark.gif")
-    merge_two_image("resources/JiChuSuCai/BeiJing/1.jpg", "output/watermark.gif/0.png", size=(100, 100), pos=(100, 20), rotate=45)
+    ***REMOVED*** merge_two_image("resources/JiChuSuCai/BeiJing/1.jpg", "output/watermark.gif/0.png", size=(100, 100), pos=(100, 20), rotate=45)
     pass
