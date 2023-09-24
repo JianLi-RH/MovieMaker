@@ -4,11 +4,20 @@
 sys.path.append('../')
 ***REMOVED***
 
+from fonts.ttf import AmaticSC
 from moviepy.editor import *
 from moviepy.video.tools.subtitles import SubtitlesClip
+from PIL import ImageFont
 
-import config_reader
-import utils
+try:
+    import config_reader
+except ImportError:
+    from MovieMaker import config_reader
+
+try:
+    import utils
+except ImportError:
+    from MovieMaker import utils
 
 try:
     from libs import ImageHelper, SuCaiHelper
@@ -46,7 +55,7 @@ def __get_images_when_zoom_in_out_camera(origin_image_path, center, from_ratio, 
         Instance of video.
     """
 
-    total = duration * int(config["fps"])
+    total = duration * int(config_reader.fps)
     images = []
     for i in range(0, total):
         if from_ratio > to_ratio:
@@ -90,12 +99,9 @@ def add_subtitile(video, text, time_span):
     Return:
         A new video clip.
     """
-    if isinstance(video, str):
-        clip= VideoFileClip(video)
-    else:
-        clip = video
+    clip = __get_video_clip(video)
 
-    generator = lambda txt: TextClip(txt, font=config["font"], fontsize=24, color='white')
+    generator = lambda txt: TextClip(txt, font='lohit-odia', size=(config_reader.g_width, config_reader.g_height), fontsize=24, color='white')
 
     subs = [(time_span, text)]
     ***REMOVED*** subs = [((0, 4), 'subs1'),
@@ -288,9 +294,7 @@ def zoom_in_out_camera(origin_image_path, center, from_ratio, to_ratio, duration
     ***REMOVED*** create_video_clip_from_images(images, "10秒").write_videofile("images.mp4")
     ***REMOVED*** concatenate_videos("test.mp4", "29.mp4").write_videofile("my_concatenation.mp4")
 
-    add_watermark("output/final.mp4", "resources/SuCai/watermark.gif").write_videofile("output/gif.mp4")
-    ***REMOVED*** text = """Thanks for your answers."""
-    ***REMOVED*** add_subtitile("output/images1.mp4", text, (0, 5)).write_videofile("output/images2.mp4")
+    ***REMOVED*** add_watermark("output/final.mp4", "resources/SuCai/watermark.gif").write_videofile("output/gif.mp4")
 
     ***REMOVED*** insert_image_to_video("output/test1.mp4", "resources/JiChuSuCai/JiaoTongGongJu/MoTuoChe/1.png", (0.2, 0.5), 1, [80, 60]).write_videofile("output/images2.mp4")
 

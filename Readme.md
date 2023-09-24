@@ -14,6 +14,19 @@ infos = error.decode("utf-8", errors="ignore")
 
 
 查找已安装的字体：
+***REMOVED*** 系统字体路径： /usr/share/fonts/truetype/'
+***REMOVED*** https://github.com/fonttools/fonttools
+***REMOVED*** pip install --user fonttools
+>>> from moviepy.editor import *
+>>> TextClip.list('font')
+[]
+>>> TextClip.list('color')
+
+pip install fonts
+pip install font-amatic-sc
+pip install font-fredoka-one
+
+
 convert -debug configure -list font 2>&1 | grep -E "Searching|Loading"
 
 find fonts/Roboto -type f -name '*.ttf' | imagick_type_gen -f - > /home/jianl/.config/ImageMagick/type-myfonts.xml
@@ -24,7 +37,7 @@ https://github.com/Zulko/moviepy/blob/master/Dockerfile
 
 
 文字转语音： https://voicemaker.in/
-
+合并图片： https://www.media.io/image-converter/merge-png.html
 
 
 例子：
