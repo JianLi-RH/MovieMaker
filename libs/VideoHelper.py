@@ -4,10 +4,8 @@ import sys
 sys.path.append('../')
 import os
 
-from fonts.ttf import AmaticSC
 from moviepy.editor import *
 from moviepy.video.tools.subtitles import SubtitlesClip
-from PIL import ImageFont
 
 try:
     import config_reader
