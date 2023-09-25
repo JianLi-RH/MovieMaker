@@ -146,7 +146,12 @@ def add_audio_to_video(video, audio_file):
     v_du = v.duration
     if a_du > v_du:
         audioclip = audioclip.subclip(0, v_du)
-    return v.set_audio(audioclip)
+
+    audios = [audioclip]
+    if v.audio:
+        audios.append(v.audio)
+    new_audioclip = CompositeAudioClip(audios)
+    return v.set_audio(new_audioclip)
 
 def create_video_clip_from_images(images, duration, size=None, fps=None):
     """
