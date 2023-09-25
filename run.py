@@ -25,6 +25,9 @@ def run(output, scenario=None):
                 if video:
                     videos.append(video)
 
+            if scenario.bgm:
+                video = VideoHelper.add_audio_to_video(video, scenario.bgm)
+
         if videos:
             VideoHelper.concatenate_videos(*videos).write_videofile(os.path.join(config_reader.output_dir, output))
     pass
@@ -49,3 +52,4 @@ def main(argv):
     ***REMOVED*** python run.py -o "final.mp4"
     ***REMOVED*** python run.py -o "final.mp4" -s '场景1'
     main(sys.argv[1:])
+    ***REMOVED*** run("final.mp4", '场景1')
