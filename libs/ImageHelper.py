@@ -9,14 +9,14 @@ import config_reader
 import utils
 
 
-def add_text_to_image(image, text, save_image = False):
+def add_text_to_image(image, text, overwrite_image = False):
     """
     Add text to image
 
     Params:
         image: image file path.
         text: a text string
-
+        overwrite_image: 是否覆盖原图
     Return:
         return image
     """
@@ -27,10 +27,8 @@ def add_text_to_image(image, text, save_image = False):
     x, y = i.size
     m.text((x/2 - len(text) * 10, y-50), text, (255,255,255), align="center", font=mf)
 
-    if save_image:
-        ***REMOVED*** Save the image on which we have added the text
-        file_name = os.path.basename(image)
-        i.save(os.path.join(config_reader.output_dir, file_name))
+    if overwrite_image:
+        i.save(image)
     else:
         ***REMOVED*** Display edited image on which we have added the text
         i.show()
@@ -114,6 +112,18 @@ def merge_two_image(big_image, small_image, size, pos, rotate=None, overwrite=Fa
             new_path = os.path.join(os.path.dirname(big_image), "tmp_"+os.path.basename(big_image))
             img1.save(new_path)
             return new_path
+
+def create_text_png(text, size=None, font = None):
+    """
+    根据文字创建一个png图片
+    """
+    size = size if size else (config_reader.g_width, 120)
+    im = Image.new(mode='RGBA', size=size)
+    draw_table = ImageDraw.Draw(im=im)
+    font = font if font else 'fonts/QingNiaoHuaGuangJianMeiHei/QingNiaoHuaGuangJianMeiHei-2.ttf'
+    draw_table.text(xy=(0,0), text=text, fill='***REMOVED***008B8B', font=ImageFont.truetype(font=font, size=50))
+    im.show()
+
 
 ***REMOVED***
     add_text_to_image("resources/JiChuSuCai/BeiJing/太空.jpg", r'中文阿斯asdsad顿萨杜萨的', save_image=False)

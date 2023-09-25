@@ -1,6 +1,8 @@
 """
 这个类用来解析script.yaml中的`活动:`
 """
+import math
+
 import yaml
 
 import config_reader
@@ -112,31 +114,23 @@ class Activity:
                     for i in range(0, len(images)):
                         images[i] = ImageHelper.merge_two_image(images[i], char.image, char.size, char.pos, overwrite=True)
 
-        ***REMOVED*** char_in_actions = [a.char.name for a in self.actions if a.char]
+        if self.subtitle:
+            ***REMOVED*** 添加字幕
+            for sb in self.subtitle:
+                start = utils.get_time(sb[0]) if sb[0] else 0
+                start_num = int(start/self.timespan*len(images))
+                end = utils.get_time(sb[1]) if sb[1] else self.timespan
+                end_number = math.ceil(end/self.timespan*len(images))
 
-        ***REMOVED*** ***REMOVED*** 先在背景图片上显示非action的角色 （这样的好处是焦点变换时，这些角色会移动）
-        ***REMOVED*** for char in self.scenario.chars:
-        ***REMOVED***     if not char.name in char_in_actions:
-        ***REMOVED***         if char.display:
-        ***REMOVED***             for i in range(0, len(images)): ***REMOVED*** 第一张图片存在问题
-        ***REMOVED***                 images[i] = ImageHelper.merge_two_image(images[i], char.image, char.size, char.pos, overwrite=True)
-
-        ***REMOVED*** for action in self.actions:
-        ***REMOVED***     ***REMOVED*** 注意：一个活动（activity）中不能有两个`镜头`动作（action）
-        ***REMOVED***     if action.char and action.char.name != "消失":
-        ***REMOVED***         action.char.display = True
-        ***REMOVED***     images = action.to_video(images)
+                for i in range(start_num, end_number):
+                    ImageHelper.add_text_to_image(images[i], sb[2], overwrite_image=True)
 
         ***REMOVED*** 先把图片转换成视频
         video = VideoHelper.create_video_clip_from_images(images, self.timespan)
         if self.bgm:
             video = VideoHelper.add_audio_to_video(video, self.bgm)
 
-        if self.subtitle:
-            pass
-
         return video
-        pass
 
 ***REMOVED***
     with open('script.yaml', 'r') as file:
