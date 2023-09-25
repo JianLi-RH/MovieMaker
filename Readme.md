@@ -71,6 +71,8 @@ https://github.com/Zulko/moviepy/blob/master/Dockerfile
         描述: 镜头拉近
         背景音乐: resources/ShengYin/打招呼.mp3
         字幕: 
+          - [0,1, '你好啊']
+          - [1,'', '我是沙雕']
         持续时间: 2秒
         动作:
           -
