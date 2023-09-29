@@ -126,7 +126,7 @@ def get_video_section(file_path, start, end):
     else:
         raise Exception(f"Could not find video file on {file_path***REMOVED***")
 
-def add_audio_to_video(video, audio_file):
+def add_audio_to_video(video, audio_file, start=None):
     """
     Add audio to a video
 
@@ -147,29 +147,28 @@ def add_audio_to_video(video, audio_file):
     if a_du > v_du:
         audioclip = audioclip.subclip(0, v_du)
 
-    audios = [audioclip]
+    start = start if start else 0
+    audios = [audioclip.set_start(start)]
     if v.audio:
         audios.append(v.audio)
     new_audioclip = CompositeAudioClip(audios)
     return v.set_audio(new_audioclip)
 
-def create_video_clip_from_images(images, duration, size=None, fps=None):
+def create_video_clip_from_images(images, duration, fps=None):
     """
     Create a video clip from images
 
     Params:
         images: a list of image file path.
         duration: the video length, like 5秒, 1分10秒
-        size: the video size, like (200, 500)
     Return:
         Instance of VideoClip.
     """
-    if not fps:
-        fps = int(config_reader.fps)
-
-    time_length = utils.get_time(duration)
-
-    clips = [ImageClip(m).set_fps(fps).set_duration(time_length/len(images)) for m in images]
+    fps = fps if fps else int(config_reader.fps)
+    clips = []
+    for i in range(0, len(images), 1000):
+        print(f"正在使用第{i*1000***REMOVED*** 到 {i + 1000 - 1***REMOVED***个图片生成视频...")
+        clips.append(ImageSequenceClip(images[i : i + 1000 - 1], fps))
     concat_clip = concatenate_videoclips(clips, method="compose")
     return concat_clip
 
@@ -303,4 +302,5 @@ def zoom_in_out_camera(origin_image_path, center, from_ratio, to_ratio, duration
 
     ***REMOVED*** add_audio_to_video("29.mp4", "JiChuSuCai/ShengYin/1.王琪 - 可可托海的牧羊人.mp3", start=30, end=37).write_videofile("test1.mp4")
     ***REMOVED*** composite_videos("test1.mp4", "29.mp4", sub_video_position="center", sub_video_size=(350, 350)).write_videofile("my_concatenation.mp4")
+
     pass

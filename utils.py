@@ -1,7 +1,11 @@
-
+***REMOVED***.10
 import numbers
+import re
+
+from moviepy.editor import *
 
 import config_reader
+from xunfei_tts import *
 
 
 def get_time(script_time):
@@ -14,6 +18,8 @@ def get_time(script_time):
     Return:
         以秒为单位的时间
     """
+    if not script_time:
+        return 0
     if isinstance(script_time, numbers.Number):
         return script_time
 
@@ -67,3 +73,63 @@ def covert_pos(pos):
         y_center = config_reader.g_height * y_center
 
     return (int(x_center), int(y_center))
+
+def get_audio_length(audio):
+    """获取声音长度，单位秒
+
+    Params:
+        audio: 声音文件或AudioFileClip实例
+    Return:
+        声音长度，单位秒
+    """
+    if isinstance(audio, str):
+        return AudioFileClip(audio).duration
+    else:
+        return audio.duration
+
+def covert_text_to_sound(text, output, output_folder):
+    """
+    将文字转换成语音
+
+    Params:
+        text: 文字
+        output: 输出的语音文件
+        output_folder: mp3存放路径
+    Return:
+        语音文件路径
+    """
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+                    output_folder=output_folder,
+                    vcn="鸣泽")
+***REMOVED***
+***REMOVED***
+***REMOVED***on_message=wsParam.on_message, on_error=wsParam.on_error, on_close=wsParam.on_close)
+***REMOVED***
+    ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE***REMOVED***)
+
+***REMOVED***
+
+def get_sub_title_list(file):
+    """根据文本文件生成字幕列表"""
+    with open(file, 'r') as f:
+        text = f.read().replace(' ', '')
+        lines = re.split(r"\,|\.|\?|\;|\!|\，|\。|\？|\！", text)
+
+    basename = os.path.basename(file)
+    new_lines = []
+    for i in range(0, len(lines)):
+        if lines[i].strip():
+            sound = covert_text_to_sound(lines[i].strip(), f"{i***REMOVED***.mp3", basename)
+            new_lines.append(f"- ['', '', '{lines[i].strip()***REMOVED***', '{sound***REMOVED***']\n")
+
+    new_path = os.path.join(os.path.dirname(file), os.path.basename(file).split('.')[0]+"_sound.txt")
+    with open(new_path, 'w') as fn:
+        fn.writelines(new_lines)
+
+***REMOVED***
+    ***REMOVED*** get_sub_title_list("tmp/养生论.txt")
+    pass

@@ -22,7 +22,7 @@ def add_text_to_image(image, text, overwrite_image = False):
     """
     i = Image.open(image)
     m = ImageDraw.Draw(i)
-    mf = ImageFont.truetype(config_reader.font, 25)
+    mf = ImageFont.truetype(config_reader.font, config_reader.font_size)
     ***REMOVED*** Add Text to an image
     x, y = i.size
     m.text((x/2 - len(text) * 10, y-50), text, (255,255,255), align="center", font=mf)
@@ -80,6 +80,15 @@ def get_frames_from_gif(gif):
             frame.save(tmp_path)
             frames.append(tmp_path)
     return frames
+
+def resize_images(images):
+    """重新设置图片尺寸
+
+    Params:
+        images: 一组图片
+    """
+    for img in images:
+        Image.open(img).resize((config_reader.g_width, config_reader.g_height)).save(img)
 
 def merge_two_image(big_image, small_image, size, pos, rotate=None, overwrite=False):
     """将小图片粘贴到大图片上

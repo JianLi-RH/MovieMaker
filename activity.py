@@ -1,7 +1,9 @@
 """
 这个类用来解析script.yaml中的`活动:`
 """
-import math
+import queue
+import threading
+from concurrent.futures import ThreadPoolExecutor
 
 import yaml
 
@@ -10,6 +12,17 @@ import utils
 from action import *
 from libs import SuCaiHelper
 
+sem=threading.Semaphore(10)
+q = queue.Queue(10)
+def worker():
+    with sem:
+        while True:
+            text, images = q.get()
+            if text:
+                print("生成字幕：", text)
+                for img in images:
+                    ImageHelper.add_text_to_image(img, text, overwrite_image=True)
+            q.task_done()
 
 class Activity:
     """The Activity(活动) class"""
@@ -28,22 +41,23 @@ class Activity:
         background_image = self.scenario.background_image ***REMOVED*** 已经resize之后的图片
         if background_image.lower().endswith(".gif"):
             bg_frames = ImageHelper.get_frames_from_gif(background_image)
+            ImageHelper.resize_images(bg_frames)
+            l = len(bg_frames)
+            ext = bg_frames[0].split('.')[-1]
 
             for i in range(0, self.total_frame):
-                index = i % len(bg_frames)
-                ext = bg_frames[index].split('.')[-1]
+                index = i % l
                 new_path = os.path.join(path, f"{i***REMOVED***.{ext***REMOVED***")
                 shutil.copy(bg_frames[index], new_path)
-                Image.open(new_path).resize((config_reader.g_width, config_reader.g_height)).save(new_path)
                 images.append(new_path)
         else:
             ext = background_image.split('.')[-1]
             for i in range(0, self.total_frame):
                 new_path = os.path.join(path, f"{i***REMOVED***.{ext***REMOVED***")
                 shutil.copy(background_image, new_path)
-                Image.open(new_path).save(new_path)
                 images.append(new_path)
 
+        print("准备背景图片结束，共计", self.total_frame, "张图片")
         return images
 
     def __get_display_list(self):
@@ -65,8 +79,27 @@ class Activity:
             if not char.name in char_in_actions:
                 display_list.append({"index": char.index, "char": char***REMOVED***)
 
-        display_list.sort(key=lambda x: x.get("index", 0))
+        if display_list:
+            display_list.sort(key=lambda x: x.get("index", 0))
         return display_list
+
+    def __get_timespan(self, obj):
+***REMOVED***获取活动总时间，单位秒
+
+        Pramas:
+            obj: 活动对象的yaml
+        Return:
+            活动总时长。单位秒
+***REMOVED***
+        keep = utils.get_time(obj.get("持续时间", None))
+        bgm_length = AudioFileClip(self.bgm).duration if self.bgm else 0
+
+        subtitle_length = 0.0
+        for sb in self.subtitle:
+            if len(sb) > 3:
+                subtitle_length += AudioFileClip(sb[3]).duration
+
+        return max([keep, bgm_length, subtitle_length])
 
     def __init__(self, scenario, obj):
 ***REMOVED***
@@ -78,19 +111,15 @@ class Activity:
 ***REMOVED***
         self.scenario = scenario
         self.bgm = SuCaiHelper.get_shengyin(obj.get("背景音乐", None))
-
-        if obj.get("持续时间", None):
-            self.timespan = utils.get_time(obj.get("持续时间"))   ***REMOVED*** 单位：秒
-        else:
-            self.timespan = AudioFileClip(self.bgm).duration
-
-        self.total_frame = int(self.timespan * config_reader.fps)   ***REMOVED*** 根据当前活动的总时长，得到当前活动所需的视频帧数
         self.name = obj.get("名字")
         self.description = obj.get("描述", "")
         self.subtitle = obj.get("字幕", None)
         self.actions = []
-        for action in obj["动作"]:
-            self.actions.append(Action(self, action, self.timespan))
+        self.timespan = self.__get_timespan(obj)
+        self.total_frame = int(self.timespan * config_reader.fps)   ***REMOVED*** 根据当前活动的总时长，得到当前活动所需的视频帧数
+        if obj["动作"]:
+            for action in obj["动作"]:
+                self.actions.append(Action(self, action, self.timespan))
 
     def to_video(self):
 ***REMOVED***
@@ -107,28 +136,64 @@ class Activity:
                 ***REMOVED*** 注意：一个活动（activity）中不能有两个`镜头`动作（action）
                 if display["action"].char and display["action"].char.name != "消失":
                     display["action"].char.display = True
+                print("生成动作图片， 动作：", display["action"].obj.get("名称"))
                 images = display["action"].to_video(images)
             if 'char' in display:
                 if display["char"].display:
                     char = display["char"]
+                    print("生成juese图片， 角色：", char.name)
                     for i in range(0, len(images)):
                         images[i] = ImageHelper.merge_two_image(images[i], char.image, char.size, char.pos, overwrite=True)
 
         if self.subtitle:
             ***REMOVED*** 添加字幕
-            for sb in self.subtitle:
-                start = utils.get_time(sb[0]) if sb[0] else 0
-                start_num = int(start/self.timespan*len(images))
-                end = utils.get_time(sb[1]) if sb[1] else self.timespan
-                end_number = math.ceil(end/self.timespan*len(images))
+            previous_end = 0
+            for i in range(0, len(self.subtitle)):
+                threading.Thread(target=worker).start()
 
-                for i in range(start_num, end_number):
-                    ImageHelper.add_text_to_image(images[i], sb[2], overwrite_image=True)
+            for i in range(0, len(self.subtitle)):
+                if self.subtitle[i][0]:
+                    start = utils.get_time(self.subtitle[i][0])
+    ***REMOVED***
+                    if previous_end > 0:
+                        start = previous_end
+        ***REMOVED***
+                        start = 0
+                self.subtitle[i][0] = start
+                start_num = int(start/self.timespan*len(images))
+
+                if self.subtitle[i][1]:
+                    end = utils.get_time(self.subtitle[i][1])
+    ***REMOVED***
+                    if len(self.subtitle[i]) > 3:
+                        end = start + utils.get_audio_length(self.subtitle[i][3])
+        ***REMOVED***
+                        ***REMOVED*** 只有最后一个字幕才可以同时没有结束时间与声音文件
+                        end = self.timespan
+                self.subtitle[i][1] = end
+                previous_end = end
+                ***REMOVED*** end_number = math.ceil(end/self.timespan * len(images))
+                end_number = int(end/self.timespan * len(images))
+
+                ***REMOVED*** 创建新线程
+                tmp_images = images[start_num : end_number]
+                q.put((self.subtitle[i][2], tmp_images))
+
+        ***REMOVED*** 等待所有线程完成
+        q.join()
 
         ***REMOVED*** 先把图片转换成视频
         video = VideoHelper.create_video_clip_from_images(images, self.timespan)
         if self.bgm:
+    ***REMOVED***添加活动背景音乐"""
+            print("添加背景音乐：", self.bgm)
             video = VideoHelper.add_audio_to_video(video, self.bgm)
+        if self.subtitle:
+            ***REMOVED*** 添加字幕声音
+            for sb in self.subtitle:
+                if len(sb) > 3:
+                    print("添加字幕语音: ", sb[2])
+                    video = VideoHelper.add_audio_to_video(video, sb[3], start=sb[0])
 
         return video
 

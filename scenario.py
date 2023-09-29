@@ -35,8 +35,10 @@ class Scenario:
         self.bgm = SuCaiHelper.get_shengyin(obj.get("背景音乐", None))
 
         self.chars = []
-        for c in obj.get("角色", None):
-            self.chars.append(character.Character(c))
+        chars = obj.get("角色", None)
+        if chars:
+            for c in obj.get("角色", None):
+                self.chars.append(character.Character(c))
 
         self.activitys = []
         for a in obj.get("活动", None):

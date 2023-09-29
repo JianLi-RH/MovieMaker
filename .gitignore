@@ -5,6 +5,7 @@ __pycache__/
 
 ***REMOVED*** MovieMaker
 output/
+tmp/
 
 ***REMOVED*** C extensions
 *.so
