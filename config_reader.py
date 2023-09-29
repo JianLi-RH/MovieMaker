@@ -12,4 +12,5 @@ output_dir = config["output_dir"]
 sucai_dir = config["sucai_dir"]
 round_per_second = config["round_per_second"]
 font = config["font"]
+font_size = int(config["font_size"])
 system_font_dir = config["system_font_dir"]

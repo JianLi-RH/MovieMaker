@@ -1,7 +1,6 @@
 #!/usr/bin/python3.10
 import getopt
 import os
-import sys
 
 import yaml
 
