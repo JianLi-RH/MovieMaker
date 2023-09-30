@@ -9,7 +9,7 @@ import config_reader
 import utils
 
 
-def add_text_to_image(image, text, overwrite_image = False):
+def add_text_to_image(image, text, overwrite_image = False, mode='normal', text_list=None):
     """
     Add text to image
 
@@ -17,6 +17,8 @@ def add_text_to_image(image, text, overwrite_image = False):
         image: image file path.
         text: a text string
         overwrite_image: 是否覆盖原图
+        mode: 文字显示方式，
+            normal: 图片底部显示
     Return:
         return image
     """
@@ -25,7 +27,16 @@ def add_text_to_image(image, text, overwrite_image = False):
     mf = ImageFont.truetype(config_reader.font, config_reader.font_size)
     ***REMOVED*** Add Text to an image
     x, y = i.size
-    m.text((x/2 - len(text) * 10, y-50), text, (255,255,255), align="center", font=mf)
+    if mode == 'normal' or mode == 'bottom':
+        x= x/2 - len(text) * config_reader.font_size / 2
+        y = y - config_reader.font_size - 20
+    elif mode == 'top':
+        x= x/2 - len(text) * config_reader.font_size / 2
+        y = config_reader.font_size + 20
+    elif mode == 'middle':
+        x= x/2 - len(text) * config_reader.font_size / 2
+        y = (y - config_reader.font_size) / 2
+    m.text((x, y), text, (255,255,255), align="center", font=mf)
 
     if overwrite_image:
         i.save(image)

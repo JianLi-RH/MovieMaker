@@ -53,7 +53,7 @@ def __get_images_when_zoom_in_out_camera(origin_image_path, center, from_ratio, 
         Instance of video.
     """
 
-    total = duration * int(config_reader.fps)
+    total = duration * config_reader.fps
     images = []
     for i in range(0, total):
         if from_ratio > to_ratio:
@@ -102,8 +102,6 @@ def add_subtitile(video, text, time_span):
     generator = lambda txt: TextClip(txt, font='lohit-odia', size=(config_reader.g_width, config_reader.g_height), fontsize=24, color='white')
 
     subs = [(time_span, text)]
-    ***REMOVED*** subs = [((0, 4), 'subs1'),
-    ***REMOVED***     ((4, 9), 'subs2')]
     subtitles = SubtitlesClip(subs, generator)
     result = CompositeVideoClip([clip, subtitles.set_pos(('center','bottom'))])
     result.fps = clip.fps
@@ -154,17 +152,16 @@ def add_audio_to_video(video, audio_file, start=None):
     new_audioclip = CompositeAudioClip(audios)
     return v.set_audio(new_audioclip)
 
-def create_video_clip_from_images(images, duration, fps=None):
+def create_video_clip_from_images(images, fps=None):
     """
     Create a video clip from images
 
     Params:
         images: a list of image file path.
-        duration: the video length, like 5秒, 1分10秒
     Return:
         Instance of VideoClip.
     """
-    fps = fps if fps else int(config_reader.fps)
+    fps = fps if fps else config_reader.fps
     clips = []
     for i in range(0, len(images), 1000):
         print(f"正在使用第{i*1000***REMOVED*** 到 {i + 1000 - 1***REMOVED***个图片生成视频...")
