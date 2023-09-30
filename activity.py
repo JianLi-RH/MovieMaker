@@ -18,11 +18,11 @@ q = queue.Queue(10)
 def worker():
     with sem:
         while True:
-            text, images, subtitle_mode = q.get()
+            text, images, subtitle_mode, text_list = q.get()
             if text:
                 print("生成字幕：", text)
                 for img in images:
-                    ImageHelper.add_text_to_image(img, text, overwrite_image=True, mode=subtitle_mode)
+                    ImageHelper.add_text_to_image(img, text, overwrite_image=True, mode=subtitle_mode, text_list=text_list)
             q.task_done()
 
 class Activity:
@@ -184,7 +184,9 @@ class Activity:
 
                 ***REMOVED*** 创建新线程
                 tmp_images = images[start_num : end_number]
-                q.put((self.subtitle[i][2], tmp_images, self.subtitle_mode))
+
+                text_list = [x[2] for x in self.subtitle[0 if i < 2 else i - 2 : i + 3]]    ***REMOVED*** 最多显示5行文字
+                q.put((self.subtitle[i][2], tmp_images, self.subtitle_mode, text_list))
 
         ***REMOVED*** 等待所有线程完成
         q.join()

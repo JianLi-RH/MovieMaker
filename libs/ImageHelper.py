@@ -4,6 +4,7 @@
 sys.path.append('../')
 
 from PIL import Image, ImageDraw, ImageFont, ImageSequence
+Image.MAX_IMAGE_PIXELS = None
 
 import config_reader
 import utils
@@ -19,30 +20,53 @@ def add_text_to_image(image, text, overwrite_image = False, mode='normal', text_
         overwrite_image: 是否覆盖原图
         mode: 文字显示方式，
             normal: 图片底部显示
+        text_list:
+            当mode是list的时候，需要显示一组字幕，最多显示5行文字
     Return:
         return image
     """
-    i = Image.open(image)
-    m = ImageDraw.Draw(i)
-    mf = ImageFont.truetype(config_reader.font, config_reader.font_size)
+    font_size = config_reader.font_size
+    im = Image.open(image)
+    m = ImageDraw.Draw(im)
     ***REMOVED*** Add Text to an image
-    x, y = i.size
+    x, y = im.size
     if mode == 'normal' or mode == 'bottom':
-        x= x/2 - len(text) * config_reader.font_size / 2
-        y = y - config_reader.font_size - 20
+        x = x/2 - len(text) * font_size / 2
+        y = y - font_size - 20
     elif mode == 'top':
-        x= x/2 - len(text) * config_reader.font_size / 2
-        y = config_reader.font_size + 20
+        x = x/2 - len(text) * font_size / 2
+        y = font_size + 20
     elif mode == 'middle':
-        x= x/2 - len(text) * config_reader.font_size / 2
-        y = (y - config_reader.font_size) / 2
-    m.text((x, y), text, (255,255,255), align="center", font=mf)
+        x = x/2 - len(text) * font_size / 2
+        y = (y - font_size) / 2
+
+    if mode == 'list':
+        height = (font_size + 20) * len(text_list)    ***REMOVED*** 20是行间距
+        start_y = (y - height + 20) / 2
+
+        for i in range(0, len(text_list)):
+            if text_list[i] != text:
+                tmp_font_size = font_size - 20 if font_size > 50 else font_size
+                color =(255,255,255)
+***REMOVED***
+                tmp_font_size = font_size
+                color =(255,0,0)
+            tmp_x = (x - len(text_list[i]) * tmp_font_size) / 2
+            if i != 0:
+                ***REMOVED*** 这行代码必须放在mf前面
+                start_y = start_y + mf.size + 20
+
+            mf = ImageFont.truetype(config_reader.font, tmp_font_size)
+            m.text((tmp_x, start_y), text_list[i], color, align="center", font=mf)
+    else:
+        mf = ImageFont.truetype(config_reader.font, font_size)
+        m.text((x, y), text, (255,255,255), align="center", font=mf)
 
     if overwrite_image:
-        i.save(image)
+        im.save(image)
     else:
         ***REMOVED*** Display edited image on which we have added the text
-        i.show()
+        im.show()
 
 def zoom_in_out_image(origin_image_path, center, ratio, new_path=None):
     """
