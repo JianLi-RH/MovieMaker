@@ -1,6 +1,7 @@
 #!/usr/bin/python3.10
 import getopt
 import os
+import sys
 
 import yaml
 
@@ -10,6 +11,12 @@ from scenario import Scenario
 
 
 def run(output, scenario=None):
+    """创建视频
+
+    Params:
+        output: 输出的视频文件名
+        scenario: 需要创建视频的场景，没指定的话将对整个script.yaml进行生成
+    """
     with open('script.yaml', 'r') as file:
         script = yaml.safe_load(file)
 
@@ -50,5 +57,8 @@ def main(argv):
 if __name__ == "__main__":
     # python run.py -o "final.mp4"
     # python run.py -o "final.mp4" -s '场景1'
-    main(sys.argv[1:])
-    # run("final.mp4", '场景1')
+    # main(sys.argv[1:])
+    import datetime
+    print(datetime.datetime.now())
+    run("final.mp4", '场景1')
+    print(datetime.datetime.now())
