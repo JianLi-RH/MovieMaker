@@ -96,6 +96,9 @@ class Activity:
         bgm_length = AudioFileClip(self.bgm).duration if self.bgm else 0
 
         subtitle_length = 0.0
+        if isinstance(self.subtitle, str):
+            ***REMOVED*** 处理字幕文件
+            self.subtitle = utils.get_sub_title_list(self.subtitle)
         for sb in self.subtitle:
             if len(sb) > 3:
                 subtitle_length += AudioFileClip(sb[3]).duration
@@ -119,7 +122,7 @@ class Activity:
         self.actions = []
         self.timespan = self.__get_timespan(obj)
         self.fps = int(obj.get("fps", None)) if obj.get("fps", None) else config_reader.fps
-        self.total_frame = int(self.timespan * self.fps)   ***REMOVED*** 根据当前活动的总时长，得到当前活动所需的视频帧数
+        self.total_frame = math.ceil(self.timespan * self.fps)   ***REMOVED*** 根据当前活动的总时长，得到当前活动所需的视频帧数
         if obj["动作"]:
             for action in obj["动作"]:
                 self.actions.append(Action(self, action, self.timespan))
