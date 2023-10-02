@@ -5,38 +5,24 @@ Prerequests:
 https://imagemagick.org/script/download.php
 https://imagemagick.org/script/install-source.php
 https://crotoc.github.io/2018/09/28/Install-customized-fonts-for-imagemagick/***REMOVED***Install-customized-fonts-for-imagemagick
-dnf install perl-FindBin
-
 
 imagemagick的bug:
 /home/jianl/.local/lib/python3.10/site-packages/moviepy/video/io/ffmpeg_reader.py ***REMOVED*** 259
 infos = error.decode("utf-8", errors="ignore")
 
 
-查找已安装的字体：
-***REMOVED*** 系统字体路径： /usr/share/fonts/truetype/'
-***REMOVED*** https://github.com/fonttools/fonttools
-***REMOVED*** pip install --user fonttools
->>> from moviepy.editor import *
->>> TextClip.list('font')
-[]
->>> TextClip.list('color')
-
-pip install fonts
-pip install font-amatic-sc
-pip install font-fredoka-one
-
-
-convert -debug configure -list font 2>&1 | grep -E "Searching|Loading"
-
-find fonts/Roboto -type f -name '*.ttf' | imagick_type_gen -f - > /home/jianl/.config/ImageMagick/type-myfonts.xml
-
 免费字体： https://www.fonts.net.cn/fonts-zh-1.html
+文字转语音： https://voicemaker.in/
 
 https://github.com/Zulko/moviepy/blob/master/Dockerfile
 
 
-文字转语音： https://voicemaker.in/
+在线生成图片：
+  https://www.doutub.com/picEdit  ***REMOVED*** 合成图片
+  https://www.aigei.com/bgremover ***REMOVED*** 背景变透明
+  https://www.remove.bg/zh/upload ***REMOVED*** 背景变透明
+  https://memes.tw/maker/painter/10274
+生成熊猫举牌：http://c.tianhezulin.com/cx3/2825/
 合并图片： https://www.media.io/image-converter/merge-png.html
 
 
@@ -56,7 +42,7 @@ https://github.com/Zulko/moviepy/blob/master/Dockerfile
         名字: "1"
         描述: 人物出场
         背景音乐: resources/ShengYin/a.mp3
-        字幕: 
+        字幕: 字幕文件.txt
         持续时间: 3秒
         动作:
           -
