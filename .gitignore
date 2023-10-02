@@ -6,6 +6,7 @@ __pycache__/
 # MovieMaker
 output/
 tmp/
+resources/
 
 # C extensions
 *.so
