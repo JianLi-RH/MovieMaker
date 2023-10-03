@@ -21,8 +21,10 @@ def get_time(script_time):
     """
     if not script_time:
         return 0
-    if isinstance(script_time, numbers.Number):
-        return script_time
+    try:
+        return float(script_time)
+    except ValueError:
+        pass
 
     time_number = 0
     if "分" in script_time:
@@ -124,9 +126,15 @@ def get_sub_title_list(file):
     Return:
         能被MovieMaker识别的字幕列表
     """
-    with open(file, 'r') as f:
-        text = f.read()
-        lines = re.split(r"\,|\.|\?|\;|\!|\，|\。|\？|\！|\t|\n|\r|\s", text)
+
+    if os.path.exists(file):
+        ***REMOVED*** 处理字幕文件
+        with open(file, 'r') as f:
+            text = f.read()
+            lines = re.split(r"\,|\.|\?|\;|\!|\，|\。|\？|\！|\t|\n|\r|\s", text)
+    else:
+        ***REMOVED*** 以分号分隔的字幕字符串
+        lines = file.split(r'\;\s\,')
 
     basename = os.path.basename(file)
     new_lines = []

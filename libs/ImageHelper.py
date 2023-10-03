@@ -30,7 +30,7 @@ def add_text_to_image(image, text, overwrite_image = False, mode='normal', text_
     m = ImageDraw.Draw(im)
     ***REMOVED*** Add Text to an image
     x, y = im.size
-    if mode == 'normal' or mode == 'bottom':
+    if not mode or mode == 'normal' or mode == 'bottom':
         x = x/2 - len(text) * font_size / 2
         y = y - font_size - 20
     elif mode == 'top':

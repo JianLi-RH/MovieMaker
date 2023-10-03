@@ -171,15 +171,14 @@ class Activity:
             if 'char' in display:
                 if display["char"].display:
                     char = display["char"]
-                    print("生成juese图片， 角色：", char.name)
+                    print("生成角色图片， 角色：", char.name)
                     for i in range(0, len(images)):
                         images[i] = ImageHelper.merge_two_image(images[i], char.image, char.size, char.pos, overwrite=True)
 
         if self.subtitle:
             ***REMOVED*** 添加字幕
             previous_end = 0
-            for i in range(0, len(self.subtitle)):
-                threading.Thread(target=worker).start()
+            threading.Thread(target=worker).start()
 
             for i in range(0, len(self.subtitle)):
                 if self.subtitle[i][0]:
