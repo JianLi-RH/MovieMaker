@@ -69,6 +69,9 @@ class Activity:
             if a.obj.get("名称", None) == "镜头":
                 ***REMOVED*** 镜头相关动作会改变背景图片尺寸，但是不会改变角色位置，所以镜头需要最后进行渲染
                 display_list.append({"index": 999, "action": a***REMOVED***)
+            elif a.obj.get("名称", None) == "更新":
+                ***REMOVED*** 更新角色总是最早执行
+                display_list.append({"index": -999, "action": a***REMOVED***)
 ***REMOVED***
                 if a.char:
                     char_in_actions.append(a.char.name)
@@ -96,12 +99,13 @@ class Activity:
         bgm_length = AudioFileClip(self.bgm).duration if self.bgm else 0
 
         subtitle_length = 0.0
-        if isinstance(self.subtitle, str):
-            ***REMOVED*** 处理字幕文件
-            self.subtitle = utils.get_sub_title_list(self.subtitle)
-        for sb in self.subtitle:
-            if len(sb) > 3:
-                subtitle_length += AudioFileClip(sb[3]).duration
+        if self.subtitle:
+            if isinstance(self.subtitle, str):
+                ***REMOVED*** 处理字幕文件
+                self.subtitle = utils.get_sub_title_list(self.subtitle)
+            for sb in self.subtitle:
+                if len(sb) > 3 and sb[3]:
+                    subtitle_length += AudioFileClip(sb[3]).duration
 
         return max([keep, bgm_length, subtitle_length])
 
@@ -123,7 +127,7 @@ class Activity:
         self.timespan = self.__get_timespan(obj)
         self.fps = int(obj.get("fps", None)) if obj.get("fps", None) else config_reader.fps
         self.total_frame = math.ceil(self.timespan * self.fps)   ***REMOVED*** 根据当前活动的总时长，得到当前活动所需的视频帧数
-        if obj["动作"]:
+        if obj.get("动作", None):
             for action in obj["动作"]:
                 self.actions.append(Action(self, action, self.timespan))
 
@@ -140,6 +144,26 @@ class Activity:
         for display in display_list:
             if 'action' in display:
                 ***REMOVED*** 注意：一个活动（activity）中不能有两个`镜头`动作（action）
+                if display["action"].obj.get("名称", None) == "更新":
+                    new_char = display["action"].obj.get("角色", None)
+                    new_char_name = new_char.get("名字", None)
+                    for c in self.scenario.chars:
+                        if c.name == new_char_name:
+                            if new_char.get("素材", None):
+                                c.image = SuCaiHelper.get_sucai(new_char.get("素材"))
+                            if new_char.get("位置", None):
+                                c.pos = utils.covert_pos(new_char.get("位置", None))
+                            if new_char.get("大小", None):
+                                c.size = new_char.get("大小")
+                            if new_char.get("角度", None):
+                                c.rotate = new_char.get("角度")
+                            if new_char.get("显示", None):
+                                c.display = True if new_char.get("显示", None) == '是' else False
+                            if new_char.get("显示", None):
+                                c.index = new_char.get("图层", 0)
+                            break
+                    continue
+
                 if display["action"].char and display["action"].char.name != "消失":
                     display["action"].char.display = True
                 print("生成动作图片， 动作：", display["action"].obj.get("名称"))
@@ -171,7 +195,7 @@ class Activity:
                 if self.subtitle[i][1]:
                     end = utils.get_time(self.subtitle[i][1])
     ***REMOVED***
-                    if len(self.subtitle[i]) > 3:
+                    if len(self.subtitle[i]) > 3 and self.subtitle[i][3]:
                         end = start + utils.get_audio_length(self.subtitle[i][3])
         ***REMOVED***
                         ***REMOVED*** 只有最后一个字幕才可以同时没有结束时间与声音文件
@@ -202,11 +226,12 @@ class Activity:
             video = VideoHelper.add_audio_to_video(video, self.bgm)
         if self.subtitle:
             ***REMOVED*** 添加字幕声音
-            audio_list = [AudioFileClip(st[3]).set_start(st[0]) for st in self.subtitle if len(st) > 3]
-            fd, tmp_audio_path = tempfile.mkstemp(suffix=".mp3")
-            print(f"把声音组装起来保存到{tmp_audio_path***REMOVED***")
-            concatenate_audioclips(audio_list).write_audiofile(tmp_audio_path)
-            video = VideoHelper.add_audio_to_video(video, tmp_audio_path, start=self.subtitle[0][0])
+            audio_list = [AudioFileClip(st[3]).set_start(st[0]) for st in self.subtitle if len(st) > 3 and st[3]]
+            if audio_list:
+                fd, tmp_audio_path = tempfile.mkstemp(suffix=".mp3")
+                print(f"把声音组装起来保存到{tmp_audio_path***REMOVED***")
+                concatenate_audioclips(audio_list).write_audiofile(tmp_audio_path)
+                video = VideoHelper.add_audio_to_video(video, tmp_audio_path, start=self.subtitle[0][0])
 
         return video
 

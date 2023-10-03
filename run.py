@@ -10,14 +10,14 @@ from libs import VideoHelper
 from scenario import Scenario
 
 
-def run(output, scenario=None):
+def run(output, script='script.yaml', scenario=None):
     """创建视频
 
     Params:
         output: 输出的视频文件名
         scenario: 需要创建视频的场景，没指定的话将对整个script.yaml进行生成
     """
-    with open('script.yaml', 'r') as file:
+    with open(script, 'r') as file:
         script = yaml.safe_load(file)
 
         scenarios = script["场景"]
@@ -36,7 +36,7 @@ def run(output, scenario=None):
 
         if videos:
             VideoHelper.concatenate_videos(*videos).write_videofile(os.path.join(config_reader.output_dir, output))
-    pass
+    return 0
 
 def main(argv):
     """
@@ -53,12 +53,12 @@ def main(argv):
             output = currentValue.strip()
         if currentArgument in ("-s", "--scenario"):
             scenario = currentValue.strip()
-    run(output=output, scenario=scenario)
+    return run(output=output, scenario=scenario)
 ***REMOVED***
     ***REMOVED*** python run.py -o "final.mp4"
     ***REMOVED*** python run.py -o "final.mp4" -s '场景1'
     ***REMOVED*** main(sys.argv[1:])
     ***REMOVED***
     print(datetime.datetime.now())
-    run("final.mp4", '场景1')
+    run("武松.mp4", script='武松打虎.yaml')
     print(datetime.datetime.now())

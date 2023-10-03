@@ -197,7 +197,10 @@ class Action:
     def __init__(self, activity, obj, timespan):
         self.activity = activity
         self.obj = obj
-        self.char = self.__get_char(self.obj.get("角色", None))
+        if self.obj.get("名称", None) != '更新':
+            self.char = self.__get_char(self.obj.get("角色", None))
+        else:
+            self.char = None
         self.timespan = timespan
 
     def to_video(self, images):

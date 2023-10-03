@@ -136,15 +136,21 @@ def merge_two_image(big_image, small_image, size, pos, rotate=None, overwrite=Fa
     Return:
         返回新图片的地址
     """
-    img1 = Image.open(big_image).copy().convert('RGBA') ***REMOVED*** 防止覆盖原图
+    mode1 = 'RGBA' if big_image.endswith('.png') else 'RGB'
+    img1 = Image.open(big_image).copy().convert(mode1) ***REMOVED*** 防止覆盖原图
     img1 = img1.resize((config_reader.g_width, config_reader.g_height))
-    img2 = Image.open(small_image).resize(size).convert('RGBA')
+
+    mode2 = 'RGBA' if small_image.endswith('.png') else 'RGB'
+    img2 = Image.open(small_image).resize(size).convert(mode2)
     if rotate:
         img2 = img2.rotate(rotate, expand = 1)
 
     left, top = utils.covert_pos(pos)
 
-    img1.paste(img2, (left, top), img2)
+    if mode2 == 'RGBA':
+        img1.paste(img2, (left, top), img2)
+    else:
+        img1.paste(img2, (left, top))
     ***REMOVED*** img1.show()
     if overwrite:
         img1.save(big_image)
