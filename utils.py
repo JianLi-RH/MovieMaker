@@ -83,6 +83,8 @@ def get_audio_length(audio):
     Return:
         声音长度，单位秒
     """
+    if not audio:
+        return 0
     if isinstance(audio, str):
         return AudioFileClip(audio).duration
     else:
