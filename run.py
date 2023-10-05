@@ -60,9 +60,10 @@ def run(output, script='script.yaml', scenario=None):
             final_videos = []
             for f in final_videos_files:
                 final_videos.append(VideoFileClip(f))
-            VideoHelper.concatenate_videos(*final_videos).write_videofile(os.path.join(config_reader.output_dir, output))
+            final = VideoHelper.concatenate_videos(*final_videos)
             for f in final_videos_files:
                 os.remove(f)
+            final.write_videofile(os.path.join(config_reader.output_dir, output))
     return 0
 
 def main(argv):
@@ -89,6 +90,6 @@ def main(argv):
     ***REMOVED***
     print(datetime.datetime.now())
     ***REMOVED*** result = run("看到酒馆.mp4", script='武松打虎.yaml', scenario="看到酒馆")
-    result = run("武松.mp4", script='武松打虎.yaml')
+    result = run("酒馆里.mp4", script='武松打虎.yaml', scenario="酒馆里")
     print(datetime.datetime.now())
     sys.exit(result)
