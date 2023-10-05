@@ -14,6 +14,10 @@ infos = error.decode("utf-8", errors="ignore")
 免费字体： https://www.fonts.net.cn/fonts-zh-1.html
 文字转语音： https://voicemaker.in/
 
+其他素材下载：
+https://huaban.com/pins/4661349227/similar/materials
+https://www.cgjoy.com/thread-205265-1-1.html
+
 https://github.com/Zulko/moviepy/blob/master/Dockerfile
 
 

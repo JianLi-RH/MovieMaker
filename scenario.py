@@ -40,6 +40,6 @@ class Scenario:
             for c in obj.get("角色", None):
                 self.chars.append(character.Character(c))
 
-        self.activitys = []
+        self.activities = []
         for a in obj.get("活动", None):
-            self.activitys.append(activity.Activity(self, a))
+            self.activities.append(activity.Activity(self, a))

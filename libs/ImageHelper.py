@@ -60,7 +60,7 @@ def add_text_to_image(image, text, overwrite_image = False, mode='normal', text_
             m.text((tmp_x, start_y), text_list[i], color, align="center", font=mf)
     else:
         mf = ImageFont.truetype(config_reader.font, font_size)
-        m.text((x, y), text, (255,255,255), align="center", font=mf)
+        m.text((x, y), text, (0,0,0), align="center", font=mf)
 
     if overwrite_image:
         im.save(image)

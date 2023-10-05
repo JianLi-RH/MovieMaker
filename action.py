@@ -109,6 +109,8 @@ class Action:
         ***REMOVED*** 每一步在x,y方向的进度以及缩放比例
         step_x = (end_pos[0] - start_pos[0]) / self.activity.total_frame
         step_y = (end_pos[1] - start_pos[1]) / self.activity.total_frame
+        if not ratio[0]:
+            ratio[0] = self.char.size
         if isinstance(ratio[0], list): ***REMOVED*** [(100,120), (100,120) -- 具体像素
             step_ration_x = (ratio[1][0] - ratio[0][0]) / self.activity.total_frame
             step_ration_y = (ratio[1][1] - ratio[0][1]) / self.activity.total_frame
