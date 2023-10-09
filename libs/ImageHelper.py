@@ -2,8 +2,9 @@
 ***REMOVED***
 
 sys.path.append('../')
-
+from moviepy.editor import ImageSequenceClip
 from PIL import Image, ImageDraw, ImageFont, ImageSequence
+
 Image.MAX_IMAGE_PIXELS = None
 
 import config_reader
@@ -44,7 +45,8 @@ def add_text_to_image(image, text, overwrite_image = False, mode='normal', text_
         height = (font_size + 20) * len(text_list)    ***REMOVED*** 20是行间距
         start_y = (y - height + 20) / 2
 
-        for i in range(0, len(text_list)):
+        l = len(text_list)
+        for i in range(0, l):
             if text_list[i] != text:
                 tmp_font_size = font_size - 20 if font_size > 50 else font_size
                 color =(255,255,255)
@@ -103,7 +105,9 @@ def get_frames_from_gif(gif):
     Return:
         gif图片每一帧的存储路径
     """
-    output_path = os.path.join(config_reader.output_dir, os.path.basename(gif))
+    if not gif.lower().endswith(".gif"):
+        raise Exception(f"{gif***REMOVED*** is not a gif picture.")
+    output_path = os.path.join(config_reader.output_dir, os.path.basename(gif).lower().replace('.gif', ''))
     if not os.path.exists(output_path):
         os.mkdir(output_path)
     frames = []
@@ -163,6 +167,20 @@ def merge_two_image(big_image, small_image, size, pos, rotate=None, overwrite=Fa
             img1.save(new_path)
             return new_path
 
+def add_gif_to_images(images, gif, pos, size):
+    """将gif添加到一组图片上
+
+    Params:
+        images: 一组图片
+        gif: gif文件路径
+        size: 小图片的显示尺寸, 比如： (100, 120)
+        pos: 小图片的显示位置，比如： (300, 400)或者(0.4, 0.5)
+    """
+    frames = get_frames_from_gif(gif=gif)
+    l = len(images)
+    for i in range(0, l):
+        merge_two_image(images[i], frames[i % len(frames)], size=size, pos=pos, overwrite=True)
+
 def create_text_png(text, size=None, font = None):
     """
     根据文字创建一个png图片
@@ -174,6 +192,24 @@ def create_text_png(text, size=None, font = None):
     draw_table.text(xy=(0,0), text=text, fill='***REMOVED***008B8B', font=ImageFont.truetype(font=font, size=50))
     im.show()
 
+def create_gif(images, file_name = None):
+    """使用一组png图片生成一个gif图片
+    https://blog.51cto.com/tinkzy/6561120
+
+    Params:
+        images: 一组png图片
+    Return:
+        gif图片路径
+    """
+    file_name = file_name if file_name else f"{utils.get_random_str(8)***REMOVED***.gif"
+    gif = os.path.join(config_reader.output_dir, file_name)
+    img = Image.open(images[0])
+    gif_frames = [img]
+    for filename in images[1:]:
+        img = Image.open(filename)
+        gif_frames.append(img)
+    gif_frames[0].save(gif, save_all=True, append_images=gif_frames[1:], duration=len(images), loop=0)
+    return gif
 
 ***REMOVED***
     add_text_to_image("resources/JiChuSuCai/BeiJing/太空.jpg", r'中文阿斯asdsad顿萨杜萨的', save_image=False)

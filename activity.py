@@ -109,6 +109,20 @@ class Activity:
 
         return max([keep, bgm_length, subtitle_length])
 
+    def __get_char(self, char_name):
+***REMOVED***从全部角色对象中查找指定的角色
+
+***REMOVED***
+            char_name: 角色名
+        Return:
+            Character实例
+***REMOVED***
+        for c in self.scenario.chars:
+            if c.name == char_name:
+                return c
+        else:
+            return None
+
     def __init__(self, scenario, obj):
 ***REMOVED***
         初始化Activity
@@ -121,8 +135,8 @@ class Activity:
         self.bgm = SuCaiHelper.get_shengyin(obj.get("背景音乐", None))
         self.name = obj.get("名字")
         self.description = obj.get("描述", "")
-        self.subtitle = obj.get("字幕", None)
-        self.subtitle_mode = obj.get("字幕样式", None)
+        self.subtitle = obj.get("字幕") if obj.get("字幕", None) else []
+        self.subtitle_mode = obj.get("字幕样式", 'normal')
         self.actions = []
         self.timespan = self.__get_timespan(obj)
         self.fps = int(obj.get("fps", None)) if obj.get("fps", None) else config_reader.fps
@@ -140,6 +154,49 @@ class Activity:
 ***REMOVED***
         images = self.__check_images()
         display_list = self.__get_display_list()
+
+        if self.subtitle:
+            ***REMOVED*** 添加字幕
+            previous_end = 0
+            threading.Thread(target=worker).start()
+            l = len(self.subtitle)
+            for i in range(0, l):
+                if self.subtitle[i][0]:
+                    start = utils.get_time(self.subtitle[i][0])
+    ***REMOVED***
+                    if previous_end > 0:
+                        start = previous_end
+        ***REMOVED***
+                        start = 0
+                self.subtitle[i][0] = start
+                start_num = int(start/self.timespan*len(images))
+
+                if self.subtitle[i][1]:
+                    end = utils.get_time(self.subtitle[i][1])
+    ***REMOVED***
+                    if len(self.subtitle[i]) > 3 and self.subtitle[i][3]:
+                        end = start + utils.get_audio_length(self.subtitle[i][3])
+        ***REMOVED***
+                        ***REMOVED*** 只有最后一个字幕才可以同时没有结束时间与声音文件
+                        end = self.timespan
+                self.subtitle[i][1] = end
+                previous_end = end
+
+                if i == len(self.subtitle) -1:
+                    ***REMOVED*** 最后一段字幕，
+                    end_number = len(images)
+    ***REMOVED***
+                    end_number = int(end/self.timespan * len(images))
+
+                ***REMOVED*** 创建新线程
+                tmp_images = images[start_num : end_number]
+                self.subtitle[i].append((start_num, end_number))
+
+                text_list = [x[2] for x in self.subtitle[0 if i < 2 else i - 2 : i + 3]]    ***REMOVED*** 最多显示5行文字
+                q.put((self.subtitle[i][2], tmp_images, self.subtitle_mode, text_list))
+
+        ***REMOVED*** 等待所有线程完成
+        q.join()
 
         for display in display_list:
             if 'action' in display:
@@ -172,50 +229,17 @@ class Activity:
                 if display["char"].display:
                     char = display["char"]
                     print("生成角色图片， 角色：", char.name)
-                    for i in range(0, len(images)):
-                        images[i] = ImageHelper.merge_two_image(images[i], char.image, char.size, char.pos, overwrite=True)
+                    image_with_subtitle = []
+                    for st in self.subtitle:
+                        if len(st) > 4 and char.name == st[4]:
+                            tmp_images = images[st[-1][0] : st[-1][1]]
+                            image_with_subtitle += tmp_images
+                            ImageHelper.add_gif_to_images(tmp_images, st[5], pos=char.pos, size=char.size)
 
-        if self.subtitle:
-            ***REMOVED*** 添加字幕
-            previous_end = 0
-            threading.Thread(target=worker).start()
+                    for img in images:
+                        if not img in image_with_subtitle:
+                            ImageHelper.merge_two_image(img, char.image, char.size, char.pos, overwrite=True)
 
-            for i in range(0, len(self.subtitle)):
-                if self.subtitle[i][0]:
-                    start = utils.get_time(self.subtitle[i][0])
-    ***REMOVED***
-                    if previous_end > 0:
-                        start = previous_end
-        ***REMOVED***
-                        start = 0
-                self.subtitle[i][0] = start
-                start_num = int(start/self.timespan*len(images))
-
-                if self.subtitle[i][1]:
-                    end = utils.get_time(self.subtitle[i][1])
-    ***REMOVED***
-                    if len(self.subtitle[i]) > 3 and self.subtitle[i][3]:
-                        end = start + utils.get_audio_length(self.subtitle[i][3])
-        ***REMOVED***
-                        ***REMOVED*** 只有最后一个字幕才可以同时没有结束时间与声音文件
-                        end = self.timespan
-                self.subtitle[i][1] = end
-                previous_end = end
-
-                if i == len(self.subtitle) -1:
-                    ***REMOVED*** 最后一段字幕，
-                    end_number = len(images)
-    ***REMOVED***
-                    end_number = int(end/self.timespan * len(images))
-
-                ***REMOVED*** 创建新线程
-                tmp_images = images[start_num : end_number]
-
-                text_list = [x[2] for x in self.subtitle[0 if i < 2 else i - 2 : i + 3]]    ***REMOVED*** 最多显示5行文字
-                q.put((self.subtitle[i][2], tmp_images, self.subtitle_mode, text_list))
-
-        ***REMOVED*** 等待所有线程完成
-        q.join()
 
         ***REMOVED*** 先把图片转换成视频
         video = VideoHelper.create_video_clip_from_images(images, self.fps)

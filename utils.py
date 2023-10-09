@@ -8,6 +8,19 @@ from moviepy.editor import *
 import config_reader
 from xunfei_tts import *
 
+import random
+
+def get_random_str(length=8):
+    """生成一个随即字符串
+
+    Params:
+        length: 字符串长度
+    Return:
+        随即字符串
+    """
+    alphabet = 'abcdefghijklmnopqrstuvwxyz1234567890_'
+    characters = random.sample(alphabet, length)
+    return ''.join(characters)
 
 def get_time(script_time):
     """
@@ -153,4 +166,5 @@ def get_sub_title_list(file):
 
 ***REMOVED***
     ***REMOVED*** get_sub_title_list("tmp/养生论.txt")
+    print(get_random_str(4))
     pass
