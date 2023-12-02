@@ -77,7 +77,8 @@ class Action:
             self.char.rotate = 180
         else:
             self.char.rotate = int(str_degree)
-        for i in range(0, len(images)):
+        l = len(images)
+        for i in range(0, l):
             ImageHelper.merge_two_image(
                     images[i],
                     self.char.image,
@@ -171,7 +172,8 @@ class Action:
 
         str_degree = self.obj.get("度数", 0)
 
-        for i in range(0, len(images)):
+        l = len(images)
+        for i in range(0, l):
             j = i % len(gif_images)
 
             if str_degree == "左右":
