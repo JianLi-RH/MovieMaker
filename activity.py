@@ -132,11 +132,11 @@ class Activity:
             obj: script里面的脚本片段
 ***REMOVED***
         self.scenario = scenario
-        self.bgm = SuCaiHelper.get_shengyin(obj.get("背景音乐", None))
         self.name = obj.get("名字")
         self.description = obj.get("描述", "")
         self.subtitle = obj.get("字幕") if obj.get("字幕", None) else []
         self.subtitle_mode = obj.get("字幕样式", 'normal')
+        self.bgm = SuCaiHelper.get_shengyin(obj.get("背景音乐", None))
         self.actions = []
         self.timespan = self.__get_timespan(obj)
         self.fps = int(obj.get("fps", None)) if obj.get("fps", None) else config_reader.fps

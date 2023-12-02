@@ -1,8 +1,6 @@
-import configparser
+import yaml
 
-config = configparser.ConfigParser()
-config.read('config.ini')
-config = config["DEFAULT"]
+config = yaml.safe_load(open("config.yaml"))
 
 fps = int(config["fps"])    ***REMOVED*** 每秒显示的帧数
 watermark = config["watermark"] ***REMOVED*** 水印

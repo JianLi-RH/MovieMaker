@@ -26,9 +26,15 @@ https://github.com/Zulko/moviepy/blob/master/Dockerfile
   https://www.aigei.com/bgremover ***REMOVED*** 背景变透明
   https://www.remove.bg/zh/upload ***REMOVED*** 背景变透明
   https://memes.tw/maker/painter/10274
+沙雕生成器
+  https://www.bilibili.com/video/BV1344y1m7fw/
 生成熊猫举牌：http://c.tianhezulin.com/cx3/2825/
 合并图片： https://www.media.io/image-converter/merge-png.html
 
+
+***REMOVED*** 字幕说明： 开始时间，结束时间，文字， 语音，角色名， 角色动作
+***REMOVED*** 示例
+['','', '小二', 'resources/ShengYin/武松/酒馆里/小二.mp3', 'ws', 'resources/SuCai/武松/说话/武松说话.gif']
 
 例子：
 场景: ***REMOVED*** 每个场景共用一套角色和背景，不同的场景使用不同的角色和背景

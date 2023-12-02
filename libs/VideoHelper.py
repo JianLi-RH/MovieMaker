@@ -163,7 +163,8 @@ def create_video_clip_from_images(images, fps=None):
     """
     fps = fps if fps else config_reader.fps
     clips = []
-    for i in range(0, len(images), 1000):
+    l = len(images)
+    for i in range(0, l, 1000):
         print(f"正在使用第{i*1000***REMOVED*** 到 {i + 1000 - 1***REMOVED***个图片生成视频...")
         clips.append(ImageSequenceClip(images[i : i + 1000 - 1], fps))
     concat_clip = concatenate_videoclips(clips, method="compose")
