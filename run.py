@@ -70,14 +70,12 @@ def main(argv):
     """
     执行run()生成视频
     """
-    options = "o:s:c"
-    long_options = ["output = ", "scenario = ", "script = "]
-    arguments, values = getopt.getopt(argv, options, long_options)
+    options = "o:s:c:"
+    opts , args = getopt.getopt(argv, options)
+    print(f"arguments: {opts***REMOVED***")
 
-    output = ''
-    scenario = ''
-    script = ''
-    for currentArgument, currentValue in arguments:
+    output, scenario, script = '', '', ''
+    for currentArgument, currentValue in opts:
         if currentArgument in ("-o", "--output"):
             output = currentValue.strip()
         if currentArgument in ("-c", "--scenario"):
