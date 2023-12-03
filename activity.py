@@ -158,7 +158,8 @@ class Activity:
         if self.subtitle:
             ***REMOVED*** 添加字幕
             previous_end = 0
-            threading.Thread(target=worker).start()
+            ***REMOVED*** daemon结束主进程的时候可以同时结束子线程
+            threading.Thread(target=worker, daemon=True).start()
             l = len(self.subtitle)
             for i in range(0, l):
                 if self.subtitle[i][0]:

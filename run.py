@@ -85,11 +85,11 @@ def main(argv):
         if currentArgument in ("-s", "--script"):
             script = currentValue.strip()
     return run(output=output, scenario=scenario, script=script)
+
 ***REMOVED***
-    ***REMOVED*** main(sys.argv[1:])
     ***REMOVED***
     print(datetime.datetime.now())
-    ***REMOVED*** result = run("看到酒馆.mp4", script='武松打虎.yaml', scenario="看到酒馆")
-    result = run("酒馆里.mp4", script='武松打虎.yaml', scenario="酒馆里")
+    result = main(sys.argv[1:])
+    ***REMOVED*** result = run("酒馆里.mp4", script='武松打虎.yaml', scenario="酒馆里")
     print(datetime.datetime.now())
     sys.exit(result)
