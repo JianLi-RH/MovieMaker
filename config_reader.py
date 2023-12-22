@@ -1,7 +1,16 @@
-import yaml
+***REMOVED***.10
+***REMOVED***
+dir_path = os.path.dirname(os.path.realpath(__file__))
+os.chdir(dir_path)
+
+from yaml import load, dump
+try:
+    from yaml import CLoader as Loader, CDumper as Dumper
+except ImportError:
+    from yaml import Loader, Dumper
 
 ***REMOVED*** Global settings
-config = yaml.safe_load(open("global_config.yaml"))
+config = load(open("global_config.yaml"), Loader=Loader)
 output_dir = config["output_dir"]
 sucai_dir = config["sucai_dir"]
 system_font_dir = config["system_font_dir"]
@@ -10,7 +19,7 @@ video_format = ".mp4"
 
 
 ***REMOVED*** Personal settings
-config = yaml.safe_load(open("config.yaml"))
+config = load(open("config.yaml"), Loader=Loader)
 fps = int(config["fps"])    ***REMOVED*** 每秒显示的帧数
 watermark = config["watermark"] ***REMOVED*** 水印
 g_width = int(config["g_width"])
