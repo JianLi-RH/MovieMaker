@@ -1,11 +1,6 @@
 fps: 4
-video_format: .avi
 g_width: 1080
 g_height: 960
-font: fonts/XiaoKeNaiLaoTi/XiaoKeNaiLaoTiShangYongMianFei@QingKeZiTi-2.ttf
 font_size: 70
-system_font_dir: /usr/share/fonts/truetype/
-sucai_dir: resources
-output_dir: /home/jianl/automation/MovieMaker/output
 watermark: ''
 round_per_second: 5
