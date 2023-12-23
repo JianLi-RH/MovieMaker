@@ -105,7 +105,8 @@ class Activity:
                 self.subtitle = utils.get_sub_title_list(self.subtitle)
             for sb in self.subtitle:
                 if len(sb) > 3 and sb[3]:
-                    subtitle_length += AudioFileClip(sb[3]).duration
+                    sPath = SuCaiHelper.get_sucai(sb[3])
+                    subtitle_length += AudioFileClip(sPath).duration
 
         return max([keep, bgm_length, subtitle_length])
 
@@ -136,7 +137,7 @@ class Activity:
         self.description = obj.get("描述", "")
         self.subtitle = obj.get("字幕") if obj.get("字幕", None) else []
         self.subtitle_mode = obj.get("字幕样式", 'normal')
-        self.bgm = SuCaiHelper.get_shengyin(obj.get("背景音乐", None))
+        self.bgm = SuCaiHelper.get_sucai(obj.get("背景音乐", None))
         self.actions = []
         self.timespan = self.__get_timespan(obj)
         self.fps = int(obj.get("fps", None)) if obj.get("fps", None) else config_reader.fps
@@ -176,7 +177,8 @@ class Activity:
                     end = utils.get_time(self.subtitle[i][1])
     ***REMOVED***
                     if len(self.subtitle[i]) > 3 and self.subtitle[i][3]:
-                        end = start + utils.get_audio_length(self.subtitle[i][3])
+                        sPath = SuCaiHelper.get_sucai(self.subtitle[i][3])
+                        end = start + utils.get_audio_length(sPath)
         ***REMOVED***
                         ***REMOVED*** 只有最后一个字幕才可以同时没有结束时间与声音文件
                         end = self.timespan
@@ -235,7 +237,8 @@ class Activity:
                         if len(st) > 4 and char.name == st[4]:
                             tmp_images = images[st[-1][0] : st[-1][1]]
                             image_with_subtitle += tmp_images
-                            ImageHelper.add_gif_to_images(tmp_images, st[5], pos=char.pos, size=char.size)
+                            _img = SuCaiHelper.get_sucai(st[5])
+                            ImageHelper.add_gif_to_images(tmp_images, _img, pos=char.pos, size=char.size)
 
                     for img in images:
                         if not img in image_with_subtitle:
@@ -250,7 +253,7 @@ class Activity:
             video = VideoHelper.add_audio_to_video(video, self.bgm)
         if self.subtitle:
             ***REMOVED*** 添加字幕声音
-            audio_list = [AudioFileClip(st[3]).set_start(st[0]) for st in self.subtitle if len(st) > 3 and st[3]]
+            audio_list = [AudioFileClip(SuCaiHelper.get_sucai(st[3])).set_start(st[0]) for st in self.subtitle if len(st) > 3 and st[3]]
             if audio_list:
                 fd, tmp_audio_path = tempfile.mkstemp(suffix=".mp3")
                 print(f"把声音组装起来保存到{tmp_audio_path***REMOVED***")

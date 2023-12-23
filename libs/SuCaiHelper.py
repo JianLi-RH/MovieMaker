@@ -13,28 +13,18 @@ def get_sucai(args):
     Return:
         The path of sucai.
     """
-    if isinstance(args, str) and os.path.exists(args):
-        return args
-
     sucai_dir = config_reader.sucai_dir
+    if not args:
+        return None
+
+    if isinstance(args, str):
+        if os.path.exists(args):
+            return args
+        else:
+            return os.path.join(sucai_dir, args)
+
     return os.path.join(sucai_dir, *args)
 
-def get_shengyin(music):
-    """
-    Get music file path.
-
-    Params:
-        music: music file name.
-
-    Return:
-        The path of music.
-    """
-    if music:
-        if isinstance(music, str) and os.path.exists(music):
-            return music
-        return os.path.join("resources", "ShengYin", music)
-    else:
-        return None
 
 ***REMOVED***
     pass

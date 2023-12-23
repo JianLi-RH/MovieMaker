@@ -1,5 +1,4 @@
 ***REMOVED***.10
-import numbers
 import re
 ***REMOVED***
 
@@ -62,33 +61,37 @@ def covert_pos(pos):
     Return:
         位置的像素值， 标准的最大值是config里的g_width, g_height
     """
-    if not pos:
-        return None
+    try:
+        if not pos:
+            return None
 
-    if pos == '中心':
-        pos = [0.5, 0.5]
+        if pos == '中心':
+            pos = [0.5, 0.5]
 
-    x_center, y_center = pos
-    if x_center == '中心':
-        x_center = 0.5
-    elif x_center == '左侧':
-        x_center = 0
-    elif x_center == '右侧':
-        x_center = 1
+        x_center, y_center = pos
+        if x_center == '中心':
+            x_center = 0.5
+        elif x_center == '左侧':
+            x_center = 0
+        elif x_center == '右侧':
+            x_center = 1
 
-    if y_center == '中心':
-        y_center = 0.5
-    elif y_center == '顶侧':
-        y_center = 0
-    elif y_center == '底部':
-        y_center = 1
+        if y_center == '中心':
+            y_center = 0.5
+        elif y_center == '顶侧':
+            y_center = 0
+        elif y_center == '底部':
+            y_center = 1
 
-    if x_center <= 1:
-        x_center = config_reader.g_width * x_center
-    if y_center <= 1:
-        y_center = config_reader.g_height * y_center
+        if x_center <= 1:
+            x_center = config_reader.g_width * x_center
+        if y_center <= 1:
+            y_center = config_reader.g_height * y_center
 
-    return (int(x_center), int(y_center))
+        return (int(x_center), int(y_center))
+    except Exception as e:
+        print("不支持的坐标: ", pos)
+        raise(e)
 
 def get_audio_length(audio):
     """获取声音长度，单位秒
