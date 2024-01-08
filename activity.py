@@ -84,7 +84,7 @@ class Activity:
                 display_list.append({"index": char.index, "char": char***REMOVED***)
 
         if display_list:
-            display_list.sort(key=lambda x: x.get("index", 0))
+            display_list.sort(key=lambda x: int(x.get("index", 0)))
         return display_list
 
     def __get_timespan(self, obj):
@@ -220,7 +220,7 @@ class Activity:
                             if new_char.get("显示", None):
                                 c.display = True if new_char.get("显示", None) == '是' else False
                             if new_char.get("显示", None):
-                                c.index = new_char.get("图层", 0)
+                                c.index = int(new_char.get("图层", 0))
                             break
                     continue
 
