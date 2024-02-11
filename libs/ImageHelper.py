@@ -86,12 +86,12 @@ def zoom_in_out_image(origin_image_path, center, ratio, new_path=None):
     im = Image.open(origin_image_path)
     x_center, y_center = utils.covert_pos(center)
 
-    left = x_center * (1 - ratio)
-    top = y_center * (1 - ratio)
-    right = config_reader.g_width * ratio
-    bottom = config_reader.g_height * ratio
-    new_im = im.resize((config_reader.g_width, config_reader.g_height)) ***REMOVED*** 将缩放后的图片重新放大为完全尺寸
-    new_im = new_im.crop((left, top, right, bottom))
+    left = x_center - config_reader.g_width * ratio / 2
+    top = y_center - config_reader.g_height * ratio / 2
+    right = x_center + config_reader.g_width * ratio / 2
+    bottom = y_center + config_reader.g_height * ratio / 2
+    new_im = im.crop((left, top, right, bottom))
+    new_im = new_im.resize((config_reader.g_width, config_reader.g_height)) ***REMOVED*** 将缩放后的图片重新放大为完全尺寸
     if not new_path:
         new_path = origin_image_path
     new_im.save(new_path)
@@ -145,6 +145,14 @@ def merge_two_image(big_image, small_image, size, pos, rotate=None, overwrite=Fa
     img1 = img1.resize((config_reader.g_width, config_reader.g_height))
 
     mode2 = 'RGBA' if small_image.endswith('.png') else 'RGB'
+
+    if isinstance(size, str):
+        if ',' in size:
+            wh = size.split(',')
+            size = (int(wh[0]), int(wh[1]))
+        else:
+            print("size 不合法： ", size)
+            return ''
     img2 = Image.open(small_image).resize(size).convert(mode2)
     if rotate:
         img2 = img2.rotate(rotate, expand = 1)
