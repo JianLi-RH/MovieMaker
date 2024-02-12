@@ -49,20 +49,24 @@ def add_text_to_image(image, text, overwrite_image = False, mode='normal', text_
         for i in range(0, l):
             if text_list[i] != text:
                 tmp_font_size = font_size - 20 if font_size > 50 else font_size
-                color =(255,255,255)
+                color = 'black'
 ***REMOVED***
                 tmp_font_size = font_size
-                color =(255,0,0)
+                color = 'red'
             tmp_x = (x - len(text_list[i]) * tmp_font_size) / 2
             if i != 0:
                 ***REMOVED*** 这行代码必须放在mf前面
-                start_y = start_y + mf.size + 20
+                start_y = start_y + m.size + 20
 
-            mf = ImageFont.truetype(config_reader.font, tmp_font_size)
-            m.text((tmp_x, start_y), text_list[i], color, align="center", font=mf)
+            font = ImageFont.truetype(config_reader.font, tmp_font_size)
+            left, top, right, bottom = m.textbbox((tmp_x, start_y), text, font=font)
+            m.rectangle((left-5, top-5, right+5, bottom+5), fill=color)
+            m.text((tmp_x, start_y), text_list[i], fill=color, align="center", font=font)
     else:
-        mf = ImageFont.truetype(config_reader.font, font_size)
-        m.text((x, y), text, (0,0,0), align="center", font=mf)
+        font = ImageFont.truetype(config_reader.font, font_size)
+        left, top, right, bottom = m.textbbox((x, y), text, font=font)
+        m.rectangle((left-5, top-5, right+5, bottom+5), fill='black')
+        m.text((x, y), text, fill='white', align="center", font=font)
 
     if overwrite_image:
         im.save(image)
