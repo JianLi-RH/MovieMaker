@@ -22,7 +22,7 @@ def worker():
             if text:
                 print("生成字幕：", text)
                 for img in images:
-                    ImageHelper.add_text_to_image(img, text, overwrite_image=True, mode=subtitle_mode, text_list=text_list)
+                    ImageHelper.add_text_to_image(img, text, overwrite_image=False, mode=subtitle_mode, text_list=text_list)
             q.task_done()
 
 class Activity:
@@ -110,20 +110,6 @@ class Activity:
 
         return max([keep, bgm_length, subtitle_length])
 
-    def __get_char(self, char_name):
-***REMOVED***从全部角色对象中查找指定的角色
-
-***REMOVED***
-            char_name: 角色名
-        Return:
-            Character实例
-***REMOVED***
-        for c in self.scenario.chars:
-            if c.name == char_name:
-                return c
-        else:
-            return None
-
     def __init__(self, scenario, obj):
 ***REMOVED***
         初始化Activity
@@ -159,8 +145,6 @@ class Activity:
         if self.subtitle:
             ***REMOVED*** 添加字幕
             previous_end = 0
-            ***REMOVED*** daemon结束主进程的时候可以同时结束子线程
-            threading.Thread(target=worker, daemon=True).start()
             l = len(self.subtitle)
             for i in range(0, l):
                 if self.subtitle[i][0]:
@@ -191,15 +175,8 @@ class Activity:
     ***REMOVED***
                     end_number = int(end/self.timespan * len(images))
 
-                ***REMOVED*** 创建新线程
-                tmp_images = images[start_num : end_number]
+                ***REMOVED*** 添加一个表示图片位置的元素到字幕列表的最后
                 self.subtitle[i].append((start_num, end_number))
-
-                text_list = [x[2] for x in self.subtitle[0 if i < 2 else i - 2 : i + 3]]    ***REMOVED*** 最多显示5行文字
-                q.put((self.subtitle[i][2], tmp_images, self.subtitle_mode, text_list))
-
-        ***REMOVED*** 等待所有线程完成
-        q.join()
 
         for display in display_list:
             if 'action' in display:
@@ -235,7 +212,9 @@ class Activity:
                     image_with_subtitle = []
                     for st in self.subtitle:
                         if len(st) > 4 and char.name == st[4]:
-                            tmp_images = images[st[-1][0] : st[-1][1]]
+                            start_num = st[-1][0]
+                            end_number = st[-1][1]
+                            tmp_images = images[start_num : end_number]
                             image_with_subtitle += tmp_images
                             _img = SuCaiHelper.get_sucai(st[5])
                             ImageHelper.add_gif_to_images(tmp_images, _img, pos=char.pos, size=char.size)
@@ -244,6 +223,22 @@ class Activity:
                         if not img in image_with_subtitle:
                             ImageHelper.merge_two_image(img, char.image, char.size, char.pos, overwrite=True)
 
+        if self.subtitle:
+            print("self.subtitle: \n", self.subtitle)
+            ***REMOVED*** daemon结束主进程的时候可以同时结束子线程
+            threading.Thread(target=worker, daemon=True).start()
+            l = len(self.subtitle)
+            for i in range(0, l):
+                ***REMOVED*** 创建新线程
+                start_num = self.subtitle[i][-1][0]
+                end_number = self.subtitle[i][-1][1]
+                print(f"start_num: {start_num***REMOVED***, end_number: {end_number***REMOVED***")
+                tmp_images = images[start_num : end_number]
+                text_list = [x[2] for x in self.subtitle[0 if i < 2 else i - 2 : i + 3]]    ***REMOVED*** 最多显示5行文字
+                q.put((self.subtitle[i][2], tmp_images, self.subtitle_mode, text_list))
+
+        ***REMOVED*** 等待所有线程完成
+        q.join()
 
         ***REMOVED*** 先把图片转换成视频
         video = VideoHelper.create_video_clip_from_images(images, self.fps)
