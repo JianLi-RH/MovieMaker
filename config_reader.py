@@ -12,6 +12,9 @@ except ImportError:
 ***REMOVED*** Global settings
 config = load(open("global_config.yaml"), Loader=Loader)
 output_dir = config["output_dir"]
+if not os.path.exists(output_dir):
+    os.mkdir(output_dir)
+
 sucai_dir = config["sucai_dir"]
 system_font_dir = config["system_font_dir"]
 font = config["font"]
