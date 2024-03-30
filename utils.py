@@ -23,7 +23,7 @@ def get_random_str(length=8):
 
 def get_time(script_time):
     """
-    将脚本秒时的时间转换成数字，以秒为单位
+    将脚本的时间转换成数字，以秒为单位
 
     Params:
         script_time: 脚本时间，如: 3秒, 2分5秒, 2 (default is second)
