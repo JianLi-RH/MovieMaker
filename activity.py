@@ -22,7 +22,7 @@ def worker():
             if text:
                 print("生成字幕：", text)
                 for img in images:
-                    ImageHelper.add_text_to_image(img, text, overwrite_image=False, mode=subtitle_mode, text_list=text_list)
+                    ImageHelper.add_text_to_image(img, text, overwrite_image=True, mode=subtitle_mode, text_list=text_list)
             q.task_done()
 
 class Activity:
