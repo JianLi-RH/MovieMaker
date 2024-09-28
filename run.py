@@ -63,7 +63,8 @@ def run(output, script='script.yaml', scenario=None):
             final = VideoHelper.concatenate_videos(*final_videos)
             for f in final_videos_files:
                 os.remove(f)
-            final.write_videofile(os.path.join(config_reader.output_dir, output))
+            p = os.path.join(config_reader.output_dir, output)
+            final.write_videofile(p)
     return 0
 
 def main(argv):

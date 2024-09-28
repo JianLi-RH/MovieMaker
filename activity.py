@@ -221,7 +221,7 @@ class Activity:
 
                     for img in images:
                         if not img in image_with_subtitle:
-                            ImageHelper.merge_two_image(img, char.image, char.size, char.pos, overwrite=True)
+                            ImageHelper.merge_two_image(img, char.image, char.size, char.pos, overwrite=True, rotate=char.degree)
 
         if self.subtitle:
             print("self.subtitle: \n", self.subtitle)
