@@ -124,14 +124,13 @@ def get_frames_from_gif(gif):
             frames.append(tmp_path)
     return frames
 
-def resize_images(images):
+def resize_image(image):
     """重新设置图片尺寸
 
     Params:
-        images: 一组图片
+        image: 图片地址
     """
-    for img in images:
-        Image.open(img).resize((config_reader.g_width, config_reader.g_height)).save(img)
+    Image.open(image).resize((config_reader.g_width, config_reader.g_height)).save(image)
 
 def merge_two_image(big_image, small_image, size, pos, rotate=None, overwrite=False):
     """将小图片粘贴到大图片上

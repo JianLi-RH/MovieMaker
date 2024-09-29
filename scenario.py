@@ -25,6 +25,7 @@ class Scenario:
         if original_image.lower().endswith(".gif"):
             return original_image
         new_path = os.path.join(config_reader.output_dir, os.path.basename(original_image))
+        ImageHelper.resize_image(original_image)
         return ImageHelper.zoom_in_out_image(original_image, self.focus, self.ratio, new_path)
 
     def __init__(self, obj):

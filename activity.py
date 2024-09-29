@@ -36,13 +36,12 @@ class Activity:
 ***REMOVED***
         path = os.path.join(config_reader.output_dir, self.name)
         if not os.path.exists(path):
-            os.mkdir(path)
+            os.makedirs(path)
 
         images = []
         background_image = self.scenario.background_image ***REMOVED*** 已经resize之后的图片
         if background_image.lower().endswith(".gif"):
             bg_frames = ImageHelper.get_frames_from_gif(background_image)
-            ImageHelper.resize_images(bg_frames)
             l = len(bg_frames)
             ext = bg_frames[0].split('.')[-1]
 
@@ -50,6 +49,7 @@ class Activity:
                 index = i % l
                 new_path = os.path.join(path, f"{i***REMOVED***.{ext***REMOVED***")
                 shutil.copy(bg_frames[index], new_path)
+                ImageHelper.resize_image(new_path)
                 images.append(new_path)
         else:
             ext = background_image.split('.')[-1]
