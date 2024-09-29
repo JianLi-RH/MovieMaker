@@ -60,6 +60,7 @@ class Action:
             y = original_center[1] + step_y * i
 
             tmp_img = ImageHelper.zoom_in_out_image(images[i], center=(x, y), ratio=tmp_ratio)
+            ImageHelper.resize_image(tmp_img)
             images[i] = tmp_img
 
         return images
