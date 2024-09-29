@@ -68,10 +68,10 @@ class Activity:
         for a in self.actions:
             if a.obj.get("名称", None) == "镜头":
                 ***REMOVED*** 镜头相关动作会改变背景图片尺寸，但是不会改变角色位置，所以镜头需要最后进行渲染
-                display_list.append({"index": 999, "action": a***REMOVED***)
+                display_list.append({"index": sys.maxsize, "action": a***REMOVED***)
             elif a.obj.get("名称", None) == "更新":
                 ***REMOVED*** 更新角色总是最早执行
-                display_list.append({"index": -999, "action": a***REMOVED***)
+                display_list.append({"index": -(sys.maxsize - 1), "action": a***REMOVED***)
 ***REMOVED***
                 if a.char:
                     char_in_actions.append(a.char.name)
@@ -179,6 +179,7 @@ class Activity:
                 self.subtitle[i].append((start_num, end_number))
 
         for display in display_list:
+            ***REMOVED*** action 和 char是在self.__get_display_list()方法里的硬编码，用于区分显示对象的类型
             if 'action' in display:
                 ***REMOVED*** 注意：一个活动（activity）中不能有两个`镜头`动作（action）
                 if display["action"].obj.get("名称", None) == "更新":

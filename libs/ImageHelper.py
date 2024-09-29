@@ -91,14 +91,18 @@ def zoom_in_out_image(origin_image_path, center, ratio, new_path=None):
     x_center, y_center = utils.covert_pos(center)
 
     left = x_center - config_reader.g_width * ratio / 2
+    left = left if left > 0 else 0
     top = y_center - config_reader.g_height * ratio / 2
+    top = top if top > 0 else 0
     right = x_center + config_reader.g_width * ratio / 2
+    right = right if right < config_reader.g_width else config_reader.g_width
     bottom = y_center + config_reader.g_height * ratio / 2
+    bottom = bottom if bottom < config_reader.g_height else config_reader.g_height
     new_im = im.crop((left, top, right, bottom))
-    new_im = new_im.resize((config_reader.g_width, config_reader.g_height)) ***REMOVED*** 将缩放后的图片重新放大为完全尺寸
     if not new_path:
         new_path = origin_image_path
     new_im.save(new_path)
+    resize_image(new_path) ***REMOVED*** 将缩放后的图片重新放大为完全尺寸
     return new_path
 
 def get_frames_from_gif(gif):
