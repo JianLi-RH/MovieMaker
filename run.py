@@ -23,6 +23,25 @@ import config_reader
 from libs import VideoHelper
 from scenario import Scenario
 
+def connect_videos(file_video_name: str, videos: list, delete_old = True):
+    """拼接多个视频文件
+
+    Params:
+        file_video_name: 输出的视频文件名
+        videos: 视频文件列表
+    """
+    if videos:
+        final_videos = []
+        for f in videos:
+            final_videos.append(VideoFileClip(f))
+        final = VideoHelper.concatenate_videos(*final_videos)
+        if delete_old:
+            for f in videos:
+                os.remove(f)
+        p = os.path.join(config_reader.output_dir, file_video_name)
+        final.write_videofile(p)
+        return p
+    return None
 
 def run(output, script='script.yaml', scenario=None):
     """创建视频
@@ -56,15 +75,7 @@ def run(output, script='script.yaml', scenario=None):
             new_video.write_videofile(scenario_file)
             final_videos_files.append(scenario_file)
 
-        if final_videos_files:
-            final_videos = []
-            for f in final_videos_files:
-                final_videos.append(VideoFileClip(f))
-            final = VideoHelper.concatenate_videos(*final_videos)
-            for f in final_videos_files:
-                os.remove(f)
-            p = os.path.join(config_reader.output_dir, output)
-            final.write_videofile(p)
+        connect_videos(output, final_videos_files)
     return 0
 
 def main(argv):
