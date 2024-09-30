@@ -2,9 +2,7 @@
 ***REMOVED***
 
 sys.path.append('../')
-from moviepy.editor import ImageSequenceClip
-from PIL import Image, ImageDraw, ImageFont, ImageSequence
-
+from PIL import Image, ImageDraw, ImageFont, ImageSequence, ImageOps
 Image.MAX_IMAGE_PIXELS = None
 
 import config_reader
@@ -144,6 +142,8 @@ def merge_two_image(big_image, small_image, size, pos, rotate=None, overwrite=Fa
         small_image: 小图片，会先是在大图片上
         size: 小图片的显示尺寸, 比如： (100, 120)
         pos: 小图片的显示位置，比如： (300, 400)或者(0.4, 0.5)
+        rotate: 小图片的显示角度，如 0~360的数字，或者"左右"
+        overwrite: 是否覆盖大图
     Return:
         返回新图片的地址
     """
@@ -162,7 +162,14 @@ def merge_two_image(big_image, small_image, size, pos, rotate=None, overwrite=Fa
             return ''
     img2 = Image.open(small_image).resize(size).convert(mode2)
     if rotate:
-        img2 = img2.rotate(rotate, expand = 1)
+        if rotate == "左右":
+            im_mirror = ImageOps.mirror(img2)
+            basename = os.path.basename(small_image)
+            new_path = os.path.join(os.path.dirname(big_image), basename)
+            im_mirror.save(new_path)
+            img2 = Image.open(new_path)
+        else:
+            img2 = img2.rotate(rotate, expand = 1)
 
     left, top = utils.covert_pos(pos)
 

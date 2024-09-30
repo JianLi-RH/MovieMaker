@@ -72,6 +72,14 @@ class Activity:
             elif a.obj.get("名称", None) == "更新":
                 ***REMOVED*** 更新角色总是最早执行
                 display_list.append({"index": -(sys.maxsize - 1), "action": a***REMOVED***)
+            elif a.obj.get("名称", None) == "显示":
+                ***REMOVED*** 显示角色
+                c = list(filter(lambda x:x.name == a.obj.get("角色", None), self.scenario.chars))[0]
+                c.display = True
+            elif a.obj.get("名称", None) == "消失":
+                ***REMOVED*** 隐藏角色
+                c = list(filter(lambda x:x.name == a.obj.get("角色", None), self.scenario.chars))[0]
+                c.display = False
 ***REMOVED***
                 if a.char:
                     char_in_actions.append(a.char.name)
@@ -197,7 +205,7 @@ class Activity:
                                 c.rotate = new_char.get("角度")
                             if new_char.get("显示", None):
                                 c.display = True if new_char.get("显示", None) == '是' else False
-                            if new_char.get("显示", None):
+                            if new_char.get("图层", None):
                                 c.index = int(new_char.get("图层", 0))
                             break
                     continue
@@ -222,7 +230,7 @@ class Activity:
 
                     for img in images:
                         if not img in image_with_subtitle:
-                            ImageHelper.merge_two_image(img, char.image, char.size, char.pos, overwrite=True, rotate=char.degree)
+                            ImageHelper.merge_two_image(img, char.image, char.size, char.pos, overwrite=True, rotate=char.rotate)
 
         if self.subtitle:
             print("self.subtitle: \n", self.subtitle)

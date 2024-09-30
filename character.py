@@ -17,7 +17,6 @@ class Character():
         self.rotate = obj.get("角度", None) ***REMOVED*** 显示角度
         self.display = True if obj.get("显示", None) == '是' else False ***REMOVED*** 默认不显示
         self.index = obj.get("图层", 0) ***REMOVED*** 角色显示的图层 （数值大的会覆盖数值小的）， 默认是0
-        self.degree = obj.get("度数", 0)   ***REMOVED*** 角色显示角度
         pass
 
 
