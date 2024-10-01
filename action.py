@@ -101,7 +101,11 @@ class Action:
         start_pos = self.obj["开始位置"] if self.obj.get("开始位置", None) else self.char.pos
         start_pos = utils.covert_pos(start_pos)
         end_pos = utils.covert_pos(self.obj["结束位置"])
-        ratio = self.obj["比例"]
+        ***REMOVED*** ratio： 显示比例，可以有以下几种形式：
+        ***REMOVED*** 0.4   --> 相对于开始时，最终的显示比例
+        ***REMOVED*** [1, 0.4] --> 变化前后的显示比例
+        ***REMOVED*** [[120, 200], [10, 12]] --> 变化前后的具体像素
+        ratio = self.obj["比例"] 
         mode = self.obj["方式"]
 
         pos = [] ***REMOVED*** 每一个元素：(tmp_pos, tmp_size, rotate)
@@ -111,21 +115,27 @@ class Action:
         ***REMOVED*** 每一步在x,y方向的进度以及缩放比例
         step_x = (end_pos[0] - start_pos[0]) / self.activity.total_frame
         step_y = (end_pos[1] - start_pos[1]) / self.activity.total_frame
-        if not ratio[0]:
-            ratio[0] = self.char.size
-        if isinstance(ratio[0], list): ***REMOVED*** [(100,120), (100,120) -- 具体像素
+        
+        if isinstance(ratio, list):
+            if isinstance(ratio[0], list) and isinstance(ratio[1], list): ***REMOVED*** [(180,220), (80,100)] -- 变化前后的具体像素
+                step_ration_x = (ratio[1][0] - ratio[0][0]) / self.activity.total_frame
+                step_ration_y = (ratio[1][1] - ratio[0][1]) / self.activity.total_frame
+                start_size = ratio[0]
+***REMOVED***   ***REMOVED*** [0.2, 0.2] -- 百分比
+                step_ration_x = (ratio[1] - ratio[0]) / self.activity.total_frame * img_w
+                step_ration_y = (ratio[1] - ratio[0]) / self.activity.total_frame * img_h
+                start_size = (ratio[0] * img_w, ratio[0] * img_h)
+        else:
+            if not isinstance(ratio, float): ***REMOVED*** ratio是最终显示比例， 如 0.4
+                ratio = float(ratio)
+            ratio = [self.char.size, [self.char.size[0] * ratio, self.char.size[1] * ratio, ]]
             step_ration_x = (ratio[1][0] - ratio[0][0]) / self.activity.total_frame
             step_ration_y = (ratio[1][1] - ratio[0][1]) / self.activity.total_frame
             start_size = ratio[0]
-        else:   ***REMOVED*** [0.2, 0.2] -- 百分比
-            step_ration_x = (ratio[1] - ratio[0]) / self.activity.total_frame * img_w
-            step_ration_y = (ratio[1] - ratio[0]) / self.activity.total_frame * img_h
-            start_size = (ratio[0] * img_w, ratio[0] * img_h)
-        step_ration = (step_ration_x, step_ration_y)
 
         if mode in ["自然", "旋转"]:
             for i in range(0, self.activity.total_frame):
-                tmp_size = (int(start_size[0] + step_ration[0] * i), int(start_size[1] + step_ration[1] * i))
+                tmp_size = (int(start_size[0] + step_ration_x * i), int(start_size[1] + step_ration_y * i))
                 tmp_pos = (int(start_pos[0] + step_x * i), int(start_pos[1] + step_y * i))
                 rotate = None
                 if mode == "旋转":
