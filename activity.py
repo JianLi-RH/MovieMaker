@@ -243,7 +243,7 @@ class Activity:
                 end_number = self.subtitle[i][-1][1]
                 print(f"start_num: {start_num***REMOVED***, end_number: {end_number***REMOVED***")
                 tmp_images = images[start_num : end_number]
-                text_list = [x[2] for x in self.subtitle[0 if i < 2 else i - 2 : i + 3]]    ***REMOVED*** 最多显示5行文字
+                text_list = [x[2] for x in self.subtitle[0 if i < 2 else i - 1 : i + 2]]    ***REMOVED*** 最多显示3行文字
                 q.put((self.subtitle[i][2], tmp_images, self.subtitle_mode, text_list))
 
         ***REMOVED*** 等待所有线程完成

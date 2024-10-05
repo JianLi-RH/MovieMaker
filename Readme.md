@@ -12,7 +12,8 @@ infos = error.decode("utf-8", errors="ignore")
 
 
 免费字体： https://www.fonts.net.cn/fonts-zh-1.html
-文字转语音： https://voicemaker.in/
+文字转语音: https://voicemaker.in/
+        : https://www.zaixianai.cn/voiceCompose***REMOVED***  -- 收费
 
 其他素材下载：
 https://huaban.com/pins/4661349227/similar/materials
@@ -66,6 +67,7 @@ https://github.com/Zulko/moviepy/blob/master/Dockerfile
         名字: "2"
         描述: 镜头拉近
         背景音乐: resources/ShengYin/打招呼.mp3
+        字幕样式: list  ***REMOVED*** normal, bottom, top, middle, list (list最多同时显示3行文字)
         字幕: 
           - [0,1, '你好啊']
           - [1,'', '我是沙雕']
