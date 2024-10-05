@@ -30,40 +30,41 @@ def add_text_to_image(image, text, overwrite_image = False, mode='normal', text_
     # Add Text to an image
     x, y = im.size
     if not mode or mode == 'normal' or mode == 'bottom':
-        x = x/2 - len(text) * font_size / 2
-        y = y - font_size - 20
+        x = (x - len(text) * font_size) / 2
+        y = y - font_size - 20 # 距离底边20个像素
     elif mode == 'top':
-        x = x/2 - len(text) * font_size / 2
-        y = font_size + 20
+        x = (x - len(text) * font_size) / 2
+        y = 20
     elif mode == 'middle':
-        x = x/2 - len(text) * font_size / 2
+        x = (x - len(text) * font_size) / 2
         y = (y - font_size) / 2
 
     if mode == 'list':
-        height = (font_size + 20) * len(text_list)    # 20是行间距
-        start_y = (y - height + 20) / 2
+        height = font_size * (len(text_list) - 1) * 0.8 + font_size   # 20是行间距, height是总的文本高度
+        start_y = (y - height) / 2
 
         l = len(text_list)
         for i in range(0, l):
             if text_list[i] != text:
-                tmp_font_size = font_size - 20 if font_size > 50 else font_size
+                tmp_font_size = font_size * 0.8 # 非当前文字缩小显示
                 color = 'black'
             else:
                 tmp_font_size = font_size
                 color = 'red'
             tmp_x = (x - len(text_list[i]) * tmp_font_size) / 2
-            if i != 0:
-                # 这行代码必须放在mf前面
-                start_y = start_y + m.size + 20
+
+            # 这行代码必须放在mf前面
+            if i > 0:
+                start_y = start_y + font_size
 
             font = ImageFont.truetype(config_reader.font, tmp_font_size)
             left, top, right, bottom = m.textbbox((tmp_x, start_y), text, font=font)
-            m.rectangle((left-5, top-5, right+5, bottom+5), fill=color)
+            m.rectangle((left-5, top-5, right+5, bottom+5), outline=None, width=0)
             m.text((tmp_x, start_y), text_list[i], fill=color, align="center", font=font)
     else:
         font = ImageFont.truetype(config_reader.font, font_size)
         left, top, right, bottom = m.textbbox((x, y), text, font=font)
-        m.rectangle((left-5, top-5, right+5, bottom+5), fill='black')
+        m.rectangle((left-5, top-5, right+5, bottom+5), outline=None, width=0)
         m.text((x, y), text, fill='white', align="center", font=font)
 
     if overwrite_image:
