@@ -100,7 +100,9 @@ class Action:
 ***REMOVED***
         start_pos = self.obj["开始位置"] if self.obj.get("开始位置", None) else self.char.pos
         start_pos = utils.covert_pos(start_pos)
-        end_pos = utils.covert_pos(self.obj["结束位置"])
+        ***REMOVED*** end_pos_list可以是一个固定位置， 如 [230, 120]，
+        ***REMOVED*** 也可以是一组位置坐标， 如 [[230, 120]， [330, 180]， [450, 320]]
+        end_pos_list = self.obj["结束位置"]
         ***REMOVED*** ratio： 显示比例，可以有以下几种形式：
         ***REMOVED*** 0.4   --> 相对于开始时，最终的显示比例
         ***REMOVED*** [1, 0.4] --> 变化前后的显示比例
@@ -111,59 +113,74 @@ class Action:
         pos = [] ***REMOVED*** 每一个元素：(tmp_pos, tmp_size, rotate)
         img1 = Image.open(self.char.image)
         img_w, img_h = img1.size    ***REMOVED*** 角色图片的原始尺寸
-
-        ***REMOVED*** 每一步在x,y方向的进度以及缩放比例
-        step_x = (end_pos[0] - start_pos[0]) / self.activity.total_frame
-        step_y = (end_pos[1] - start_pos[1]) / self.activity.total_frame
         
-        if isinstance(ratio, list):
-            if isinstance(ratio[0], list) and isinstance(ratio[1], list): ***REMOVED*** [(180,220), (80,100)] -- 变化前后的具体像素
-                step_ration_x = (ratio[1][0] - ratio[0][0]) / self.activity.total_frame
-                step_ration_y = (ratio[1][1] - ratio[0][1]) / self.activity.total_frame
-                start_size = ratio[0]
-***REMOVED***   ***REMOVED*** [0.2, 0.2] -- 百分比
-                step_ration_x = (ratio[1] - ratio[0]) / self.activity.total_frame * img_w
-                step_ration_y = (ratio[1] - ratio[0]) / self.activity.total_frame * img_h
-                start_size = (ratio[0] * img_w, ratio[0] * img_h)
-        else:
-            if not isinstance(ratio, float): ***REMOVED*** ratio是最终显示比例， 如 0.4
-                ratio = float(ratio)
-            ratio = [self.char.size, [self.char.size[0] * ratio, self.char.size[1] * ratio, ]]
-            step_ration_x = (ratio[1][0] - ratio[0][0]) / self.activity.total_frame
-            step_ration_y = (ratio[1][1] - ratio[0][1]) / self.activity.total_frame
-            start_size = ratio[0]
+        ***REMOVED*** 强制转化为二维数组，使移动不止是直线运动
+        if not isinstance(end_pos_list[0], list):
+            end_pos_list = [end_pos_list]
 
-        if mode in ["自然", "旋转"]:
-            for i in range(0, self.activity.total_frame):
-                tmp_size = (int(start_size[0] + step_ration_x * i), int(start_size[1] + step_ration_y * i))
+        steps = len(end_pos_list)
+        frames = int(self.activity.total_frame / steps) ***REMOVED*** 每一个路线需要的帧数
+        print("ratio: ", ratio)
+        for end_pos in end_pos_list:
+            end_pos = utils.covert_pos(end_pos)
+            ***REMOVED*** 每一步在x,y方向的进度以及缩放比例
+            step_x = (end_pos[0] - start_pos[0]) / frames
+            step_y = (end_pos[1] - start_pos[1]) / frames
+        
+            if isinstance(ratio, list):
+                if isinstance(ratio[0], list) and isinstance(ratio[1], list): ***REMOVED*** [(180,220), (80,100)] -- 变化前后的具体像素
+                    step_ration_x = (ratio[1][0] - ratio[0][0]) / steps / frames
+                    step_ration_y = (ratio[1][1] - ratio[0][1]) / steps/ frames
+                    start_size = ratio[0]
+    ***REMOVED***   ***REMOVED*** [0.2, 0.2] -- 百分比
+                    step_ration_x = (ratio[1] - ratio[0]) / steps / frames * img_w
+                    step_ration_y = (ratio[1] - ratio[0]) / steps / frames * img_h
+                    start_size = (ratio[0] * img_w, ratio[0] * img_h)
+***REMOVED***
+                if not isinstance(ratio, float): ***REMOVED*** ratio是最终显示比例， 如 0.4
+            ***REMOVED***
+                        ratio = float(ratio)
+                    except:
+                        ratio = 1 ***REMOVED*** 默认比例不变
+                tmp_ratio = [self.char.size, [self.char.size[0] * ratio, self.char.size[1] * ratio, ]]
+                step_ration_x = (tmp_ratio[1][0] - tmp_ratio[0][0]) / steps / frames
+                step_ration_y = (tmp_ratio[1][1] - tmp_ratio[0][1]) / steps / frames
+                start_size = self.char.size
+
+            ***REMOVED*** mode ["自然", "旋转"]:
+            for i in range(0, frames):
                 tmp_pos = (int(start_pos[0] + step_x * i), int(start_pos[1] + step_y * i))
+                tmp_size = (int(start_size[0] + step_ration_x * i), int(start_size[1] + step_ration_y * i))
                 rotate = None
                 if mode == "旋转":
-                    step_rotate = 360 / self.activity.total_frame * int(config_reader.round_per_second)  ***REMOVED*** 每秒转5圈
+                    step_rotate = 360 / frames * int(config_reader.round_per_second)  ***REMOVED*** 每秒旋转圈数
                     rotate = step_rotate * i
-                    if i == self.activity.total_frame - 1:
+                    if i == frames - 1:
                         ***REMOVED*** 最后一圈摆正
                         rotate = 0
                 pos.append((tmp_pos, tmp_size, rotate))
 
+            start_pos = end_pos ***REMOVED*** 重新设置轨迹的开始坐标
+        
+        ***REMOVED*** print("位置序列： ", pos)
         image_clips = []
         path = os.path.join(config_reader.output_dir, self.activity.name)
         if not os.path.exists(path):
             os.mkdir(path=path)
         for i in range(0, self.activity.total_frame):
-            self.char.pos = pos[i][0]
-            self.char.size = pos[i][1]
-            rotate = None
-            if len(pos[i]) == 3:
+            if i < len(pos):
+                ***REMOVED*** 由于前面使用int填充每个step的frames，所以最后一个step可能数量不足
+                ***REMOVED*** 会导致最后几帧没有动作
+                ***REMOVED*** 所以使用最后一个动作进行填充
+                self.char.pos = pos[i][0]
+                self.char.size = pos[i][1]
                 rotate = pos[i][2]
-            j = i % self.activity.total_frame
-            img = ImageHelper.merge_two_image(images[j], self.char.image, pos=self.char.pos, size=self.char.size, rotate=rotate)
+            img = ImageHelper.merge_two_image(images[i], self.char.image, pos=self.char.pos, size=self.char.size, rotate=rotate)
             ext = img.split('.')[-1]
             _path = os.path.join(path, f"{i***REMOVED***.{ext***REMOVED***")
-            if os.path.exists(_path):
-                os.remove(_path)
             shutil.move(img, _path)
             image_clips.append(_path)
+                
         return image_clips
 
     def __gif(self, images):
