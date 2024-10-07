@@ -151,10 +151,10 @@ class Action:
             for i in range(0, frames):
                 tmp_pos = (int(start_pos[0] + step_x * i), int(start_pos[1] + step_y * i))
                 tmp_size = (int(start_size[0] + step_ration_x * i), int(start_size[1] + step_ration_y * i))
-                rotate = None
+                rotate = 0
                 if mode == "旋转":
-                    step_rotate = 360 / frames * int(config_reader.round_per_second)  ***REMOVED*** 每秒旋转圈数
-                    rotate = step_rotate * i
+                    step_rotate = 360 / self.activity.fps * int(config_reader.round_per_second)  ***REMOVED*** 每秒旋转圈数
+                    rotate = step_rotate * i % 360
                     if i == frames - 1:
                         ***REMOVED*** 最后一圈摆正
                         rotate = 0
