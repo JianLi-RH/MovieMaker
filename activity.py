@@ -186,6 +186,7 @@ class Activity:
                 ***REMOVED*** 添加一个表示图片位置的元素到字幕列表的最后
                 self.subtitle[i].append((start_num, end_number))
 
+        action_chars = [display["action"].char.name for display in display_list if 'action' in display and display["action"].char]
         for display in display_list:
             ***REMOVED*** action 和 char是在self.__get_display_list()方法里的硬编码，用于区分显示对象的类型
             if 'action' in display:
@@ -213,21 +214,32 @@ class Activity:
                 if display["action"].char and display["action"].char.name != "消失":
                     display["action"].char.display = True
                 print("生成动作图片， 动作：", display["action"].obj.get("名称"))
-                images = display["action"].to_video(images)
-            if 'char' in display:
-                if display["char"].display:
-                    char = display["char"]
-                    print("生成角色图片， 角色：", char.name)
-                    image_with_subtitle = []
-                    for st in self.subtitle:
-                        if len(st) > 4 and char.name == st[4]:
-                            start_num = st[-1][0]
-                            end_number = st[-1][1]
-                            tmp_images = images[start_num : end_number]
-                            image_with_subtitle += tmp_images
+                images = display["action"].to_videoframes(images)
+                
+            if 'char' in display and display["char"].name not in action_chars:
+                char = display["char"]
+                print("生成角色图片， 角色：", char.name)
+                image_with_subtitle = []
+                added_by_subtitle = False
+                for st in self.subtitle:
+                    if len(st) > 4 and char.name == st[4]:
+                        added_by_subtitle = True
+                        start_num = st[-1][0]
+                        end_number = st[-1][1]
+                        tmp_images = images[start_num : end_number]
+                        image_with_subtitle += tmp_images
+                        ***REMOVED*** 如果指定了替换图片就用指定的图片，否则用char自己的图片
+                        ***REMOVED*** 字幕列表的最后一位可能是遍历字幕时添加的图片区间
+                        if len(st) > 5 and isinstance(st[5], str):
+                            print("len(st): ", st)
                             _img = SuCaiHelper.get_sucai(st[5])
-                            ImageHelper.add_gif_to_images(tmp_images, _img, pos=char.pos, size=char.size)
-
+            ***REMOVED***
+                            print("char.image: ", char.image)
+                            _img = char.image 
+                        print("gif: ", _img)
+                        ImageHelper.add_gif_to_images(tmp_images, _img, pos=char.pos, size=char.size)
+                        
+                if not added_by_subtitle and display["char"].display:
                     for img in images:
                         if not img in image_with_subtitle:
                             ImageHelper.merge_two_image(img, char.image, char.size, char.pos, overwrite=True, rotate=char.rotate)

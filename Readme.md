@@ -12,6 +12,7 @@ infos = error.decode("utf-8", errors="ignore")
 
 
 免费字体： https://www.fonts.net.cn/fonts-zh-1.html
+沙雕配音： https://www.tukuppt.com/yinxiaomuban/zoulukatong.html
 文字转语音: https://voicemaker.in/
         : https://www.zaixianai.cn/voiceCompose***REMOVED***  -- 收费
 
@@ -34,8 +35,9 @@ https://github.com/Zulko/moviepy/blob/master/Dockerfile
 
 
 ***REMOVED*** 字幕说明： 开始时间，结束时间，文字， 语音，角色名， 角色动作
-***REMOVED*** 示例
+***REMOVED*** 示例 (第5位如果指定了gif则使用这个gif， 否则使用第四位角色对应的图片通常隐藏角色可以这样使用)
 ['','', '小二', 'resources/ShengYin/武松/酒馆里/小二.mp3', 'ws', 'resources/SuCai/武松/说话/武松说话.gif']
+['','', '小二', 'resources/ShengYin/武松/酒馆里/小二.mp3', 'ws']
 
 例子：
 场景: ***REMOVED*** 每个场景共用一套角色和背景，不同的场景使用不同的角色和背景

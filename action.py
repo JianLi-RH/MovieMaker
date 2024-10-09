@@ -235,7 +235,7 @@ class Action:
             self.char = None
         self.timespan = timespan
 
-    def to_video(self, images):
+    def to_videoframes(self, images):
 ***REMOVED***
         根据当前动作脚本生成视频所需的图片
 
