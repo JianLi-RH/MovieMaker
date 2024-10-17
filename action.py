@@ -37,24 +37,25 @@ class Action:
         处理 `镜头` 相关的动作，例如切换焦点，镜头拉近、拉远
         ***一个活动中不能有两个`镜头`动作***
 ***REMOVED***
+        length = len(images)    ***REMOVED*** 总帧数
         original_center = utils.covert_pos(self.activity.scenario.focus)  ***REMOVED*** 原有的焦点
         self.activity.scenario.focus = self.obj.get("焦点", "中心") ***REMOVED*** 新焦点
         center = utils.covert_pos(self.activity.scenario.focus)
 
-        step_x = (center[0] - original_center[0]) / self.activity.total_frame
-        step_y = (center[1] - original_center[1]) / self.activity.total_frame
+        step_x = (center[0] - original_center[0]) / length
+        step_y = (center[1] - original_center[1]) / length
 
         from_ratio=self.obj.get("变化")[0]
         to_ratio=self.obj.get("变化")[1]
         self.activity.scenario.ratio = to_ratio
 
-        for i in range(0, self.activity.total_frame):
+        for i in range(0, length):
             if from_ratio > to_ratio:
                 ***REMOVED*** 缩小
-                tmp_ratio = from_ratio - (from_ratio - to_ratio) * i / self.activity.total_frame
+                tmp_ratio = from_ratio - (from_ratio - to_ratio) * i / length
 ***REMOVED***
                 ***REMOVED*** 放大
-                tmp_ratio = from_ratio + (to_ratio - from_ratio) * i / self.activity.total_frame
+                tmp_ratio = from_ratio + (to_ratio - from_ratio) * i / length
 
             x = original_center[0] + step_x * i
             y = original_center[1] + step_y * i
@@ -65,8 +66,17 @@ class Action:
 
         return images
 
-    def __turn(self, images):
-***REMOVED***让角色转动，如左右转身，上下翻转，指定角度翻转"""
+    def __turn(self, images, sorted_char_list, delay_char: bool):
+***REMOVED***让角色转动，如左右转身，上下翻转，指定角度翻转
+        
+***REMOVED***
+            images: 全部背景图片
+            sorted_char_list: 排序后的角色
+            delay_char: 延迟绘制其他角色
+        Return:
+            全部图片地址
+***REMOVED***
+        
         str_degree = self.obj.get("度数", 0)
         if str_degree == "左右":
             im_mirror = ImageOps.mirror(Image.open(self.char.image))
@@ -78,23 +88,20 @@ class Action:
             self.char.rotate = 180
         else:
             self.char.rotate = int(str_degree)
-        l = len(images)
-        for i in range(0, l):
-            ImageHelper.merge_two_image(
-                    images[i],
-                    self.char.image,
-                    pos=self.char.pos,
-                    size=self.char.size,
-                    rotate=self.char.rotate,
-                    overwrite=True
-                )
+        for img_path in images:
+            for _char in sorted_char_list:
+                if _char.name != self.char.name and delay_char:
+                    continue
+                ImageHelper.paint_char_on_image(img_path, char=_char, overwrite=True)
         return images
 
-    def __walk(self, images):
+    def __walk(self, images, sorted_char_list, delay_char: bool):
 ***REMOVED***角色移动
-
+        
 ***REMOVED***
-            previous_video: 上一个视频片段
+            images: 全部背景图片
+            sorted_char_list: 排序后的角色
+            delay_char: 延迟绘制其他角色
         Return:
             全部图片地址
 ***REMOVED***
@@ -119,7 +126,7 @@ class Action:
             end_pos_list = [end_pos_list]
 
         steps = len(end_pos_list)
-        frames = int(self.activity.total_frame / steps) ***REMOVED*** 每一个路线需要的帧数
+        frames = int(len(images) / steps) ***REMOVED*** 每一个路线需要的帧数
         print("ratio: ", ratio)
         for end_pos in end_pos_list:
             end_pos = utils.covert_pos(end_pos)
@@ -163,29 +170,34 @@ class Action:
             start_pos = end_pos ***REMOVED*** 重新设置轨迹的开始坐标
         
         ***REMOVED*** print("位置序列： ", pos)
-        image_clips = []
         path = os.path.join(config_reader.output_dir, self.activity.name)
-        if not os.path.exists(path):
-            os.mkdir(path=path)
-        for i in range(0, self.activity.total_frame):
-            if i < len(pos):
-                ***REMOVED*** 由于前面使用int填充每个step的frames，所以最后一个step可能数量不足
-                ***REMOVED*** 会导致最后几帧没有动作
-                ***REMOVED*** 所以使用最后一个动作进行填充
-                self.char.pos = pos[i][0]
-                self.char.size = pos[i][1]
-                rotate = pos[i][2]
-            img = ImageHelper.merge_two_image(images[i], self.char.image, pos=self.char.pos, size=self.char.size, rotate=rotate)
-            ext = img.split('.')[-1]
-            _path = os.path.join(path, f"{i***REMOVED***.{ext***REMOVED***")
-            shutil.move(img, _path)
-            image_clips.append(_path)
+        os.makedirs(path, exist_ok=True)
+        for i in range(len(images)):
+            ***REMOVED*** 由于前面使用int填充每个step的frames，所以最后一个step可能数量不足
+            ***REMOVED*** 会导致最后几帧没有动作
+            ***REMOVED*** 所以使用最后一个动作进行填充
+            self.char.pos = pos[i][0]
+            self.char.size = pos[i][1]
+            self.char.rotate = pos[i][2]
+            for _char in sorted_char_list:
+                if _char.name != self.char.name and delay_char:
+                    ***REMOVED*** 在延迟绘画模式下，其他角色不会被画到背景上
+                    continue
+                ImageHelper.paint_char_on_image(images[i], char=_char, overwrite=True)
                 
-        return image_clips
+        return images
 
-    def __gif(self, images):
+    def __gif(self, images, sorted_char_list, delay_char: bool):
 ***REMOVED***向视频中插入一段gif
+        
 ***REMOVED***
+            images: 全部背景图片
+            sorted_char_list: 排序后的角色
+            delay_char: 延迟绘制其他角色
+        Return:
+            全部图片地址
+***REMOVED***
+        
         gif_images = ImageHelper.get_frames_from_gif(self.obj.get("素材"))
 
         img1 = Image.open(images[0])
@@ -224,42 +236,115 @@ class Action:
                     rotate=rotate,
                     overwrite=True
                 )
+            for _char in sorted_char_list:
+                if _char.name != self.char.name and delay_char:
+                    continue
+                ImageHelper.paint_char_on_image(images[i], char=_char, overwrite=True)
         return images
+    
+    def __update(self):
+***REMOVED***更新某个角色
+***REMOVED***
+        char_name = self.obj.get("角色", None)
+        char = self.__get_char(char_name)
+        if self.obj.get("素材", None):
+            char.image = SuCaiHelper.get_sucai(self.obj.get("素材"))
+        if self.obj.get("位置", None):
+            char.pos = utils.covert_pos(self.obj.get("位置", None))
+        if self.obj.get("大小", None):
+            char.size = self.obj.get("大小")
+        if self.obj.get("角度", None):
+            char.rotate = self.obj.get("角度")
+        if self.obj.get("显示", None):
+            char.display = True if self.obj.get("显示", None) == '是' else False
+        if self.obj.get("图层", None):
+            char.index = int(self.obj.get("图层", 0))
+        pass
+    
+    def __get_subtitle(self):
+***REMOVED***获取动作的字幕
+        
+        return:
+            一组字幕列表，具体字幕如下：
+            [0, 1, '小二', 'resources/ShengYin/武松/酒馆里/小二.mp3', 'ws', 'resources/SuCai/武松/说话/武松说话.gif']
+            [1, 2.5, '小二', 'resources/ShengYin/武松/酒馆里/小二.mp3', 'ws']
+***REMOVED***
+        subtitles = self.obj.get("字幕") if self.obj.get("字幕") else []
+        start, end = 0, 0
+        for subtitle in subtitles:
+            sPath = SuCaiHelper.get_sucai(subtitle[3])
+            _length = AudioFileClip(sPath).duration
+            end = start + _length
+            subtitle[0] = start
+            subtitle[1] = end
+            start = end
+            
+        return subtitles
+        
+    def __add_subtitle(self, images):
+***REMOVED***向背景图片添加字幕
+        
+***REMOVED***
+            images: 背景图片
+***REMOVED***
+        pic_number = len(images)
+        for subtitle in self.subtitle:
+            start = subtitle[0]
+            end = subtitle[1]
+            cur_images = images[int(start/self.timespan*pic_number):int(end/self.timespan*pic_number)]
+            for img in cur_images:
+                ImageHelper.add_text_to_image(img, subtitle[2], overwrite_image=True)
+        pass
 
-    def __init__(self, activity, obj, timespan):
+    def __init__(self, activity, obj, timespan=0):
         self.activity = activity
         self.obj = obj
         if self.obj.get("名称", None) != '更新':
             self.char = self.__get_char(self.obj.get("角色", None))
         else:
             self.char = None
-        self.timespan = timespan
+        self.render_index = self.obj.get("渲染顺序", 0)    ***REMOVED*** 动作执行的顺序，数值一样的同时执行， 从小到达执行
+        self.subtitle = self.__get_subtitle()
+        keep = utils.get_time(obj.get("持续时间", 0))   ***REMOVED*** 优先级最高
+        if keep > 0:
+            self.timespan = keep
+        elif self.subtitle:
+            self.timespan = self.subtitle[-1][1] if self.subtitle else 0
+        else:
+            self.timespan = timespan
 
-    def to_videoframes(self, images):
+    def to_videoframes(self, images, char_list, delay_char: bool):
 ***REMOVED***
-        根据当前动作脚本生成视频所需的图片
+        根据当前动作脚本更新图片列表，生成视频最终所需的图片
 
 ***REMOVED***
             images: a list of images
-        Return:
-            一组视频所需的图片
+            char_list: 活动中的角色列表
+            delay_char: 延迟绘制其他角色
 ***REMOVED***
-
+        _images = []
+        sorted_char_list = sorted(char_list, key=lambda x: x.index)
+        sorted_char_list = list(filter(lambda x: x.display, sorted_char_list))
         action = self.obj.get("名称")
         if action == "显示":
-            return self.__display(images)
+            _images = self.__display(images)
         if action == "消失":
-            return self.__disappear(images)
+            _images = self.__disappear(images)
         elif action == "镜头":
-            return self.__camera(images)
+            _images = self.__camera(images)
         elif action == "行进":
-            return self.__walk(images)
+            _images = self.__walk(images, sorted_char_list, delay_char)
+        elif action == "说话":
+            pass
         elif action == "转身":
-            return self.__turn(images)
+            _images = self.__turn(images, sorted_char_list, delay_char)
         elif action == "gif":
-            return self.__gif(images)
+            _images = self.__gif(images, sorted_char_list, delay_char)
+        elif action == "更新":
+            _images = self.__update()
         pass
 
+        self.__add_subtitle(_images)
 
 ***REMOVED***
     pass

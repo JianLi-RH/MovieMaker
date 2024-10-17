@@ -34,13 +34,7 @@ class Scenario:
         self.ratio = float(obj.get("比例", 1)) ***REMOVED*** 显示背景图片的比例 （注意总大小仍然在config.ini中配置）
         self.background_image = self.__create_bg_image(obj.get("背景", None))
         self.bgm = SuCaiHelper.get_sucai(obj.get("背景音乐", None))
-
-        self.chars = []
-        chars = obj.get("角色", None)
-        if chars:
-            for c in obj.get("角色", None):
-                self.chars.append(character.Character(c))
-
+        self.chars = [character.Character(char) for char in obj.get("角色", [])]
         self.activities = []
         for a in obj.get("活动", None):
             self.activities.append(activity.Activity(self, a))

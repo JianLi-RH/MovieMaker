@@ -35,8 +35,8 @@ class Activity:
             一组图片
 ***REMOVED***
         path = os.path.join(config_reader.output_dir, self.name)
-        if not os.path.exists(path):
-            os.makedirs(path)
+        os.makedirs(path, exist_ok=True)
+        print("背景图片将被保存在：", path)
 
         images = []
         background_image = self.scenario.background_image ***REMOVED*** 已经resize之后的图片
@@ -61,39 +61,45 @@ class Activity:
         print("准备背景图片结束，共计", self.total_frame, "张图片")
         return images
 
-    def __get_display_list(self):
-***REMOVED***获取显示列表， index小的最先显示"""
-        display_list = []
-        char_in_actions = []
+    def __get_render_list(self):
+***REMOVED***获取渲染列表
+        index小的action最先显示
+        不在rendered_action_list里的角色全程显示
+        
+        Return:
+            rendered_action_list: [[{index:0, action: xxx***REMOVED***, {index:0, action: yyy***REMOVED***], [{"index": 1, "action": zzz***REMOVED***]]
+***REMOVED***
+        rendered_action_list = []
         for a in self.actions:
+            render = {"index": None, "action": None***REMOVED***
             if a.obj.get("名称", None) == "镜头":
                 ***REMOVED*** 镜头相关动作会改变背景图片尺寸，但是不会改变角色位置，所以镜头需要最后进行渲染
-                display_list.append({"index": sys.maxsize, "action": a***REMOVED***)
+                render = {"index": sys.maxsize, "action": a***REMOVED***
             elif a.obj.get("名称", None) == "更新":
                 ***REMOVED*** 更新角色总是最早执行
-                display_list.append({"index": -(sys.maxsize - 1), "action": a***REMOVED***)
+                render = {"index": -(sys.maxsize - 1), "action": a***REMOVED***
             elif a.obj.get("名称", None) == "显示":
                 ***REMOVED*** 显示角色
-                c = list(filter(lambda x:x.name == a.obj.get("角色", None), self.scenario.chars))[0]
+                c = next(filter(lambda x:x.name == a.obj.get("角色", None), self.scenario.chars))
                 c.display = True
+                continue
             elif a.obj.get("名称", None) == "消失":
                 ***REMOVED*** 隐藏角色
-                c = list(filter(lambda x:x.name == a.obj.get("角色", None), self.scenario.chars))[0]
+                c = next(filter(lambda x:x.name == a.obj.get("角色", None), self.scenario.chars))
                 c.display = False
+                continue
 ***REMOVED***
-                if a.char:
-                    char_in_actions.append(a.char.name)
-                    display_list.append({"index": a.char.index, "action": a***REMOVED***)
-    ***REMOVED***
-                    display_list.append({"index": -1, "action": a***REMOVED***)
+                render = {"index": a.render_index, "action": a***REMOVED***
+            
+            actions = next(filter(lambda x: x[0].get("index", 0) == render.get("index", 0), rendered_action_list), [])
+            if actions:
+                actions.append(render)
+***REMOVED***
+                rendered_action_list.append([render])
 
-        for char in self.scenario.chars:
-            if not char.name in char_in_actions:
-                display_list.append({"index": char.index, "char": char***REMOVED***)
-
-        if display_list:
-            display_list.sort(key=lambda x: int(x.get("index", 0)))
-        return display_list
+        if rendered_action_list:
+            rendered_action_list.sort(key=lambda x: int(x[0].get("index", 0)))
+        return rendered_action_list
 
     def __get_timespan(self, obj):
 ***REMOVED***获取活动总时间，单位秒
@@ -103,9 +109,12 @@ class Activity:
         Return:
             活动总时长。单位秒
 ***REMOVED***
+        ***REMOVED*** 在活动节点中设置的时间，与具体动作无关
         keep = utils.get_time(obj.get("持续时间", None))
+        ***REMOVED*** 活动背景音乐的时长，当没有设置`持续时间`和字幕的时候会根据背景音乐长度设置总时长
         bgm_length = AudioFileClip(self.bgm).duration if self.bgm else 0
 
+        ***REMOVED*** 活动字幕的时长
         subtitle_length = 0.0
         if self.subtitle:
             if isinstance(self.subtitle, str):
@@ -116,7 +125,21 @@ class Activity:
                     sPath = SuCaiHelper.get_sucai(sb[3])
                     subtitle_length += AudioFileClip(sPath).duration
 
-        return max([keep, bgm_length, subtitle_length])
+        ***REMOVED*** 全部动作的长度
+        actions = [Action(self, action) for  action in obj.get("动作", [])] ***REMOVED*** 不需要总时长
+        action_length = 0.0
+        calculated_index = []   ***REMOVED*** save all actions length, for example: {'index': 0, 'length': 5***REMOVED***
+        for act in actions:
+            same_index_action = next(filter(lambda x: x["index"] == act.render_index, calculated_index), None)
+            if same_index_action:
+                if same_index_action['length'] < act.timespan:
+                    same_index_action['index'] = act.render_index
+                    same_index_action['length'] = act.timespan
+***REMOVED***
+                calculated_index.append({'index': act.render_index, 'length': act.timespan***REMOVED***)
+        action_length = sum([l["length"] for l in calculated_index])
+
+        return max([keep, bgm_length, subtitle_length, action_length])
 
     def __init__(self, scenario, obj):
 ***REMOVED***
@@ -129,16 +152,15 @@ class Activity:
         self.scenario = scenario
         self.name = obj.get("名字")
         self.description = obj.get("描述", "")
-        self.subtitle = obj.get("字幕") if obj.get("字幕", None) else []
+        self.subtitle = obj.get("字幕") if obj.get("字幕") else []
         self.subtitle_mode = obj.get("字幕样式", 'normal')
         self.bgm = SuCaiHelper.get_sucai(obj.get("背景音乐", None))
         self.actions = []
         self.timespan = self.__get_timespan(obj)
         self.fps = int(obj.get("fps", None)) if obj.get("fps", None) else config_reader.fps
         self.total_frame = math.ceil(self.timespan * self.fps)   ***REMOVED*** 根据当前活动的总时长，得到当前活动所需的视频帧数
-        if obj.get("动作", None):
-            for action in obj["动作"]:
-                self.actions.append(Action(self, action, self.timespan))
+        for action in obj.get("动作", []):
+            self.actions.append(Action(self, action, self.timespan))
 
     def to_video(self):
 ***REMOVED***
@@ -148,7 +170,7 @@ class Activity:
             视频片段clip
 ***REMOVED***
         images = self.__check_images()
-        display_list = self.__get_display_list()
+        action_list = self.__get_render_list()
 
         if self.subtitle:
             ***REMOVED*** 添加字幕
@@ -186,63 +208,29 @@ class Activity:
                 ***REMOVED*** 添加一个表示图片位置的元素到字幕列表的最后
                 self.subtitle[i].append((start_num, end_number))
 
-        action_chars = [display["action"].char.name for display in display_list if 'action' in display and display["action"].char]
-        for display in display_list:
-            ***REMOVED*** action 和 char是在self.__get_display_list()方法里的硬编码，用于区分显示对象的类型
-            if 'action' in display:
+        start, end = 0, 0
+        for actions in action_list:
+            delay_char = len(actions) > 1   ***REMOVED*** 当同时运行多个动作的时候，需要在所有动作执行结束再绘制其他角色
+            char_not_in_action = self.scenario.chars[:]
+            delay_start = start
+            action_ends = []
+            for act in actions:
                 ***REMOVED*** 注意：一个活动（activity）中不能有两个`镜头`动作（action）
-                if display["action"].obj.get("名称", None) == "更新":
-                    new_char = display["action"].obj.get("角色", None)
-                    new_char_name = new_char.get("名字", None)
-                    for c in self.scenario.chars:
-                        if c.name == new_char_name:
-                            if new_char.get("素材", None):
-                                c.image = SuCaiHelper.get_sucai(new_char.get("素材"))
-                            if new_char.get("位置", None):
-                                c.pos = utils.covert_pos(new_char.get("位置", None))
-                            if new_char.get("大小", None):
-                                c.size = new_char.get("大小")
-                            if new_char.get("角度", None):
-                                c.rotate = new_char.get("角度")
-                            if new_char.get("显示", None):
-                                c.display = True if new_char.get("显示", None) == '是' else False
-                            if new_char.get("图层", None):
-                                c.index = int(new_char.get("图层", 0))
-                            break
-                    continue
-
-                if display["action"].char and display["action"].char.name != "消失":
-                    display["action"].char.display = True
-                print("生成动作图片， 动作：", display["action"].obj.get("名称"))
-                images = display["action"].to_videoframes(images)
+                print("生成动作：", act["action"].obj.get("名称"))
+                current_atc_end = start + math.ceil(act["action"].timespan * self.fps)
+                action_ends.append(current_atc_end)
+                current_image_list = images[start : current_atc_end]
+                act["action"].to_videoframes(current_image_list, self.scenario.chars, delay_char)
                 
-            if 'char' in display and display["char"].name not in action_chars:
-                char = display["char"]
-                print("生成角色图片， 角色：", char.name)
-                image_with_subtitle = []
-                added_by_subtitle = False
-                for st in self.subtitle:
-                    if len(st) > 4 and char.name == st[4]:
-                        added_by_subtitle = True
-                        start_num = st[-1][0]
-                        end_number = st[-1][1]
-                        tmp_images = images[start_num : end_number]
-                        image_with_subtitle += tmp_images
-                        ***REMOVED*** 如果指定了替换图片就用指定的图片，否则用char自己的图片
-                        ***REMOVED*** 字幕列表的最后一位可能是遍历字幕时添加的图片区间
-                        if len(st) > 5 and isinstance(st[5], str):
-                            print("len(st): ", st)
-                            _img = SuCaiHelper.get_sucai(st[5])
-            ***REMOVED***
-                            print("char.image: ", char.image)
-                            _img = char.image 
-                        print("gif: ", _img)
-                        ImageHelper.add_gif_to_images(tmp_images, _img, pos=char.pos, size=char.size)
-                        
-                if not added_by_subtitle and display["char"].display:
-                    for img in images:
-                        if not img in image_with_subtitle:
-                            ImageHelper.merge_two_image(img, char.image, char.size, char.pos, overwrite=True, rotate=char.rotate)
+                if delay_char:
+                    char_not_in_action = list(filter(lambda x: x.name != act["action"].char.name, char_not_in_action))
+            end = max(action_ends)
+            if delay_char:
+                ***REMOVED*** 有bug, 如果角色的图层在动作的角色下面，那么就会被错误的放在动作上面
+                for img_path in images[delay_start : end]:
+                    for _char in char_not_in_action:
+                        ImageHelper.paint_char_on_image(img_path, char=_char, overwrite=True)
+            start = end
 
         if self.subtitle:
             print("self.subtitle: \n", self.subtitle)
@@ -262,20 +250,30 @@ class Activity:
         q.join()
 
         ***REMOVED*** 先把图片转换成视频
-        video = VideoHelper.create_video_clip_from_images(images, self.fps)
+        video = VideoHelper.create_video_clip_from_images(images)
         if self.bgm:
     ***REMOVED***添加活动背景音乐"""
             print("添加背景音乐：", self.bgm)
             video = VideoHelper.add_audio_to_video(video, self.bgm)
         if self.subtitle:
-            ***REMOVED*** 添加字幕声音
+            ***REMOVED*** 添加字幕声音 -- 活动的字幕
             audio_list = [AudioFileClip(SuCaiHelper.get_sucai(st[3])).set_start(st[0]) for st in self.subtitle if len(st) > 3 and st[3]]
             if audio_list:
                 fd, tmp_audio_path = tempfile.mkstemp(suffix=".mp3")
                 print(f"把声音组装起来保存到{tmp_audio_path***REMOVED***")
                 concatenate_audioclips(audio_list).write_audiofile(tmp_audio_path)
                 video = VideoHelper.add_audio_to_video(video, tmp_audio_path, start=self.subtitle[0][0])
-
+        
+        start = 0
+        for actions in action_list:
+            ***REMOVED*** 添加动作的声音
+            action_ends = []
+            for act in actions:
+                if act["action"].subtitle:
+                    action_ends.append(act["action"].subtitle[-1][1])
+                    for subtitle in act["action"].subtitle:
+                        video = VideoHelper.add_audio_to_video(video, subtitle[3], start=start)
+            start += max(action_ends)
         return video
 
 ***REMOVED***

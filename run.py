@@ -53,11 +53,12 @@ def connect_videos(final_video_name: str, videos=[], script='script.yaml', delet
     final.write_videofile(p)
     return p
 
-def run(output, script='script.yaml', scenario=None):
+def run(output=None, script='script.yaml', scenario=None):
     """创建视频
 
     Params:
         output: 输出的视频文件名
+        script: 脚本文件的路径
         scenario: 需要创建视频的场景，没指定的话将对整个script.yaml进行生成
     """
     with open(script, 'r') as file:
@@ -65,26 +66,25 @@ def run(output, script='script.yaml', scenario=None):
 
         scenarios = script["场景"]
         if scenario:
-            scenarios = [x for x in scenarios if x.get("名字", None) == scenario]
+            scenarios = list(filter(lambda x: x.get("名字", None) == scenario, scenarios))
         final_videos_files = []
-        for i in range(0, len(scenarios)):
-            scenario = Scenario(scenarios[i])
-            videos = []
-            for j in range(0, len(scenario.activities)):
-                video = scenario.activities[j].to_video()
-                if video:
-                    videos.append(video)
-
-            if videos:
-                new_video = VideoHelper.concatenate_videos(*videos)
-***REMOVED***
-                continue
+        for scenario_obj in scenarios:
+            scenario = Scenario(scenario_obj)
+            videos = [activity.to_video() for activity in scenario.activities]
+            new_video = VideoHelper.concatenate_videos(*videos)
             if scenario.bgm:
                 new_video = VideoHelper.add_audio_to_video(new_video, scenario.bgm)
             scenario_file = os.path.join(config_reader.output_dir, f"{scenario.name***REMOVED***.{config_reader.video_format***REMOVED***")
+            new_video.set_fps(config_reader.fps)
             new_video.write_videofile(scenario_file)
             final_videos_files.append(scenario_file)
 
+        if not output:
+            if scenario:
+                output = os.path.join(config_reader.output_dir, f"{scenario.name***REMOVED***.{config_reader.video_format***REMOVED***")
+***REMOVED***
+                script = script.split('.')[0]
+                output = os.path.join(config_reader.output_dir, f"{script***REMOVED***.{config_reader.video_format***REMOVED***")
         connect_videos(output, final_videos_files, delete_old=True)
     return 0
 
@@ -116,10 +116,11 @@ def main(argv):
 ***REMOVED***
     ***REMOVED***
     print(datetime.datetime.now())
-    result = main(sys.argv[1:])
-    ***REMOVED*** result = run("酒馆里.mp4", script='武松打虎.yaml', scenario="酒馆里")
+    if len(sys.argv) > 1:
+        result = main(sys.argv[1:])
+    else:
+        result = run(script='script/水浒传/水浒传第三回.yaml', scenario="杀退官兵")
     print(datetime.datetime.now())
     sys.exit(result)
-    
     ***REMOVED*** videos=["output/京城外.mp4", "output/路上.mp4", "output/龙虎山下.mp4", "output/请张真人.mp4"]
-    ***REMOVED*** connect_videos("水浒传第一回.mp4", script="水浒传第一回.yaml", delete_old=False)
+    ***REMOVED*** connect_videos("水浒传第二回.mp4", script="水浒传第二回.yaml", delete_old=False)
