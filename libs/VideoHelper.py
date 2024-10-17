@@ -152,7 +152,7 @@ def add_audio_to_video(video, audio_file, start=None):
     new_audioclip = CompositeAudioClip(audios)
     return v.set_audio(new_audioclip)
 
-def create_video_clip_from_images(images, fps=None):
+def create_video_clip_from_images(images):
     """
     Create a video clip from images
 
@@ -161,12 +161,16 @@ def create_video_clip_from_images(images, fps=None):
     Return:
         Instance of VideoClip.
     """
-    fps = fps if fps else config_reader.fps
+    fps = config_reader.fps
     clips = []
-    l = len(images)
-    for i in range(0, l, 1000):
-        print(f"正在使用第{i*1000} 到 {i + 1000 - 1}个图片生成视频...")
-        clips.append(ImageSequenceClip(images[i : i + 1000 - 1], fps))
+    # l = len(images)
+    for img in images:
+        tmp_clip = ImageClip(img).set_duration(1/fps)
+        tmp_clip.fps=fps
+        clips.append(tmp_clip)
+    # for i in range(0, l, 1000):
+    #     print(f"正在使用第{i*1000} 到 {i + 1000 - 1}个图片生成视频...")
+    #     clips.append(ImageSequenceClip(images[i], fps))
     concat_clip = concatenate_videoclips(clips, method="compose")
     return concat_clip
 

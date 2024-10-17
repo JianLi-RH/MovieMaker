@@ -135,6 +135,23 @@ def resize_image(image):
     """
     Image.open(image).resize((config_reader.g_width, config_reader.g_height)).save(image)
 
+def paint_char_on_image(image, char, overwrite=False):
+    """Paint a char on image
+    
+    Params:
+        image: 背景图片
+        char: 角色
+        overwrite: 是否覆盖大图
+    Returns:
+        新图片地址
+    """
+    return merge_two_image(image, 
+                           small_image=char.image, 
+                           pos=char.pos, 
+                           size=char.size, 
+                           rotate=char.rotate, 
+                           overwrite=overwrite)
+
 def merge_two_image(big_image, small_image, size, pos, rotate=None, overwrite=False):
     """将小图片粘贴到大图片上
 
