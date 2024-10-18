@@ -1,7 +1,7 @@
 """
 这个类用来解析script.yaml中的`动作:`
 """
-import shutil
+import math
 
 from moviepy.editor import *
 from PIL import Image, ImageOps
@@ -22,15 +22,13 @@ class Action:
                 return c
         return None
 
-    def __display(self, images):
+    def __display(self):
 ***REMOVED***将当前动作的角色显示在背景上"""
         self.char.display = True
-        return images
 
-    def __disappear(self, images):
+    def __disappear(self):
 ***REMOVED***让角色消失"""
         self.char.display = False
-        return images
 
     def __camera(self, images):
 ***REMOVED***
@@ -64,17 +62,16 @@ class Action:
             ImageHelper.resize_image(tmp_img)
             images[i] = tmp_img
 
-        return images
-
-    def __turn(self, images, sorted_char_list, delay_char: bool):
+    def __turn(self, images, sorted_char_list, delay_mode: bool):
 ***REMOVED***让角色转动，如左右转身，上下翻转，指定角度翻转
         
+            延迟模式下返回角色运行轨迹, 否则返回空[]
 ***REMOVED***
             images: 全部背景图片
             sorted_char_list: 排序后的角色
-            delay_char: 延迟绘制其他角色
+            delay_mode: 延迟绘制其他角色
         Return:
-            全部图片地址
+            [[tmp_pos, tmp_size, rotate], [tmp_pos, tmp_size, rotate]]
 ***REMOVED***
         
         str_degree = self.obj.get("度数", 0)
@@ -88,22 +85,27 @@ class Action:
             self.char.rotate = 180
         else:
             self.char.rotate = int(str_degree)
-        for img_path in images:
+        if delay_mode:
+            delay_positions = []
+            for img in images:
+                ***REMOVED*** 保持delay_positions数量等于images数量
+                delay_positions.append([self.char.pos, self.char.size, self.char.rotate])
+            return delay_positions
+        for i in range(len(images)):
             for _char in sorted_char_list:
-                if _char.name != self.char.name and delay_char:
-                    continue
-                ImageHelper.paint_char_on_image(img_path, char=_char, overwrite=True)
-        return images
+                ImageHelper.paint_char_on_image(images[i], char=_char, overwrite=True)
+        return []
 
-    def __walk(self, images, sorted_char_list, delay_char: bool):
+    def __walk(self, images, sorted_char_list, delay_mode: bool):
 ***REMOVED***角色移动
         
+            延迟模式下返回角色运行轨迹, 否则返回空[]
 ***REMOVED***
             images: 全部背景图片
             sorted_char_list: 排序后的角色
-            delay_char: 延迟绘制其他角色
+            delay_mode: 延迟绘制其他角色
         Return:
-            全部图片地址
+            [[tmp_pos, tmp_size, rotate], [tmp_pos, tmp_size, rotate]]
 ***REMOVED***
         start_pos = self.obj["开始位置"] if self.obj.get("开始位置", None) else self.char.pos
         start_pos = utils.covert_pos(start_pos)
@@ -126,10 +128,15 @@ class Action:
             end_pos_list = [end_pos_list]
 
         steps = len(end_pos_list)
-        frames = int(len(images) / steps) ***REMOVED*** 每一个路线需要的帧数
         print("ratio: ", ratio)
-        for end_pos in end_pos_list:
-            end_pos = utils.covert_pos(end_pos)
+        for i in range(steps):    ***REMOVED*** 例如：[[120, 200], [10, 12]]
+            if i == steps - 1:
+                ***REMOVED*** 最后一步包含剩余的全部图片
+                frames = math.ceil(1/steps * len(images))
+***REMOVED***
+                ***REMOVED*** 平均分配每一个路线需要的帧数
+                frames = int(1/steps * len(images))
+            end_pos = utils.covert_pos(end_pos_list[i])
             ***REMOVED*** 每一步在x,y方向的进度以及缩放比例
             step_x = (end_pos[0] - start_pos[0]) / frames
             step_y = (end_pos[1] - start_pos[1]) / frames
@@ -169,9 +176,9 @@ class Action:
 
             start_pos = end_pos ***REMOVED*** 重新设置轨迹的开始坐标
         
-        ***REMOVED*** print("位置序列： ", pos)
-        path = os.path.join(config_reader.output_dir, self.activity.name)
-        os.makedirs(path, exist_ok=True)
+        if delay_mode:
+            return pos
+        
         for i in range(len(images)):
             ***REMOVED*** 由于前面使用int填充每个step的frames，所以最后一个step可能数量不足
             ***REMOVED*** 会导致最后几帧没有动作
@@ -180,22 +187,15 @@ class Action:
             self.char.size = pos[i][1]
             self.char.rotate = pos[i][2]
             for _char in sorted_char_list:
-                if _char.name != self.char.name and delay_char:
-                    ***REMOVED*** 在延迟绘画模式下，其他角色不会被画到背景上
-                    continue
                 ImageHelper.paint_char_on_image(images[i], char=_char, overwrite=True)
-                
-        return images
+        return []
 
-    def __gif(self, images, sorted_char_list, delay_char: bool):
+    def __gif(self, images, sorted_char_list):
 ***REMOVED***向视频中插入一段gif
         
 ***REMOVED***
             images: 全部背景图片
             sorted_char_list: 排序后的角色
-            delay_char: 延迟绘制其他角色
-        Return:
-            全部图片地址
 ***REMOVED***
         
         gif_images = ImageHelper.get_frames_from_gif(self.obj.get("素材"))
@@ -237,10 +237,7 @@ class Action:
                     overwrite=True
                 )
             for _char in sorted_char_list:
-                if _char.name != self.char.name and delay_char:
-                    continue
                 ImageHelper.paint_char_on_image(images[i], char=_char, overwrite=True)
-        return images
     
     def __update(self):
 ***REMOVED***更新某个角色
@@ -296,10 +293,14 @@ class Action:
                 ImageHelper.add_text_to_image(img, subtitle[2], overwrite_image=True)
         pass
 
-    def __init__(self, activity, obj, timespan=0):
+    def set_timespan(self, timespan):
+        self.timespan = timespan
+
+    def __init__(self, activity, obj):
         self.activity = activity
         self.obj = obj
-        if self.obj.get("名称", None) != '更新':
+        self.name = self.obj.get("名称")
+        if self.name != '更新':
             self.char = self.__get_char(self.obj.get("角色", None))
         else:
             self.char = None
@@ -311,40 +312,43 @@ class Action:
         elif self.subtitle:
             self.timespan = self.subtitle[-1][1] if self.subtitle else 0
         else:
-            self.timespan = timespan
+            self.timespan = 0
 
-    def to_videoframes(self, images, char_list, delay_char: bool):
+    def to_videoframes(self, images, char_list, delay_mode: bool):
 ***REMOVED***
         根据当前动作脚本更新图片列表，生成视频最终所需的图片
 
 ***REMOVED***
             images: a list of images
-            char_list: 活动中的角色列表
-            delay_char: 延迟绘制其他角色
+            char_list: 活动中的角色列表 (已排序)
+            delay_mode: 延迟绘制其他角色
+        Returns:
+            延迟模式下不更新图片，返回当前角色的运行轨迹
+            
 ***REMOVED***
-        _images = []
-        sorted_char_list = sorted(char_list, key=lambda x: x.index)
-        sorted_char_list = list(filter(lambda x: x.display, sorted_char_list))
+        delay_positions = []
+        sorted_char_list = list(filter(lambda x: x.display, char_list))
         action = self.obj.get("名称")
         if action == "显示":
-            _images = self.__display(images)
+            self.__display(images)
         if action == "消失":
-            _images = self.__disappear(images)
+            self.__disappear(images)
         elif action == "镜头":
-            _images = self.__camera(images)
+            self.__camera(images)
         elif action == "行进":
-            _images = self.__walk(images, sorted_char_list, delay_char)
+            delay_positions = self.__walk(images, sorted_char_list, delay_mode)
         elif action == "说话":
             pass
         elif action == "转身":
-            _images = self.__turn(images, sorted_char_list, delay_char)
+            delay_positions = self.__turn(images, sorted_char_list, delay_mode)
         elif action == "gif":
-            _images = self.__gif(images, sorted_char_list, delay_char)
+            self.__gif(images, sorted_char_list)
         elif action == "更新":
-            _images = self.__update()
+            self.__update()
         pass
 
-        self.__add_subtitle(_images)
+        self.__add_subtitle(images)
+        return delay_positions
 
 ***REMOVED***
     pass

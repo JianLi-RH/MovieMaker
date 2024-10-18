@@ -3,6 +3,7 @@
 """
 import math
 import queue
+import shutil
 import tempfile
 import threading
 
@@ -126,18 +127,23 @@ class Activity:
                     subtitle_length += AudioFileClip(sPath).duration
 
         ***REMOVED*** 全部动作的长度
-        actions = [Action(self, action) for  action in obj.get("动作", [])] ***REMOVED*** 不需要总时长
         action_length = 0.0
-        calculated_index = []   ***REMOVED*** save all actions length, for example: {'index': 0, 'length': 5***REMOVED***
-        for act in actions:
+        calculated_index = []   ***REMOVED*** save all actions length, for example: {'index': 0, 'action': action***REMOVED***
+        for act in self.actions:
             same_index_action = next(filter(lambda x: x["index"] == act.render_index, calculated_index), None)
             if same_index_action:
-                if same_index_action['length'] < act.timespan:
-                    same_index_action['index'] = act.render_index
-                    same_index_action['length'] = act.timespan
+                if same_index_action["action"].timespan < act.timespan:
+                    same_index_action['action'] = act
 ***REMOVED***
-                calculated_index.append({'index': act.render_index, 'length': act.timespan***REMOVED***)
-        action_length = sum([l["length"] for l in calculated_index])
+                calculated_index.append({'index': act.render_index, 'action': act***REMOVED***)
+        action_length = sum([l["action"].timespan for l in calculated_index])
+        
+        for action in self.actions:
+            ***REMOVED*** 使用同级别最长timespan的timespan设置没有timespan的动作的timespan
+            if action.timespan == 0:
+                same_level_action = next(filter(lambda x: x["index"] == action.render_index, calculated_index), None)
+                if same_level_action:
+                    action.set_timespan(same_level_action["action"].timespan)
 
         return max([keep, bgm_length, subtitle_length, action_length])
 
@@ -155,12 +161,11 @@ class Activity:
         self.subtitle = obj.get("字幕") if obj.get("字幕") else []
         self.subtitle_mode = obj.get("字幕样式", 'normal')
         self.bgm = SuCaiHelper.get_sucai(obj.get("背景音乐", None))
-        self.actions = []
-        self.timespan = self.__get_timespan(obj)
+        self.actions = [Action(self, action) for  action in obj.get("动作", [])]
+        self.timespan = self.__get_timespan(obj)    ***REMOVED*** 活动的总长度
         self.fps = int(obj.get("fps", None)) if obj.get("fps", None) else config_reader.fps
-        self.total_frame = math.ceil(self.timespan * self.fps)   ***REMOVED*** 根据当前活动的总时长，得到当前活动所需的视频帧数
-        for action in obj.get("动作", []):
-            self.actions.append(Action(self, action, self.timespan))
+        self.total_frame = math.ceil(self.timespan * self.fps)   ***REMOVED*** 根据当前活动的总时长，得到当前活动所需的视频总帧数
+
 
     def to_video(self):
 ***REMOVED***
@@ -208,33 +213,43 @@ class Activity:
                 ***REMOVED*** 添加一个表示图片位置的元素到字幕列表的最后
                 self.subtitle[i].append((start_num, end_number))
 
-        start, end = 0, 0
+        start = 0 ***REMOVED*** 每个action的开始位置 （图片下标）
         for actions in action_list:
-            delay_char = len(actions) > 1   ***REMOVED*** 当同时运行多个动作的时候，需要在所有动作执行结束再绘制其他角色
-            char_not_in_action = self.scenario.chars[:]
+            delay_mode = len(actions) > 1   ***REMOVED*** 当同时运行多个动作的时候，需要在所有动作执行结束再绘制其他角色
             delay_start = start
             action_ends = []
+            delay_positions = []
             for act in actions:
-                ***REMOVED*** 注意：一个活动（activity）中不能有两个`镜头`动作（action）
-                print("生成动作：", act["action"].obj.get("名称"))
+                ***REMOVED*** 注意：一个活动（activity）中不能有两个`镜头`动作(action)
+                print("生成动作：", act["action"].name)
                 current_atc_end = start + math.ceil(act["action"].timespan * self.fps)
                 action_ends.append(current_atc_end)
                 current_image_list = images[start : current_atc_end]
-                act["action"].to_videoframes(current_image_list, self.scenario.chars, delay_char)
+                temp_delay_positions = act["action"].to_videoframes(current_image_list, self.scenario.chars, delay_mode)
                 
-                if delay_char:
-                    char_not_in_action = list(filter(lambda x: x.name != act["action"].char.name, char_not_in_action))
-            end = max(action_ends)
-            if delay_char:
-                ***REMOVED*** 有bug, 如果角色的图层在动作的角色下面，那么就会被错误的放在动作上面
-                for img_path in images[delay_start : end]:
-                    for _char in char_not_in_action:
+                if delay_mode:
+                    delay_positions.append({"char": act["action"].char.name, "position": temp_delay_positions***REMOVED***)
+
+            if delay_mode:
+                delay_images = images[delay_start : max(action_ends)]
+                delay_action_char = [pos["char"] for pos in delay_positions]
+                i = 0
+                for img_path in delay_images:   ***REMOVED*** 在每张图片上绘制全部角色
+                    for _char in self.scenario.chars:
+                        if _char.name in delay_action_char:
+                            depay_pos_list = next(filter(lambda x: x["char"] == _char.name, delay_positions))
+                            depay_pos = depay_pos_list["position"][i]
+                            _char.pos = depay_pos[0]
+                            _char.size = depay_pos[1]
+                            _char.rotate = depay_pos[2]
+
                         ImageHelper.paint_char_on_image(img_path, char=_char, overwrite=True)
-            start = end
+                    i += 1
+            start = max(action_ends)
 
         if self.subtitle:
             print("self.subtitle: \n", self.subtitle)
-            ***REMOVED*** daemon结束主进程的时候可以同时结束子线程
+            ***REMOVED*** daemon：结束主进程的时候可以同时结束子线程
             threading.Thread(target=worker, daemon=True).start()
             l = len(self.subtitle)
             for i in range(0, l):
