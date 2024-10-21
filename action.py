@@ -37,7 +37,15 @@ class Action:
 ***REMOVED***
         length = len(images)    ***REMOVED*** 总帧数
         original_center = utils.covert_pos(self.activity.scenario.focus)  ***REMOVED*** 原有的焦点
-        self.activity.scenario.focus = self.obj.get("焦点", "中心") ***REMOVED*** 新焦点
+        self.activity.scenario.focus = self.obj.get("焦点", None) ***REMOVED*** 新焦点
+        if not self.activity.scenario.focus:
+            if self.char:
+                x, y = self.char.pos
+                w, h = self.char.size
+                self.activity.scenario.focus = [(x + w / 2), (y + h / 2)]
+***REMOVED***
+                self.activity.scenario.focus = "中心"
+        
         center = utils.covert_pos(self.activity.scenario.focus)
 
         step_x = (center[0] - original_center[0]) / length
@@ -239,6 +247,21 @@ class Action:
             for _char in sorted_char_list:
                 ImageHelper.paint_char_on_image(images[i], char=_char, overwrite=True)
     
+    def __talk(self, images, sorted_char_list):
+***REMOVED***角色说话
+        
+***REMOVED***
+            images: 背景图片
+            sorted_char_list: 排序后的角色
+***REMOVED***
+        for img in images:
+            for _char in sorted_char_list:
+                ImageHelper.paint_char_on_image(img, char=_char, overwrite=True)
+        
+        if self.obj.get("变化", None):
+            ***REMOVED*** 图片有缩放的时候才需要调用镜头方法
+            self.__camera(images)
+    
     def __update(self):
 ***REMOVED***更新某个角色
 ***REMOVED***
@@ -338,7 +361,7 @@ class Action:
         elif action == "行进":
             delay_positions = self.__walk(images, sorted_char_list, delay_mode)
         elif action == "说话":
-            pass
+            self.__talk(images, sorted_char_list)
         elif action == "转身":
             delay_positions = self.__turn(images, sorted_char_list, delay_mode)
         elif action == "gif":
