@@ -124,12 +124,32 @@ class Action:
         ***REMOVED*** 0.4   --> 相对于开始时，最终的显示比例
         ***REMOVED*** [1, 0.4] --> 变化前后的显示比例
         ***REMOVED*** [[120, 200], [10, 12]] --> 变化前后的具体像素
-        ratio = self.obj["比例"] 
+        ratio = self.obj["比例"] if self.obj["比例"] else 1
         mode = self.obj["方式"]
 
         pos = [] ***REMOVED*** 每一个元素：(tmp_pos, tmp_size, rotate)
         img1 = Image.open(self.char.image)
         img_w, img_h = img1.size    ***REMOVED*** 角色图片的原始尺寸
+        
+        ***REMOVED*** 计算每一帧的大小变化
+        if isinstance(ratio, list):
+            if isinstance(ratio[0], list) and isinstance(ratio[1], list): ***REMOVED*** [(180,220), (80,100)] -- 变化前后的具体像素
+                ratio_x = (ratio[1][0] - ratio[0][0]) / len(images)
+                ratio_y = (ratio[1][1] - ratio[0][1]) / len(images)
+                start_size = ratio[0]
+***REMOVED***   ***REMOVED*** [0.2, 0.2] -- 百分比
+                ratio_x = (ratio[1] - ratio[0]) / len(images)
+                ratio_y = ratio_x
+                start_size = (ratio[0] * img_w, ratio[0] * img_h)
+        else:
+    ***REMOVED***
+                ***REMOVED*** ratio是最终显示比例， 如 0.4
+                ratio = float(ratio)
+            except:
+                ratio = 1 ***REMOVED*** 默认比例不变
+            ratio_x = (ratio - 1) / len(images)
+            ratio_y = ratio_x
+            start_size = self.char.size
         
         ***REMOVED*** 强制转化为二维数组，使移动不止是直线运动
         if not isinstance(end_pos_list[0], list):
@@ -137,42 +157,23 @@ class Action:
 
         steps = len(end_pos_list)
         print("ratio: ", ratio)
+        frames = int(1/steps * len(images)) ***REMOVED*** 平均分配每一个路线需要的帧数
+        
+        m = 0
         for i in range(steps):    ***REMOVED*** 例如：[[120, 200], [10, 12]]
             if i == steps - 1:
                 ***REMOVED*** 最后一步包含剩余的全部图片
-                frames = math.ceil(1/steps * len(images))
-***REMOVED***
-                ***REMOVED*** 平均分配每一个路线需要的帧数
-                frames = int(1/steps * len(images))
+                frames = len(images) - (steps - 1) * frames
+
             end_pos = utils.covert_pos(end_pos_list[i])
-            ***REMOVED*** 每一步在x,y方向的进度以及缩放比例
+            ***REMOVED*** 每一步在x,y方向的进度
             step_x = (end_pos[0] - start_pos[0]) / frames
             step_y = (end_pos[1] - start_pos[1]) / frames
-        
-            if isinstance(ratio, list):
-                if isinstance(ratio[0], list) and isinstance(ratio[1], list): ***REMOVED*** [(180,220), (80,100)] -- 变化前后的具体像素
-                    step_ration_x = (ratio[1][0] - ratio[0][0]) / steps / frames
-                    step_ration_y = (ratio[1][1] - ratio[0][1]) / steps/ frames
-                    start_size = ratio[0]
-    ***REMOVED***   ***REMOVED*** [0.2, 0.2] -- 百分比
-                    step_ration_x = (ratio[1] - ratio[0]) / steps / frames * img_w
-                    step_ration_y = (ratio[1] - ratio[0]) / steps / frames * img_h
-                    start_size = (ratio[0] * img_w, ratio[0] * img_h)
-***REMOVED***
-                if not isinstance(ratio, float): ***REMOVED*** ratio是最终显示比例， 如 0.4
-            ***REMOVED***
-                        ratio = float(ratio)
-                    except:
-                        ratio = 1 ***REMOVED*** 默认比例不变
-                tmp_ratio = [self.char.size, [self.char.size[0] * ratio, self.char.size[1] * ratio, ]]
-                step_ration_x = (tmp_ratio[1][0] - tmp_ratio[0][0]) / steps / frames
-                step_ration_y = (tmp_ratio[1][1] - tmp_ratio[0][1]) / steps / frames
-                start_size = self.char.size
 
             ***REMOVED*** mode ["自然", "旋转"]:
-            for i in range(0, frames):
-                tmp_pos = (int(start_pos[0] + step_x * i), int(start_pos[1] + step_y * i))
-                tmp_size = (int(start_size[0] + step_ration_x * i), int(start_size[1] + step_ration_y * i))
+            for j in range(0, frames):
+                tmp_pos = (int(start_pos[0] + step_x * j), int(start_pos[1] + step_y * j))
+                tmp_size = (int(start_size[0] * (1 + ratio_x * m)), int(start_size[1] * (1 + ratio_y * m)))
                 rotate = 0
                 if mode == "旋转":
                     step_rotate = 360 / self.activity.fps * int(config_reader.round_per_second)  ***REMOVED*** 每秒旋转圈数
@@ -181,6 +182,7 @@ class Action:
                         ***REMOVED*** 最后一圈摆正
                         rotate = 0
                 pos.append((tmp_pos, tmp_size, rotate))
+                m += 1
 
             start_pos = end_pos ***REMOVED*** 重新设置轨迹的开始坐标
         
@@ -327,7 +329,7 @@ class Action:
             self.char = self.__get_char(self.obj.get("角色", None))
         else:
             self.char = None
-        self.render_index = self.obj.get("渲染顺序", 0)    ***REMOVED*** 动作执行的顺序，数值一样的同时执行， 从小到达执行
+        self.render_index = self.obj.get("渲染顺序") if self.obj.get("渲染顺序") else 0    ***REMOVED*** 动作执行的顺序，数值一样的同时执行， 从小到达执行
         self.subtitle = self.__get_subtitle()
         keep = utils.get_time(obj.get("持续时间", 0))   ***REMOVED*** 优先级最高
         if keep > 0:

@@ -161,7 +161,7 @@ class Activity:
         self.subtitle = obj.get("字幕") if obj.get("字幕") else []
         self.subtitle_mode = obj.get("字幕样式", 'normal')
         self.bgm = SuCaiHelper.get_sucai(obj.get("背景音乐", None))
-        self.actions = [Action(self, action) for  action in obj.get("动作", [])]
+        self.actions = [Action(self, action) for action in obj.get("动作", [])]
         self.timespan = self.__get_timespan(obj)    ***REMOVED*** 活动的总长度
         self.fps = int(obj.get("fps", None)) if obj.get("fps", None) else config_reader.fps
         self.total_frame = math.ceil(self.timespan * self.fps)   ***REMOVED*** 根据当前活动的总时长，得到当前活动所需的视频总帧数
@@ -279,7 +279,6 @@ class Activity:
                 concatenate_audioclips(audio_list).write_audiofile(tmp_audio_path)
                 video = VideoHelper.add_audio_to_video(video, tmp_audio_path, start=self.subtitle[0][0])
         
-        start = 0
         for actions in action_list:
             ***REMOVED*** 添加动作的声音
             action_ends = []
@@ -287,8 +286,7 @@ class Activity:
                 if act["action"].subtitle:
                     action_ends.append(act["action"].subtitle[-1][1])
                     for subtitle in act["action"].subtitle:
-                        video = VideoHelper.add_audio_to_video(video, subtitle[3], start=start)
-            start += max(action_ends)
+                        video = VideoHelper.add_audio_to_video(video, subtitle[3], start=subtitle[0])
         return video
 
 ***REMOVED***
