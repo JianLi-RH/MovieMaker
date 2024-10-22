@@ -114,14 +114,13 @@ def get_frames_from_gif(gif):
     """
     if not gif.lower().endswith(".gif"):
         raise Exception(f"{gif***REMOVED*** is not a gif picture.")
-    output_path = os.path.join(config_reader.output_dir, os.path.basename(gif).lower().replace('.gif', ''))
-    if not os.path.exists(output_path):
-        os.mkdir(output_path)
+    output_path = os.path.join(config_reader.output_dir, "gif", os.path.basename(gif).lower().replace('.gif', ''))
+    os.makedirs(output_path, exist_ok=True)
     frames = []
     with Image.open(gif) as im:
         i = 0
         for frame in  ImageSequence.Iterator(im):
-            tmp_path = f"{output_path***REMOVED***/{i***REMOVED***.png"
+            tmp_path = f"{output_path***REMOVED***/{i***REMOVED***-gif.png"
             i += 1
             frame.save(tmp_path)
             frames.append(tmp_path)

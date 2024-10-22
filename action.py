@@ -17,6 +17,8 @@ class Action:
 
     def __get_char(self, name):
 ***REMOVED***查找指定名称的角色"""
+        if not name:
+            return None
         for c in self.activity.scenario.chars:
             if c.name == name:
                 return c
@@ -203,6 +205,17 @@ class Action:
     def __gif(self, images, sorted_char_list):
 ***REMOVED***向视频中插入一段gif
         
+        Example:
+          -
+            名称: gif
+            素材: resources/SuCai/说话声/1.gif
+            字幕: 
+              - ['','', '小女孩哭泣声', 'resources/ShengYin/小女孩哭泣声.mp3']
+            位置: [0.6, 0.2]
+            图层: 100
+            度数: 左右
+            大小: [300, 300]
+        
 ***REMOVED***
             images: 全部背景图片
             sorted_char_list: 排序后的角色
@@ -217,10 +230,8 @@ class Action:
         pos[1] = pos[1] if pos[1] > 1 else int(pos[1] * img_h)
 
         gif1 = Image.open(gif_images[0])
-        gif_w, gif_h = gif1.size
-        gif_ratio = self.obj.get("比例")
-
-        str_degree = self.obj.get("度数", 0)
+        size = self.obj.get("大小") if self.obj.get("大小") else gif1.size
+        str_degree = self.obj.get("度数") if self.obj.get("度数") else 1
 
         l = len(images)
         for i in range(0, l):
@@ -242,7 +253,7 @@ class Action:
                     images[i],
                     gif_images[j],
                     pos=pos,
-                    size=(int(gif_w * gif_ratio), int(gif_h * gif_ratio)),
+                    size=size,
                     rotate=rotate,
                     overwrite=True
                 )
@@ -322,13 +333,13 @@ class Action:
         self.timespan = timespan
 
     def __init__(self, activity, obj):
+***REMOVED***
+        初始化Action
+***REMOVED***
         self.activity = activity
         self.obj = obj
         self.name = self.obj.get("名称")
-        if self.name != '更新':
-            self.char = self.__get_char(self.obj.get("角色", None))
-        else:
-            self.char = None
+        self.char = self.__get_char(self.obj.get("角色"))
         self.render_index = self.obj.get("渲染顺序") if self.obj.get("渲染顺序") else 0    ***REMOVED*** 动作执行的顺序，数值一样的同时执行， 从小到达执行
         self.subtitle = self.__get_subtitle()
         keep = utils.get_time(obj.get("持续时间", 0))   ***REMOVED*** 优先级最高
@@ -355,9 +366,9 @@ class Action:
         sorted_char_list = list(filter(lambda x: x.display, char_list))
         action = self.obj.get("名称")
         if action == "显示":
-            self.__display(images)
+            self.__display()
         if action == "消失":
-            self.__disappear(images)
+            self.__disappear()
         elif action == "镜头":
             self.__camera(images)
         elif action == "行进":
