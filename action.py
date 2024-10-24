@@ -1,7 +1,7 @@
 """
 这个类用来解析script.yaml中的`动作:`
 """
-import math
+***REMOVED***
 
 from moviepy.editor import *
 from PIL import Image, ImageOps
@@ -220,7 +220,15 @@ class Action:
             images: 全部背景图片
             sorted_char_list: 排序后的角色
 ***REMOVED***
-        
+        index = self.obj.get("图层") if self.obj.get("图层") else sys.maxsize ***REMOVED*** 默认将gif显示在最上层
+        ***REMOVED*** 将GIF标记添加在显示列表中，用来设置显示顺序
+        for i in range(len(sorted_char_list)):
+            if sorted_char_list[i].index > index:
+                sorted_char_list.insert(i, "GIF")
+                break
+        if "GIF" not in sorted_char_list:
+            sorted_char_list.append("GIF")
+            
         gif_images = ImageHelper.get_frames_from_gif(self.obj.get("素材"))
 
         img1 = Image.open(images[0])
@@ -249,16 +257,18 @@ class Action:
 ***REMOVED***
                 rotate = int(str_degree)
 
-            ImageHelper.merge_two_image(
-                    images[i],
-                    gif_images[j],
-                    pos=pos,
-                    size=size,
-                    rotate=rotate,
-                    overwrite=True
-                )
             for _char in sorted_char_list:
-                ImageHelper.paint_char_on_image(images[i], char=_char, overwrite=True)
+                if _char == "GIF":
+                    ImageHelper.merge_two_image(
+                        images[i],
+                        gif_images[j],
+                        pos=pos,
+                        size=size,
+                        rotate=rotate,
+                        overwrite=True
+                    )
+    ***REMOVED***
+                    ImageHelper.paint_char_on_image(images[i], char=_char, overwrite=True)
     
     def __talk(self, images, sorted_char_list):
 ***REMOVED***角色说话
@@ -275,24 +285,39 @@ class Action:
             ***REMOVED*** 图片有缩放的时候才需要调用镜头方法
             self.__camera(images)
     
-    def __update(self):
+    def __update(self, images, sorted_char_list):
 ***REMOVED***更新某个角色
+        
+        Example:
+          -
+            名称: 更新
+            角色: 鲁智深
+            素材: 水浒传/人物/鲁智深1.png
+            角度: 左右
+            字幕: ***REMOVED***Kangkang, Male
+              - ['','', '啪啪啪', 'resources/ShengYin/打耳光.mp3']
+            渲染顺序: 2
+        
 ***REMOVED***
-        char_name = self.obj.get("角色", None)
-        char = self.__get_char(char_name)
+            images: 全部背景图片
+            sorted_char_list: 排序后的角色
+***REMOVED***
         if self.obj.get("素材", None):
-            char.image = SuCaiHelper.get_sucai(self.obj.get("素材"))
+            self.char.image = SuCaiHelper.get_sucai(self.obj.get("素材"))
         if self.obj.get("位置", None):
-            char.pos = utils.covert_pos(self.obj.get("位置", None))
+            self.char.pos = utils.covert_pos(self.obj.get("位置", None))
         if self.obj.get("大小", None):
-            char.size = self.obj.get("大小")
+            self.char.size = self.obj.get("大小")
         if self.obj.get("角度", None):
-            char.rotate = self.obj.get("角度")
+            self.char.rotate = self.obj.get("角度")
         if self.obj.get("显示", None):
-            char.display = True if self.obj.get("显示", None) == '是' else False
+            self.char.display = True if self.obj.get("显示", None) == '是' else False
         if self.obj.get("图层", None):
-            char.index = int(self.obj.get("图层", 0))
-        pass
+            self.char.index = int(self.obj.get("图层", 0))
+        
+        for img in images:
+            for _char in sorted_char_list:
+                ImageHelper.paint_char_on_image(img, char=_char, overwrite=True)
     
     def __get_subtitle(self):
 ***REMOVED***获取动作的字幕
@@ -369,7 +394,7 @@ class Action:
             self.__display()
         if action == "消失":
             self.__disappear()
-        elif action == "镜头":
+        elif action == "镜头":  ***REMOVED*** 还需要验证
             self.__camera(images)
         elif action == "行进":
             delay_positions = self.__walk(images, sorted_char_list, delay_mode)
@@ -380,7 +405,7 @@ class Action:
         elif action == "gif":
             self.__gif(images, sorted_char_list)
         elif action == "更新":
-            self.__update()
+            self.__update(images, sorted_char_list)
         pass
 
         self.__add_subtitle(images)
