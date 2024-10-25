@@ -71,27 +71,8 @@ class Activity:
             rendered_action_list: [[{index:0, action: xxx***REMOVED***, {index:0, action: yyy***REMOVED***], [{"index": 1, "action": zzz***REMOVED***]]
 ***REMOVED***
         rendered_action_list = []
-        for a in self.actions:
-            render = {"index": None, "action": None***REMOVED***
-            if a.obj.get("名称", None) == "镜头":
-                ***REMOVED*** 镜头相关动作会改变背景图片尺寸，但是不会改变角色位置，所以镜头需要最后进行渲染
-                render = {"index": sys.maxsize, "action": a***REMOVED***
-            elif a.obj.get("名称", None) == "更新":
-                ***REMOVED*** 更新角色总是最早执行
-                render = {"index": -(sys.maxsize - 1), "action": a***REMOVED***
-            elif a.obj.get("名称", None) == "显示":
-                ***REMOVED*** 显示角色
-                c = next(filter(lambda x:x.name == a.obj.get("角色", None), self.scenario.chars))
-                c.display = True
-                continue
-            elif a.obj.get("名称", None) == "消失":
-                ***REMOVED*** 隐藏角色
-                c = next(filter(lambda x:x.name == a.obj.get("角色", None), self.scenario.chars))
-                c.display = False
-                continue
-***REMOVED***
-                render = {"index": a.render_index, "action": a***REMOVED***
-            
+        for act in self.actions:
+            render = {"index": act.render_index, "action": act***REMOVED***
             actions = next(filter(lambda x: x[0].get("index", 0) == render.get("index", 0), rendered_action_list), [])
             if actions:
                 actions.append(render)
@@ -216,12 +197,21 @@ class Activity:
         start = 0 ***REMOVED*** 每个action的开始位置 （图片下标）
         for actions in action_list:
             delay_mode = len(actions) > 1   ***REMOVED*** 当同时运行多个动作的时候，需要在所有动作执行结束再绘制其他角色
+            video_start = start/len(images) ***REMOVED*** action在整段视频中的开始位置，方便后面添加声音
             delay_start = start
-            action_ends = []
+            action_ends = [0]
             delay_positions = []
             for act in actions:
                 ***REMOVED*** 注意：一个活动（activity）中不能有两个`镜头`动作(action)
                 print("生成动作：", act["action"].name)
+                act["start"] = video_start
+                
+                if act["action"].name in ["显示", "消失"]:
+                    delay_mode = False
+                    action_ends.append(start)
+                    act["action"].to_videoframes(images, self.scenario.chars, delay_mode)
+                    continue
+                
                 current_atc_end = start + math.ceil(act["action"].timespan * self.fps)
                 action_ends.append(current_atc_end)
                 current_image_list = images[start : current_atc_end]
@@ -263,6 +253,13 @@ class Activity:
 
         ***REMOVED*** 等待所有线程完成
         q.join()
+        draw_char_actions = set([act["action"].name for act_in_same_level in action_list for act in act_in_same_level]) - set({"显示", "消失"***REMOVED***)
+        if not draw_char_actions:
+            ***REMOVED*** 如果所有的动作都没有绘制角色，则统一绘制一次
+            for img in images:
+                for _char in self.scenario.chars:
+                    if _char.display:
+                        ImageHelper.paint_char_on_image(img, char=_char, overwrite=True)
 
         ***REMOVED*** 先把图片转换成视频
         video = VideoHelper.create_video_clip_from_images(images)
@@ -279,14 +276,16 @@ class Activity:
                 concatenate_audioclips(audio_list).write_audiofile(tmp_audio_path)
                 video = VideoHelper.add_audio_to_video(video, tmp_audio_path, start=self.subtitle[0][0])
         
+        video_total_length = video.duration
         for actions in action_list:
             ***REMOVED*** 添加动作的声音
             action_ends = []
+            start = actions[0]["start"] * video_total_length
             for act in actions:
                 if act["action"].subtitle:
                     action_ends.append(act["action"].subtitle[-1][1])
                     for subtitle in act["action"].subtitle:
-                        video = VideoHelper.add_audio_to_video(video, subtitle[3], start=subtitle[0])
+                        video = VideoHelper.add_audio_to_video(video, subtitle[3], start=(start + subtitle[0]))
         return video
 
 ***REMOVED***

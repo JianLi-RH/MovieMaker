@@ -76,6 +76,17 @@ class Action:
 ***REMOVED***让角色转动，如左右转身，上下翻转，指定角度翻转
         
             延迟模式下返回角色运行轨迹, 否则返回空[]
+        
+        Example:            
+          -
+            名称: 转身
+            角色: 镇关西
+            持续时间: 
+            角度: 270 ***REMOVED*** 左右, 上下， 45(逆时针角度)
+            字幕: ***REMOVED***Kangkang, Male
+              - ['','', '啊啊啊', 'resources/ShengYin/惨叫-男1.mp3']
+            渲染顺序: 1
+            
 ***REMOVED***
             images: 全部背景图片
             sorted_char_list: 排序后的角色
@@ -84,7 +95,7 @@ class Action:
             [[tmp_pos, tmp_size, rotate], [tmp_pos, tmp_size, rotate]]
 ***REMOVED***
         
-        str_degree = self.obj.get("度数", 0)
+        str_degree = self.obj.get("角度", 0)
         if str_degree == "左右":
             im_mirror = ImageOps.mirror(Image.open(self.char.image))
             basename = os.path.basename(self.char.image)
@@ -108,8 +119,21 @@ class Action:
 
     def __walk(self, images, sorted_char_list, delay_mode: bool):
 ***REMOVED***角色移动
-        
             延迟模式下返回角色运行轨迹, 否则返回空[]
+        
+        Example:
+          -
+            名称: 行进
+            角色: 鲁智深
+            持续时间: 
+            开始位置: 
+            结束位置: [-0.2, 0.55]
+            比例:   ***REMOVED*** 比例变化，开始比例 - 结束比例
+            方式: 
+            字幕: ***REMOVED***Yunyang, Male
+              - ['','', '跑路', 'resources/ShengYin/卡通搞笑逃跑音效.mp3']
+            渲染顺序: 6
+        
 ***REMOVED***
             images: 全部背景图片
             sorted_char_list: 排序后的角色
@@ -176,13 +200,13 @@ class Action:
             for j in range(0, frames):
                 tmp_pos = (int(start_pos[0] + step_x * j), int(start_pos[1] + step_y * j))
                 tmp_size = (int(start_size[0] * (1 + ratio_x * m)), int(start_size[1] * (1 + ratio_y * m)))
-                rotate = 0
+                rotate = None
                 if mode == "旋转":
                     step_rotate = 360 / self.activity.fps * int(config_reader.round_per_second)  ***REMOVED*** 每秒旋转圈数
                     rotate = step_rotate * i % 360
                     if i == frames - 1:
-                        ***REMOVED*** 最后一圈摆正
-                        rotate = 0
+                        ***REMOVED*** 最后一圈恢复原样
+                        rotate = None
                 pos.append((tmp_pos, tmp_size, rotate))
                 m += 1
 
@@ -191,14 +215,13 @@ class Action:
         if delay_mode:
             return pos
         
+        default_rotate = self.char.rotate
         for i in range(len(images)):
-            ***REMOVED*** 由于前面使用int填充每个step的frames，所以最后一个step可能数量不足
-            ***REMOVED*** 会导致最后几帧没有动作
-            ***REMOVED*** 所以使用最后一个动作进行填充
-            self.char.pos = pos[i][0]
-            self.char.size = pos[i][1]
-            self.char.rotate = pos[i][2]
             for _char in sorted_char_list:
+                if _char.name == self.char.name:
+                    self.char.pos = pos[i][0]
+                    self.char.size = pos[i][1]
+                    self.char.rotate = pos[i][2] if pos[i][2] else default_rotate
                 ImageHelper.paint_char_on_image(images[i], char=_char, overwrite=True)
         return []
 
@@ -213,7 +236,7 @@ class Action:
               - ['','', '小女孩哭泣声', 'resources/ShengYin/小女孩哭泣声.mp3']
             位置: [0.6, 0.2]
             图层: 100
-            度数: 左右
+            角度: 左右
             大小: [300, 300]
         
 ***REMOVED***
@@ -239,7 +262,7 @@ class Action:
 
         gif1 = Image.open(gif_images[0])
         size = self.obj.get("大小") if self.obj.get("大小") else gif1.size
-        str_degree = self.obj.get("度数") if self.obj.get("度数") else 1
+        str_degree = self.obj.get("角度") if self.obj.get("角度") else 1
 
         l = len(images)
         for i in range(0, l):
@@ -273,6 +296,17 @@ class Action:
     def __talk(self, images, sorted_char_list):
 ***REMOVED***角色说话
         
+        Example:
+          -
+            名称: 说话
+            角色: 鲁智深
+            焦点: 
+            变化: 
+            字幕: ***REMOVED***Yunyang, Male
+              - ['','', '你这斯诈死', '水浒传/第四回/打死镇关西/你这斯诈死.mp3']
+              - ['','', '等我回家再与你理会', '水浒传/第四回/打死镇关西/等我回家再与你理会.mp3']
+            渲染顺序: 5
+            
 ***REMOVED***
             images: 背景图片
             sorted_char_list: 排序后的角色
@@ -302,17 +336,18 @@ class Action:
             images: 全部背景图片
             sorted_char_list: 排序后的角色
 ***REMOVED***
-        if self.obj.get("素材", None):
+        keys = self.obj.keys()
+        if "素材" in keys:
             self.char.image = SuCaiHelper.get_sucai(self.obj.get("素材"))
-        if self.obj.get("位置", None):
+        if "位置" in keys:
             self.char.pos = utils.covert_pos(self.obj.get("位置", None))
-        if self.obj.get("大小", None):
+        if "大小" in keys:
             self.char.size = self.obj.get("大小")
-        if self.obj.get("角度", None):
+        if "角度" in keys:
             self.char.rotate = self.obj.get("角度")
-        if self.obj.get("显示", None):
-            self.char.display = True if self.obj.get("显示", None) == '是' else False
-        if self.obj.get("图层", None):
+        if "显示" in keys:
+            self.char.display = True if self.obj.get("显示") == '是' else False
+        if "图层" in keys:
             self.char.index = int(self.obj.get("图层", 0))
         
         for img in images:
@@ -392,7 +427,7 @@ class Action:
         action = self.obj.get("名称")
         if action == "显示":
             self.__display()
-        if action == "消失":
+        elif action == "消失":
             self.__disappear()
         elif action == "镜头":  ***REMOVED*** 还需要验证
             self.__camera(images)

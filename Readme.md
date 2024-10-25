@@ -83,7 +83,7 @@ https://github.com/Zulko/moviepy/blob/master/Dockerfile
           -
             名称: 转身
             角色: 沙雕
-            度数: 左右 ***REMOVED*** 左右, 上下， 45(逆时针角度)
+            角度: 左右 ***REMOVED*** 左右, 上下， 45(逆时针角度)
           -
             名称: 镜头
             焦点: ["中心", "底部"]
@@ -93,4 +93,4 @@ https://github.com/Zulko/moviepy/blob/master/Dockerfile
             素材: resources/SuCai/watermark.gif
             位置: [0.48, 0]
             比例: 0.7
-            度数: 左右 ***REMOVED*** 左右, 上下， 45(逆时针角度)
+            角度: 左右 ***REMOVED*** 左右, 上下， 45(逆时针角度)
