@@ -114,7 +114,8 @@ class Action:
             return delay_positions
         for i in range(len(images)):
             for _char in sorted_char_list:
-                ImageHelper.paint_char_on_image(images[i], char=_char, overwrite=True)
+                if _char.display:
+                    ImageHelper.paint_char_on_image(images[i], char=_char, overwrite=True)
         return []
 
     def __walk(self, images, sorted_char_list, delay_mode: bool):
@@ -152,6 +153,8 @@ class Action:
         ***REMOVED*** [[120, 200], [10, 12]] --> 变化前后的具体像素
         ratio = self.obj["比例"] if self.obj["比例"] else 1
         mode = self.obj["方式"]
+        
+        self.char.display = True ***REMOVED*** 强制显示当前角色
 
         pos = [] ***REMOVED*** 每一个元素：(tmp_pos, tmp_size, rotate)
         img1 = Image.open(self.char.image)
@@ -222,7 +225,8 @@ class Action:
                     self.char.pos = pos[i][0]
                     self.char.size = pos[i][1]
                     self.char.rotate = pos[i][2] if pos[i][2] else default_rotate
-                ImageHelper.paint_char_on_image(images[i], char=_char, overwrite=True)
+                if _char.display:
+                    ImageHelper.paint_char_on_image(images[i], char=_char, overwrite=True)
         return []
 
     def __gif(self, images, sorted_char_list):
@@ -291,7 +295,8 @@ class Action:
                         overwrite=True
                     )
     ***REMOVED***
-                    ImageHelper.paint_char_on_image(images[i], char=_char, overwrite=True)
+                    if _char.display:
+                        ImageHelper.paint_char_on_image(images[i], char=_char, overwrite=True)
     
     def __talk(self, images, sorted_char_list):
 ***REMOVED***角色说话
@@ -313,7 +318,8 @@ class Action:
 ***REMOVED***
         for img in images:
             for _char in sorted_char_list:
-                ImageHelper.paint_char_on_image(img, char=_char, overwrite=True)
+                if _char.display:
+                    ImageHelper.paint_char_on_image(img, char=_char, overwrite=True)
         
         if self.obj.get("变化", None):
             ***REMOVED*** 图片有缩放的时候才需要调用镜头方法
@@ -352,7 +358,8 @@ class Action:
         
         for img in images:
             for _char in sorted_char_list:
-                ImageHelper.paint_char_on_image(img, char=_char, overwrite=True)
+                if _char.display:
+                    ImageHelper.paint_char_on_image(img, char=_char, overwrite=True)
     
     def __get_subtitle(self):
 ***REMOVED***获取动作的字幕
@@ -410,20 +417,19 @@ class Action:
         else:
             self.timespan = 0
 
-    def to_videoframes(self, images, char_list, delay_mode: bool):
+    def to_videoframes(self, images, sorted_char_list, delay_mode: bool):
 ***REMOVED***
         根据当前动作脚本更新图片列表，生成视频最终所需的图片
 
 ***REMOVED***
             images: a list of images
-            char_list: 活动中的角色列表 (已排序)
+            sorted_char_list: 活动中的角色列表 (已排序)
             delay_mode: 延迟绘制其他角色
         Returns:
             延迟模式下不更新图片，返回当前角色的运行轨迹
             
 ***REMOVED***
         delay_positions = []
-        sorted_char_list = list(filter(lambda x: x.display, char_list))
         action = self.obj.get("名称")
         if action == "显示":
             self.__display()

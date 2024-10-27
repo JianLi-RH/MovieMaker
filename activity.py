@@ -227,11 +227,11 @@ class Activity:
                 for img_path in delay_images:   ***REMOVED*** 在每张图片上绘制全部角色
                     for _char in self.scenario.chars:
                         if _char.name in delay_action_char:
-                            depay_pos_list = next(filter(lambda x: x["char"] == _char.name, delay_positions))
-                            depay_pos = depay_pos_list["position"][i]
-                            _char.pos = depay_pos[0]
-                            _char.size = depay_pos[1]
-                            _char.rotate = depay_pos[2]
+                            delay_pos_list = next(filter(lambda x: x["char"] == _char.name, delay_positions))
+                            delay_pos = delay_pos_list["position"][i]
+                            _char.pos = delay_pos[0]
+                            _char.size = delay_pos[1]
+                            _char.rotate = delay_pos[2]
 
                         ImageHelper.paint_char_on_image(img_path, char=_char, overwrite=True)
                     i += 1
