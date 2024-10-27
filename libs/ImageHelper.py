@@ -170,13 +170,7 @@ def merge_two_image(big_image, small_image, size, pos, rotate=None, overwrite=Fa
 
     mode2 = 'RGBA' if small_image.endswith('.png') else 'RGB'
 
-    if isinstance(size, str):
-        if ',' in size:
-            wh = size.split(',')
-            size = (int(wh[0]), int(wh[1]))
-        else:
-            print("size 不合法： ", size)
-            return ''
+    size = utils.covert_pos(size) ***REMOVED*** 可以使用小数（百分比）表示图片尺寸
     img2 = Image.open(small_image).resize(size).convert(mode2)
     if rotate:
         if rotate == "左右":
