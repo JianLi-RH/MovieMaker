@@ -55,16 +55,13 @@ class Action:
 
         from_ratio=self.obj.get("变化")[0]
         to_ratio=self.obj.get("变化")[1]
+        ration_step = (to_ratio - from_ratio) / length
+        
+        
         self.activity.scenario.ratio = to_ratio
 
         for i in range(0, length):
-            if from_ratio > to_ratio:
-                ***REMOVED*** 缩小
-                tmp_ratio = from_ratio - (from_ratio - to_ratio) * i / length
-***REMOVED***
-                ***REMOVED*** 放大
-                tmp_ratio = from_ratio + (to_ratio - from_ratio) * i / length
-
+            tmp_ratio = from_ratio + ration_step * i
             x = original_center[0] + step_x * i
             y = original_center[1] + step_y * i
 
