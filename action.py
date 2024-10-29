@@ -362,10 +362,12 @@ class Action:
 ***REMOVED***获取动作的字幕
         
         return:
-            一组字幕列表，具体字幕如下：
+            (字幕颜色, 字幕)
+            字幕是一组列表，如下：
             [0, 1, '小二', 'resources/ShengYin/武松/酒馆里/小二.mp3', 'ws', 'resources/SuCai/武松/说话/武松说话.gif']
             [1, 2.5, '小二', 'resources/ShengYin/武松/酒馆里/小二.mp3', 'ws']
 ***REMOVED***
+        subtitle_color = self.obj.get("字幕颜色") if self.obj.get("字幕颜色") else None
         subtitles = self.obj.get("字幕") if self.obj.get("字幕") else []
         start, end = 0, 0
         for subtitle in subtitles:
@@ -376,7 +378,7 @@ class Action:
             subtitle[1] = end
             start = end
             
-        return subtitles
+        return subtitle_color, subtitles
         
     def __add_subtitle(self, images):
 ***REMOVED***向背景图片添加字幕
@@ -390,7 +392,7 @@ class Action:
             end = subtitle[1]
             cur_images = images[int(start/self.timespan*pic_number):int(end/self.timespan*pic_number)]
             for img in cur_images:
-                ImageHelper.add_text_to_image(img, subtitle[2], overwrite_image=True)
+                ImageHelper.add_text_to_image(img, subtitle[2], overwrite_image=True, color=self.subtitle_color)
         pass
 
     def set_timespan(self, timespan):
@@ -405,7 +407,10 @@ class Action:
         self.name = self.obj.get("名称")
         self.char = self.__get_char(self.obj.get("角色"))
         self.render_index = self.obj.get("渲染顺序") if self.obj.get("渲染顺序") else 0    ***REMOVED*** 动作执行的顺序，数值一样的同时执行， 从小到达执行
-        self.subtitle = self.__get_subtitle()
+        self.subtitle_color, self.subtitle = self.__get_subtitle()
+        if self.subtitle_color == None and self.activity.subtitle_color:
+            ***REMOVED*** 当动作没有设置字幕颜色时，使用活动的字幕颜色覆盖动作的字幕颜色
+            self.subtitle_color = self.activity.subtitle_color
         keep = utils.get_time(obj.get("持续时间", 0))   ***REMOVED*** 优先级最高
         if keep > 0:
             self.timespan = keep

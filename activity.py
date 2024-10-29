@@ -140,6 +140,7 @@ class Activity:
         self.name = obj.get("名字")
         self.description = obj.get("描述", "")
         self.subtitle = obj.get("字幕") if obj.get("字幕") else []
+        self.subtitle_color = obj.get("字幕颜色")
         self.subtitle_mode = obj.get("字幕样式", 'normal')
         self.bgm = SuCaiHelper.get_sucai(obj.get("背景音乐", None))
         self.actions = [Action(self, action) for action in obj.get("动作", [])]

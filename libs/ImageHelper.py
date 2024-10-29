@@ -9,13 +9,14 @@ import config_reader
 import utils
 
 
-def add_text_to_image(image, text, overwrite_image = False, mode='normal', text_list=None):
+def add_text_to_image(image, text, color = 'white', overwrite_image = False, mode='normal', text_list=None):
     """
     Add text to image
 
     Params:
         image: image file path.
         text: a text string
+        color: 字幕颜色 （list模式不适用）
         overwrite_image: 是否覆盖原图
         mode: 文字显示方式，
             normal: 图片底部显示
@@ -65,7 +66,7 @@ def add_text_to_image(image, text, overwrite_image = False, mode='normal', text_
         font = ImageFont.truetype(config_reader.font, font_size)
         left, top, right, bottom = m.textbbox((x, y), text, font=font)
         m.rectangle((left-5, top-5, right+5, bottom+5), outline=None, width=0)
-        m.text((x, y), text, fill='white', align="center", font=font)
+        m.text((x, y), text, fill=color, align="center", font=font)
 
     if overwrite_image:
         im.save(image)
