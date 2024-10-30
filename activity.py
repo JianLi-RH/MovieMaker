@@ -201,11 +201,11 @@ class Activity:
             video_start = start/len(images) ***REMOVED*** action在整段视频中的开始位置，方便后面添加声音
             delay_start = start
             action_ends = [0]
-            delay_positions = []
+            delay_positions = []  ***REMOVED*** 被推迟的全部角色轨迹序列
             for act in actions:
                 ***REMOVED*** 注意：一个活动（activity）中不能有两个`镜头`动作(action)
-                print("生成动作：", act["action"].name)
-                act["start"] = video_start
+                print("生成动作：", act["action"].name, ", ", act["action"].render_index)
+                act["start"] = video_start  ***REMOVED*** 给action增加一个start属性
                 
                 if act["action"].name in ["显示", "消失"]:
                     delay_mode = False
@@ -213,9 +213,12 @@ class Activity:
                     act["action"].to_videoframes(images, self.scenario.chars, delay_mode)
                     continue
                 
-                current_atc_end = start + math.ceil(act["action"].timespan * self.fps)
+                current_atc_end = start + round(act["action"].timespan * self.fps)
                 action_ends.append(current_atc_end)
-                current_image_list = images[start : current_atc_end]
+                if current_atc_end > len(images):
+                    current_image_list = images[start:]
+    ***REMOVED***
+                    current_image_list = images[start:current_atc_end]
                 temp_delay_positions = act["action"].to_videoframes(current_image_list, self.scenario.chars, delay_mode)
                 
                 if delay_mode:

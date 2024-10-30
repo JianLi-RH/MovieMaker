@@ -53,8 +53,11 @@ class Action:
         step_x = (center[0] - original_center[0]) / length
         step_y = (center[1] - original_center[1]) / length
 
-        from_ratio=self.obj.get("变化")[0]
-        to_ratio=self.obj.get("变化")[1]
+        ratio = self.obj.get("变化")
+        if isinstance(ratio, float):
+            ratio = [1, ratio]
+        from_ratio = ratio[0]
+        to_ratio = ratio[1]
         ration_step = (to_ratio - from_ratio) / length
         
         
@@ -294,6 +297,8 @@ class Action:
     ***REMOVED***
                     if _char.display:
                         ImageHelper.paint_char_on_image(images[i], char=_char, overwrite=True)
+        ***REMOVED*** 恢复列表
+        sorted_char_list.remove("GIF")
     
     def __talk(self, images, sorted_char_list):
 ***REMOVED***角色说话
