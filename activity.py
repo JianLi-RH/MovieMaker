@@ -207,13 +207,7 @@ class Activity:
                 ***REMOVED*** 注意：一个活动（activity）中不能有两个`镜头`动作(action)
                 print("生成动作：", act["action"].name, ", ", act["action"].render_index)
                 act["start"] = video_start  ***REMOVED*** 给action增加一个start属性
-                
-                if act["action"].name in ["显示", "消失"]:
-                    delay_mode = False
-                    action_ends.append(start)
-                    act["action"].to_videoframes(images, self.scenario.chars, delay_mode)
-                    continue
-                
+
                 current_atc_end = start + round(act["action"].timespan * self.fps)
                 action_ends.append(current_atc_end)
                 if current_atc_end >= len(images):
@@ -223,23 +217,28 @@ class Activity:
                 temp_delay_positions = act["action"].to_videoframes(current_image_list, self.scenario.chars, delay_mode)
                 
                 if delay_mode:
-                    delay_positions.append({"char": act["action"].char.name, "position": temp_delay_positions***REMOVED***)
+                    delay_positions.append({
+                        "char": act["action"].char.name if act["action"].char else "", 
+                        "position": temp_delay_positions
+                ***REMOVED***)
 
             if delay_mode:
                 delay_images = images[delay_start : max(action_ends)]
-                delay_action_char = [pos["char"] for pos in delay_positions]
-                i = 0
-                for img_path in delay_images:   ***REMOVED*** 在每张图片上绘制全部角色
-                    for _char in self.scenario.chars:
-                        if _char.name in delay_action_char:
-                            delay_pos_list = next(filter(lambda x: x["char"] == _char.name, delay_positions))
-                            delay_pos = delay_pos_list["position"][i]
-                            _char.pos = delay_pos[0]
-                            _char.size = delay_pos[1]
-                            _char.rotate = delay_pos[2]
+                if delay_images:
+                    delay_action_char = [pos["char"] for pos in delay_positions]
+                    
+                    for j in range(len(delay_images)):   ***REMOVED*** 在每张图片上绘制全部角色
+                        for _char in self.scenario.chars:
+                            if _char.name in delay_action_char:
+                                delay_pos_list = next(filter(lambda x: x["char"] == _char.name, delay_positions))
+                                if delay_pos_list and j < len(delay_pos_list["position"]):
+                                    ***REMOVED*** 对于显示、消失等动作，没有变更位置，所以没有position
+                                    delay_pos = delay_pos_list["position"][j]
+                                    _char.pos = delay_pos[0]
+                                    _char.size = delay_pos[1]
+                                    _char.rotate = delay_pos[2]
 
-                        ImageHelper.paint_char_on_image(img_path, char=_char, overwrite=True)
-                    i += 1
+                            ImageHelper.paint_char_on_image(delay_images[j], char=_char, overwrite=True)
             
             ***REMOVED*** 检查遗漏的背景图片
             if i == (len(action_list) - 1) and max(action_ends) < len(images):

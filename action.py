@@ -229,7 +229,7 @@ class Action:
                     ImageHelper.paint_char_on_image(images[i], char=_char, overwrite=True)
         return []
 
-    def __gif(self, images, sorted_char_list):
+    def __gif(self, images, sorted_char_list, delay_mode):
 ***REMOVED***向视频中插入一段gif
         
         Example:
@@ -246,6 +246,7 @@ class Action:
 ***REMOVED***
             images: 全部背景图片
             sorted_char_list: 排序后的角色
+            delay_mode: 延迟绘制其他角色
 ***REMOVED***
         index = self.obj.get("图层") if self.obj.get("图层") else sys.maxsize ***REMOVED*** 默认将gif显示在最上层
         ***REMOVED*** 将GIF标记添加在显示列表中，用来设置显示顺序
@@ -269,6 +270,9 @@ class Action:
         str_degree = self.obj.get("角度") if self.obj.get("角度") else 1
 
         l = len(images)
+        ***REMOVED*** if delay_mode:
+        ***REMOVED***     return [(pos, size, str_degree) for i in range(l)]
+        
         for i in range(0, l):
             j = i % len(gif_images)
 
@@ -295,7 +299,8 @@ class Action:
                         overwrite=True
                     )
     ***REMOVED***
-                    if _char.display:
+                    if _char.display and not delay_mode:
+                        ***REMOVED*** 这里存在一个显示层级的bug
                         ImageHelper.paint_char_on_image(images[i], char=_char, overwrite=True)
         ***REMOVED*** 恢复列表
         sorted_char_list.remove("GIF")
@@ -327,7 +332,7 @@ class Action:
             ***REMOVED*** 图片有缩放的时候才需要调用镜头方法
             self.__camera(images)
     
-    def __update(self, images, sorted_char_list):
+    def __update(self):
 ***REMOVED***更新某个角色
         
         Example:
@@ -339,10 +344,6 @@ class Action:
             字幕: ***REMOVED***Kangkang, Male
               - ['','', '啪啪啪', 'resources/ShengYin/打耳光.mp3']
             渲染顺序: 2
-        
-***REMOVED***
-            images: 全部背景图片
-            sorted_char_list: 排序后的角色
 ***REMOVED***
         keys = self.obj.keys()
         if "素材" in keys:
@@ -357,11 +358,6 @@ class Action:
             self.char.display = True if self.obj.get("显示") == '是' else False
         if "图层" in keys:
             self.char.index = int(self.obj.get("图层", 0))
-        
-        for img in images:
-            for _char in sorted_char_list:
-                if _char.display:
-                    ImageHelper.paint_char_on_image(img, char=_char, overwrite=True)
     
     def __get_subtitle(self):
 ***REMOVED***获取动作的字幕
@@ -451,9 +447,9 @@ class Action:
         elif action == "转身":
             delay_positions = self.__turn(images, sorted_char_list, delay_mode)
         elif action == "gif":
-            self.__gif(images, sorted_char_list)
+            self.__gif(images, sorted_char_list, delay_mode)
         elif action == "更新":
-            self.__update(images, sorted_char_list)
+            self.__update()
         pass
 
         self.__add_subtitle(images)
