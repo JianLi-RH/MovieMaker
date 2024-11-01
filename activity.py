@@ -196,7 +196,8 @@ class Activity:
                 self.subtitle[i].append((start_num, end_number))
 
         start = 0 ***REMOVED*** 每个action的开始位置 （图片下标）
-        for actions in action_list:
+        for i in range(len(action_list)):
+            actions = action_list[i]
             delay_mode = len(actions) > 1   ***REMOVED*** 当同时运行多个动作的时候，需要在所有动作执行结束再绘制其他角色
             video_start = start/len(images) ***REMOVED*** action在整段视频中的开始位置，方便后面添加声音
             delay_start = start
@@ -215,7 +216,7 @@ class Activity:
                 
                 current_atc_end = start + round(act["action"].timespan * self.fps)
                 action_ends.append(current_atc_end)
-                if current_atc_end > len(images):
+                if current_atc_end >= len(images):
                     current_image_list = images[start:]
     ***REMOVED***
                     current_image_list = images[start:current_atc_end]
@@ -239,6 +240,18 @@ class Activity:
 
                         ImageHelper.paint_char_on_image(img_path, char=_char, overwrite=True)
                     i += 1
+            
+            ***REMOVED*** 检查遗漏的背景图片
+            if i == (len(action_list) - 1) and max(action_ends) < len(images):
+                ***REMOVED*** 当执行最后一个动作的时候， 最后一个绘制角色的图片不是全部背景图片的最后一张的时候
+                ***REMOVED*** 把剩余的背景图片都绘制上角色
+                missed_images = images[max(action_ends):]
+                print(missed_images)
+                for img in missed_images:   
+                    for _char in self.scenario.chars:
+                        if _char.display:
+                            ImageHelper.paint_char_on_image(img, char=_char, overwrite=True)
+                        
             start = max(action_ends)
 
         if self.subtitle:
