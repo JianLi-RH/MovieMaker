@@ -39,6 +39,9 @@ def add_text_to_image(image, text, color = 'white', overwrite_image = False, mod
     elif mode == 'middle':
         x = (x - len(text) * font_size) / 2
         y = (y - font_size) / 2
+        
+    if x < 0:
+        x = 0
 
     if mode == 'list':
         height = font_size * (len(text_list) - 1) * 0.8 + font_size   ***REMOVED*** 20是行间距, height是总的文本高度

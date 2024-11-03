@@ -1,7 +1,39 @@
 ***REMOVED***
-
+***REMOVED***
 ***REMOVED***
 
+***REMOVED***
+import xunfei_tts
+
+def covert_text_to_sound(text, output, output_folder):
+    """
+    将文字转换成语音
+
+    Params:
+        text: 文字
+        output: 输出的语音文件
+        output_folder: mp3存放路径
+    Return:
+        语音文件路径
+    """
+    
+    ***REMOVED*** https://console.xfyun.cn/services/cbm 在这里获取密码
+    wsParam = xunfei_tts.Ws_Param(APPID='bdb4df29',
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+                    output_folder=output_folder,
+                    vcn=xunfei_tts.speaker["2"]["xiaoyan"])
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+    ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE***REMOVED***)
+***REMOVED***
 
 def split_audio(audio_file: str, length=None, start=0):
     """截取音频文件
@@ -22,6 +54,9 @@ def split_audio(audio_file: str, length=None, start=0):
     file_name, file_extension =  os.path.splitext(audio_file)
     format = file_extension.replace(".", "")
     new_audio.export(file_name + "_bak" + file_extension, format=format)
-    
+
 ***REMOVED***
-    split_audio("水浒传/第五回/鲁智深闹事/鲁达你等着我告诉方丈制裁你.mp3", start=800)
+    ***REMOVED*** split_audio("水浒传/第六回/确认事实/等洒家再去确认.mp3", start=2200, length=2200)
+    text = "等洒家再去确认"
+    result = covert_text_to_sound(text, output=f"{text***REMOVED***.mp3", output_folder="/home/jianl/1_code/personal/MovieMaker/output")
+    print(result)

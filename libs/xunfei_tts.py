@@ -1,4 +1,4 @@
-***REMOVED***.10
+***REMOVED***
 ***REMOVED***
 ***REMOVED***
 ***REMOVED***   author: iflytek
@@ -22,23 +22,35 @@
 ***REMOVED***
 ***REMOVED***
 ***REMOVED***
+***REMOVED***
+***REMOVED***
 from datetime ***REMOVED***
 ***REMOVED***
 ***REMOVED***
 ***REMOVED***
 
 ***REMOVED***
-
 import config_reader
 
 STATUS_FIRST_FRAME = 0  ***REMOVED*** 第一帧的标识
 STATUS_CONTINUE_FRAME = 1  ***REMOVED*** 中间帧标识
 STATUS_LAST_FRAME = 2  ***REMOVED*** 最后一帧的标识
 
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
 
 ***REMOVED***
     ***REMOVED*** 初始化
-    def __init__(self, APPID, APIKey, APISecret, Text, output, output_folder, vcn="xiaoyan"):
+    def __init__(self, APPID, APIKey, APISecret, Text, output, output_folder, vcn="子阳"):
 ***REMOVED***
 ***REMOVED***
 
@@ -49,6 +61,7 @@ STATUS_LAST_FRAME = 2  ***REMOVED*** 最后一帧的标识
 ***REMOVED***
             output: 生成的mp3文件名
             output_folder: mp3存放路径
+***REMOVED***
 ***REMOVED***
 ***REMOVED***
 ***REMOVED***

@@ -2,10 +2,10 @@
 import re
 ***REMOVED***
 
+from libs import AudioHelper
 from moviepy.editor import *
 
 import config_reader
-from xunfei_tts import *
 
 import random
 
@@ -108,31 +108,6 @@ def get_audio_length(audio):
     else:
         return audio.duration
 
-def covert_text_to_sound(text, output, output_folder):
-    """
-    将文字转换成语音
-
-    Params:
-        text: 文字
-        output: 输出的语音文件
-        output_folder: mp3存放路径
-    Return:
-        语音文件路径
-    """
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-                    output_folder=output_folder,
-                    vcn="鸣泽")
-***REMOVED***
-***REMOVED***
-***REMOVED***on_message=wsParam.on_message, on_error=wsParam.on_error, on_close=wsParam.on_close)
-***REMOVED***
-    ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE***REMOVED***)
-
-***REMOVED***
 
 def get_sub_title_list(file):
     """根据文本文件生成字幕列表
@@ -157,7 +132,7 @@ def get_sub_title_list(file):
     subtitles = []
     for i in range(0, len(lines)):
         if lines[i].strip():
-            sound = covert_text_to_sound(lines[i].strip(), f"{i***REMOVED***.mp3", basename)
+            sound = AudioHelper.covert_text_to_sound(lines[i].strip(), f"{i***REMOVED***.mp3", basename)
             new_lines.append(f"- ['', '', '{lines[i].strip()***REMOVED***', '{sound***REMOVED***']\n")
             subtitles.append(['', '', lines[i].strip(), sound])
 
