@@ -1,8 +1,9 @@
-***REMOVED***.10
+***REMOVED***
+***REMOVED***
 import re
 ***REMOVED***
 
-from libs import AudioHelper
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "libs"))
 from moviepy.editor import *
 
 import config_reader
@@ -107,40 +108,6 @@ def get_audio_length(audio):
         return AudioFileClip(audio).duration
     else:
         return audio.duration
-
-
-def get_sub_title_list(file):
-    """根据文本文件生成字幕列表
-
-    Params:
-        file: 字幕文件
-    Return:
-        能被MovieMaker识别的字幕列表
-    """
-
-    if os.path.exists(file):
-        ***REMOVED*** 处理字幕文件
-        with open(file, 'r') as f:
-            text = f.read()
-            lines = re.split(r"\,|\.|\?|\;|\!|\，|\。|\？|\！|\t|\n|\r|\s", text)
-    else:
-        ***REMOVED*** 以分号分隔的字幕字符串
-        lines = file.split(r'\;\s\,')
-
-    basename = os.path.basename(file)
-    new_lines = []
-    subtitles = []
-    for i in range(0, len(lines)):
-        if lines[i].strip():
-            sound = AudioHelper.covert_text_to_sound(lines[i].strip(), f"{i***REMOVED***.mp3", basename)
-            new_lines.append(f"- ['', '', '{lines[i].strip()***REMOVED***', '{sound***REMOVED***']\n")
-            subtitles.append(['', '', lines[i].strip(), sound])
-
-    new_path = os.path.join(os.path.dirname(file), os.path.basename(file).split('.')[0]+"_sound.txt")
-    with open(new_path, 'w') as fn:
-        fn.writelines(new_lines)
-    print(f"字幕信息已写入文件: {new_path***REMOVED***")
-    return subtitles
 
 ***REMOVED***
     ***REMOVED*** get_sub_title_list("tmp/养生论.txt")

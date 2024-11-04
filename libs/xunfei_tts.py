@@ -30,7 +30,6 @@ from datetime ***REMOVED***
 ***REMOVED***
 
 ***REMOVED***
-import config_reader
 
 STATUS_FIRST_FRAME = 0  ***REMOVED*** 第一帧的标识
 STATUS_CONTINUE_FRAME = 1  ***REMOVED*** 中间帧标识
@@ -50,28 +49,27 @@ STATUS_LAST_FRAME = 2  ***REMOVED*** 最后一帧的标识
 
 ***REMOVED***
     ***REMOVED*** 初始化
-    def __init__(self, APPID, APIKey, APISecret, Text, output, output_folder, vcn="子阳"):
+***REMOVED***
+***REMOVED***
+***REMOVED***
+
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
 ***REMOVED***
 ***REMOVED***
 
 ***REMOVED***
 ***REMOVED***
 ***REMOVED***
-***REMOVED***
-***REMOVED***
-            output: 生成的mp3文件名
-            output_folder: mp3存放路径
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-
-        if not os.path.exists(os.path.join(config_reader.output_dir, output_folder)):
-            os.mkdir(os.path.join(config_reader.output_dir, output_folder))
-        self.output = os.path.join(config_reader.output_dir, output_folder, output)
 
         ***REMOVED*** 公共参数(common)
         self.CommonArgs = {"app_id": self.APPID***REMOVED***
@@ -137,7 +135,7 @@ STATUS_LAST_FRAME = 2  ***REMOVED*** 最后一帧的标识
 ***REMOVED***
 ***REMOVED***
 ***REMOVED***
-            print(message)
+            ***REMOVED*** print(message)
 ***REMOVED***
 ***REMOVED***
 ***REMOVED***

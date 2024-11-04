@@ -11,7 +11,7 @@ except ImportError:
 class Character():
     def __init__(self, obj) -> None:
         self.name = obj.get("名字")
-        self.image = SuCaiHelper.get_sucai(obj.get("素材"))
+        self.image = obj.get("素材")
         self.pos = utils.covert_pos(obj.get("位置", None)) ***REMOVED*** 位置
         self.size = obj.get("大小", None) ***REMOVED*** 位置    ***REMOVED***大小
         self.rotate = obj.get("角度") if obj.get("角度") else None ***REMOVED*** 显示角度

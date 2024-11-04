@@ -9,7 +9,7 @@ from PIL import Image, ImageOps
 import config_reader
 import utils
 from character import *
-from libs import ImageHelper, SuCaiHelper, VideoHelper
+from libs import AudioHelper, ImageHelper
 
 
 class Action:
@@ -347,7 +347,7 @@ class Action:
 ***REMOVED***
         keys = self.obj.keys()
         if "素材" in keys:
-            self.char.image = SuCaiHelper.get_sucai(self.obj.get("素材"))
+            self.char.image = self.obj.get("素材", None)
         if "位置" in keys:
             self.char.pos = utils.covert_pos(self.obj.get("位置", None))
         if "大小" in keys:
@@ -372,7 +372,11 @@ class Action:
         subtitles = self.obj.get("字幕") if self.obj.get("字幕") else []
         start, end = 0, 0
         for subtitle in subtitles:
-            sPath = SuCaiHelper.get_sucai(subtitle[3])
+            sPath = subtitle[3]
+            if not os.path.exists(sPath):
+                ***REMOVED*** 使用科大讯飞接口生成语音
+                AudioHelper.covert_text_to_sound(subtitle[2], sPath, self.speaker)
+                        
             _length = AudioFileClip(sPath).duration
             end = start + _length
             subtitle[0] = start
@@ -408,6 +412,7 @@ class Action:
         self.name = self.obj.get("名称")
         self.char = self.__get_char(self.obj.get("角色"))
         self.render_index = self.obj.get("渲染顺序") if self.obj.get("渲染顺序") else 0    ***REMOVED*** 动作执行的顺序，数值一样的同时执行， 从小到达执行
+        self.speaker = self.obj.get("发音人", None)
         self.subtitle_color, self.subtitle = self.__get_subtitle()
         if self.subtitle_color == None and self.activity.subtitle_color:
             ***REMOVED*** 当动作没有设置字幕颜色时，使用活动的字幕颜色覆盖动作的字幕颜色
