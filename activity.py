@@ -223,6 +223,8 @@ class Activity:
                     
                     for j in range(len(delay_images)):   ***REMOVED*** 在每张图片上绘制全部角色
                         for _char in self.scenario.chars:
+                            if not _char.display:
+                                continue
                             if _char.name in delay_action_char:
                                 delay_pos_list = next(filter(lambda x: x["char"] == _char.name, delay_positions))
                                 if delay_pos_list and j < len(delay_pos_list["position"]):
