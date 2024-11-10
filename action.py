@@ -442,28 +442,32 @@ class Action:
             延迟模式下不更新图片，返回当前角色的运行轨迹
             
 ***REMOVED***
-        delay_positions = []
-        action = self.obj.get("名称")
-        if action == "显示":
-            self.__display()
-        elif action == "消失":
-            self.__disappear()
-        elif action == "镜头":  ***REMOVED*** 还需要验证
-            self.__camera(images)
-        elif action == "行进":
-            delay_positions = self.__walk(images, sorted_char_list, delay_mode)
-        elif action == "说话":
-            self.__talk(images, sorted_char_list)
-        elif action == "转身":
-            delay_positions = self.__turn(images, sorted_char_list, delay_mode)
-        elif action == "gif":
-            self.__gif(images, sorted_char_list, delay_mode)
-        elif action == "更新":
-            self.__update()
-        pass
+***REMOVED***
+            delay_positions = []
+            action = self.obj.get("名称")
+            if action == "显示":
+                self.__display()
+            elif action == "消失":
+                self.__disappear()
+            elif action == "镜头":  ***REMOVED*** 还需要验证
+                self.__camera(images)
+            elif action == "行进":
+                delay_positions = self.__walk(images, sorted_char_list, delay_mode)
+            elif action == "说话":
+                self.__talk(images, sorted_char_list)
+            elif action == "转身":
+                delay_positions = self.__turn(images, sorted_char_list, delay_mode)
+            elif action == "gif":
+                self.__gif(images, sorted_char_list, delay_mode)
+            elif action == "更新":
+                self.__update()
+            pass
 
-        self.__add_subtitle(images)
-        return delay_positions
+            self.__add_subtitle(images)
+            return delay_positions
+***REMOVED***
+            print(f"Error: 动作名： {self.name***REMOVED*** - 渲染顺序： {self.render_index***REMOVED***")
+            raise(e)
 
 ***REMOVED***
     pass
