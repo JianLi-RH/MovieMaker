@@ -78,6 +78,14 @@ class Activity:
                 actions.append(render)
 ***REMOVED***
                 rendered_action_list.append([render])
+        
+        ***REMOVED*** 保证同一渲染顺序的动作都有执行时间   
+        for act_list in rendered_action_list:
+            if len(act_list) > 1:
+                max_timespan = max([x["action"].timespan for x in act_list])
+                for act in act_list:
+                    if act["action"].timespan == 0:
+                        act["action"].timespan = max_timespan
 
         if rendered_action_list:
             rendered_action_list.sort(key=lambda x: int(x[0].get("index", 0)))
