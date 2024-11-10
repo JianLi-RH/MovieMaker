@@ -375,7 +375,7 @@ class Action:
             sPath = subtitle[3]
             if not os.path.exists(sPath):
                 ***REMOVED*** 使用科大讯飞接口生成语音
-                AudioHelper.covert_text_to_sound(subtitle[2], sPath, self.speaker)
+                AudioHelper.covert_text_to_sound(subtitle[2], sPath, self.char.speaker)
                         
             _length = AudioFileClip(sPath).duration
             end = start + _length
@@ -412,7 +412,6 @@ class Action:
         self.name = self.obj.get("名称")
         self.char = self.__get_char(self.obj.get("角色"))
         self.render_index = self.obj.get("渲染顺序") if self.obj.get("渲染顺序") else 0    ***REMOVED*** 动作执行的顺序，数值一样的同时执行， 从小到达执行
-        self.speaker = self.obj.get("发音人", None)
         self.subtitle_color, self.subtitle = self.__get_subtitle()
         if self.subtitle_color == None and self.activity.subtitle_color:
             ***REMOVED*** 当动作没有设置字幕颜色时，使用活动的字幕颜色覆盖动作的字幕颜色
@@ -422,6 +421,12 @@ class Action:
             self.timespan = keep
         elif self.subtitle:
             self.timespan = self.subtitle[-1][1] if self.subtitle else 0
+        elif self.activity.bgm:
+            ***REMOVED*** 以活动的背景声音长度作为动作的长度
+            self.timespan = AudioFileClip(self.activity.bgm).duration
+        elif self.activity.keep:
+            ***REMOVED*** 以活动的持续时间作为动作的长度
+            self.timespan = utils.get_time(obj.get("持续时间", None))
         else:
             self.timespan = 0
 

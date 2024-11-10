@@ -91,8 +91,6 @@ class Activity:
         Return:
             活动总时长。单位秒
 ***REMOVED***
-        ***REMOVED*** 在活动节点中设置的时间，与具体动作无关
-        keep = utils.get_time(obj.get("持续时间", None))
         ***REMOVED*** 活动背景音乐的时长，当没有设置`持续时间`和字幕的时候会根据背景音乐长度设置总时长
         bgm_length = AudioFileClip(self.bgm).duration if self.bgm else 0
 
@@ -114,18 +112,13 @@ class Activity:
             if same_index_action:
                 if same_index_action["action"].timespan < act.timespan:
                     same_index_action['action'] = act
+                if act.timespan == 0:
+                    act.timespan = same_index_action["action"].timespan
 ***REMOVED***
                 calculated_index.append({'index': act.render_index, 'action': act***REMOVED***)
         action_length = sum([l["action"].timespan for l in calculated_index])
-        
-        for action in self.actions:
-            ***REMOVED*** 使用同级别最长timespan的timespan设置没有timespan的动作的timespan
-            if action.timespan == 0:
-                same_level_action = next(filter(lambda x: x["index"] == action.render_index, calculated_index), None)
-                if same_level_action:
-                    action.set_timespan(same_level_action["action"].timespan)
 
-        return max([keep, bgm_length, subtitle_length, action_length])
+        return max([self.keep, bgm_length, subtitle_length, action_length])
 
     def __init__(self, scenario, obj):
 ***REMOVED***
@@ -141,10 +134,13 @@ class Activity:
         self.subtitle = obj.get("字幕") if obj.get("字幕") else []
         self.subtitle_color = obj.get("字幕颜色")
         self.subtitle_mode = obj.get("字幕样式", 'normal')
+        
+        ***REMOVED*** 在活动节点中设置的时间，与具体动作无关
+        self.keep = utils.get_time(obj.get("持续时间", None))
         self.bgm = obj.get("背景音乐", None)
         self.actions = [Action(self, action) for action in obj.get("动作", [])]
         self.timespan = self.__get_timespan(obj)    ***REMOVED*** 活动的总长度
-        self.fps = int(obj.get("fps", None)) if obj.get("fps", None) else config_reader.fps
+        self.fps = int(obj.get("fps")) if obj.get("fps") else config_reader.fps
         self.total_frame = math.ceil(self.timespan * self.fps)   ***REMOVED*** 根据当前活动的总时长，得到当前活动所需的视频总帧数
 
 
@@ -276,7 +272,7 @@ class Activity:
                         ImageHelper.paint_char_on_image(img, char=_char, overwrite=True)
 
         ***REMOVED*** 先把图片转换成视频
-        video = VideoHelper.create_video_clip_from_images(images)
+        video = VideoHelper.create_video_clip_from_images(images, self.fps)
         if self.bgm:
     ***REMOVED***添加活动背景音乐"""
             print("添加背景音乐：", self.bgm)

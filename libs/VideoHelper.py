@@ -152,16 +152,16 @@ def add_audio_to_video(video, audio_file, start=None):
     new_audioclip = CompositeAudioClip(audios)
     return v.set_audio(new_audioclip)
 
-def create_video_clip_from_images(images):
+def create_video_clip_from_images(images, fps=config_reader.fps):
     """
     Create a video clip from images
 
     Params:
         images: a list of image file path.
+        fps: frame per second.
     Return:
         Instance of VideoClip.
     """
-    fps = config_reader.fps
     clips = []
     ***REMOVED*** l = len(images)
     for img in images:
