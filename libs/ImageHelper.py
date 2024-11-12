@@ -76,6 +76,7 @@ def add_text_to_image(image, text, color = 'white', overwrite_image = False, mod
     else:
         ***REMOVED*** Display edited image on which we have added the text
         im.show()
+    im.close()
 
 def zoom_in_out_image(origin_image_path, center, ratio, new_path=None):
     """
@@ -101,11 +102,12 @@ def zoom_in_out_image(origin_image_path, center, ratio, new_path=None):
     right = right if right < config_reader.g_width else config_reader.g_width
     bottom = y_center + config_reader.g_height * ratio / 2
     bottom = bottom if bottom < config_reader.g_height else config_reader.g_height
-    new_im = im.crop((left, top, right, bottom))
+    im = im.crop((left, top, right, bottom))
     if not new_path:
         new_path = origin_image_path
-    new_im.save(new_path)
+    im.save(new_path)
     resize_image(new_path) ***REMOVED*** 将缩放后的图片重新放大为完全尺寸
+    im.close()
     return new_path
 
 def get_frames_from_gif(gif):
@@ -136,7 +138,9 @@ def resize_image(image):
     Params:
         image: 图片地址
     """
-    Image.open(image).resize((config_reader.g_width, config_reader.g_height)).save(image)
+    im = Image.open(image)
+    im.resize((config_reader.g_width, config_reader.g_height)).save(image)
+    im.close()
 
 def paint_char_on_image(image, char, overwrite=False):
     """Paint a char on image
@@ -179,6 +183,7 @@ def merge_two_image(big_image, small_image, size, pos, rotate=None, overwrite=Fa
     if rotate:
         if rotate == "左右":
             im_mirror = ImageOps.mirror(img2)
+            img2.close()
             basename = os.path.basename(small_image)
             new_path = os.path.join(os.path.dirname(big_image), basename)
             im_mirror.save(new_path)
@@ -192,16 +197,18 @@ def merge_two_image(big_image, small_image, size, pos, rotate=None, overwrite=Fa
         img1.paste(img2, (left, top), img2)
     else:
         img1.paste(img2, (left, top))
-    ***REMOVED*** img1.show()
+    img2.close()
     if overwrite:
         img1.save(big_image)
+        img1.close()
         return big_image
     else:
-        if isinstance(img1, str):
-            return img1
-        else:
+        ***REMOVED*** if isinstance(img1, str):
+        ***REMOVED***     return img1
+        ***REMOVED*** else:
             new_path = os.path.join(os.path.dirname(big_image), "tmp_"+os.path.basename(big_image))
             img1.save(new_path)
+            img1.close()
             return new_path
 
 def add_gif_to_images(images, gif, pos, size):

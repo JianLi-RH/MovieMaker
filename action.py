@@ -159,6 +159,7 @@ class Action:
         pos = [] ***REMOVED*** 每一个元素：(tmp_pos, tmp_size, rotate)
         img1 = Image.open(self.char.image)
         img_w, img_h = img1.size    ***REMOVED*** 角色图片的原始尺寸
+        img1.close()
         
         ***REMOVED*** 计算每一帧的大小变化
         if isinstance(ratio, list):
@@ -261,12 +262,14 @@ class Action:
 
         img1 = Image.open(images[0])
         img_w, img_h = img1.size
+        img1.close()
         pos = self.obj.get("位置")
         pos[0] = pos[0] if pos[0] > 1 else int(pos[0] * img_w)
         pos[1] = pos[1] if pos[1] > 1 else int(pos[1] * img_h)
 
         gif1 = Image.open(gif_images[0])
         size = self.obj.get("大小") if self.obj.get("大小") else gif1.size
+        gif1.close()
         str_degree = self.obj.get("角度") if self.obj.get("角度") else 1
 
         l = len(images)
@@ -277,10 +280,13 @@ class Action:
             j = i % len(gif_images)
 
             if str_degree == "左右":
-                im_mirror = ImageOps.mirror(Image.open(gif_images[j]))
+                _img = Image.open(gif_images[j])
+                im_mirror = ImageOps.mirror(_img)
+                _img.close()
                 basename = os.path.basename(gif_images[j])
                 new_path = os.path.join(os.path.dirname(images[-1]), basename)
                 im_mirror.save(new_path)
+                im_mirror.close()
                 gif_images[j] = new_path
                 rotate = 0
             elif str_degree == "上下":
