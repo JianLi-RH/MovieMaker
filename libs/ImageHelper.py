@@ -1,11 +1,13 @@
 ***REMOVED***
 ***REMOVED***
+import yaml
 
 sys.path.append('../')
 from PIL import Image, ImageDraw, ImageFont, ImageSequence, ImageOps
-Image.MAX_IMAGE_PIXELS = None
+Image.MAX_IMAGE_PIXELS = 7680000
 
 import config_reader
+from scenario import Scenario
 import utils
 
 
@@ -255,8 +257,47 @@ def create_gif(images, file_name = None):
     gif_frames[0].save(gif, save_all=True, append_images=gif_frames[1:], duration=len(images), loop=0)
     return gif
 
+def preview(scenario, script, bg_img=None, char_name_list=None):
+    """
+    预览角色在背景图上的显示效果
+    
+    Params:
+        scenario: 场景名
+        script: 脚本文件路径
+        bg_img背景图片，如果没指定背景图片则使用场景的背景图
+        char_name_list： 一组角色名，如果没制定则使用场景中的角色
+    Return:
+        gif图片路径
+    """
+    import shutil
+    with open(script, 'r') as file:
+        script = yaml.safe_load(file)
+
+    scenarios = script["场景"]
+    scenario_obj = next(filter(lambda x: x.get("名字", None) == scenario, scenarios))
+    scenario = Scenario(scenario_obj)
+    if not bg_img:
+        bg_img = scenario.background_image
+    chars = scenario.chars
+    if not char_name_list:
+        char_name_list = [c.name for c in chars]
+    
+    file_name = os.path.basename(bg_img)
+    new_bg_folder = os.path.join(config_reader.output_dir, "tmp")
+    os.makedirs(new_bg_folder, exist_ok=True)
+    file_path = os.path.join(new_bg_folder, file_name)
+    shutil.copyfile(bg_img, file_path)
+    resize_image(file_path)
+
+    for char in chars:
+        if char.display and char.name in char_name_list:
+            paint_char_on_image(file_path, char=char, overwrite=True)
+            
+    return file_path
+    
+
 ***REMOVED***
-    add_text_to_image("resources/JiChuSuCai/BeiJing/太空.jpg", r'中文阿斯asdsad顿萨杜萨的', save_image=False)
+    ***REMOVED*** add_text_to_image("resources/JiChuSuCai/BeiJing/太空.jpg", r'中文阿斯asdsad顿萨杜萨的', save_image=False)
     ***REMOVED*** zoom_in_out_image("resources/JiChuSuCai/BeiJing/1.jpg", (0.5, 0.5), 0.9)
     ***REMOVED*** test("resources/JiChuSuCai/BeiJing/1.jpg", "resources/SuCai/watermark.gif")
     ***REMOVED*** get_frames_from_gif("resources/SuCai/watermark.gif")
