@@ -219,29 +219,22 @@ class Activity:
                 temp_delay_positions = act["action"].to_videoframes(current_image_list, self.scenario.chars, delay_mode)
                 
                 if delay_mode:
-                    delay_positions.append({
-                        "char": act["action"].char.name if act["action"].char else "", 
-                        "position": temp_delay_positions
-                ***REMOVED***)
+                    delay_positions.append(temp_delay_positions)
 
             if delay_mode:
                 delay_images = images[delay_start : max(action_ends)]
                 if delay_images:
-                    delay_action_char = [pos["char"] for pos in delay_positions]
-                    
                     for j in range(len(delay_images)):   ***REMOVED*** 在每张图片上绘制全部角色
                         for _char in self.scenario.chars:
                             if not _char.display:
                                 continue
-                            if _char.name in delay_action_char:
-                                delay_pos_list = next(filter(lambda x: x["char"] == _char.name, delay_positions))
-                                if delay_pos_list and j < len(delay_pos_list["position"]):
-                                    ***REMOVED*** 对于显示、消失等动作，没有变更位置，所以没有position
-                                    delay_pos = delay_pos_list["position"][j]
+                            for char_pos in delay_positions:
+                                if _char == char_pos["char"]:
+                                    delay_pos = char_pos["position"][j]
                                     _char.pos = delay_pos[0]
                                     _char.size = delay_pos[1]
                                     _char.rotate = delay_pos[2]
-
+                                    break
                             ImageHelper.paint_char_on_image(delay_images[j], char=_char, overwrite=True)
             
             ***REMOVED*** 检查遗漏的背景图片

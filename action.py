@@ -82,9 +82,18 @@ class Action:
             名称: 转身
             角色: 镇关西
             持续时间: 
-            角度: 270 ***REMOVED*** 左右, 上下， 45(逆时针角度)
-            字幕: ***REMOVED***Kangkang, Male
+            角度: 270 ***REMOVED*** 左右, 上下， 45(逆时针角度), -45(顺时针) -- 如果是数字的话，会从初始位置旋转到给定角度
+            字幕:
               - ['','', '啊啊啊', 'resources/ShengYin/惨叫-男1.mp3']
+            渲染顺序: 0
+          -
+            名称: 转身
+            角色: 鲁智深
+            持续时间: 
+            角度: [0, -30] ***REMOVED*** 转动一个范围
+            比例: 1
+            字幕:
+            - ['','', '听说菜园里来了个新和尚', '水浒传/第九回/泼皮偷菜/听说菜园里来了个新和尚.mp3']
             渲染顺序: 1
             
 ***REMOVED***
@@ -96,26 +105,47 @@ class Action:
 ***REMOVED***
         
         str_degree = self.obj.get("角度", 0)
-        if str_degree == "左右":
-            im_mirror = ImageOps.mirror(Image.open(self.char.image))
-            basename = os.path.basename(self.char.image)
-            new_path = os.path.join(os.path.dirname(images[-1]), basename)
-            im_mirror.save(new_path)
-            self.char.image = new_path
-        elif str_degree == "上下":
-            self.char.rotate = 180
+        delay_positions = []
+        total_feames = len(images)
+        
+        if isinstance(str_degree, int):
+            str_degree = [self.char.rotate, str_degree]
+        
+        if isinstance(str_degree, list):
+            ***REMOVED*** 连续转动
+            degree_step = (str_degree[1] - str_degree[0]) / total_feames
+            start_rotate = self.char.rotate
+            for i in range(total_feames):
+                delay_positions.append([self.char.pos, self.char.size, start_rotate])
+                start_rotate += degree_step
         else:
-            self.char.rotate = int(str_degree)
-        if delay_mode:
-            delay_positions = []
-            for img in images:
-                ***REMOVED*** 保持delay_positions数量等于images数量
+            if str_degree == "左右":
+                im_mirror = ImageOps.mirror(Image.open(self.char.image))
+                basename = os.path.basename(self.char.image)
+                new_path = os.path.join(os.path.dirname(images[-1]), basename)
+                im_mirror.save(new_path)
+                self.char.image = new_path
+            elif str_degree == "上下":
+                self.char.rotate = 180
+            
+            for i in range(total_feames):
                 delay_positions.append([self.char.pos, self.char.size, self.char.rotate])
+        
+        if delay_mode:
             return delay_positions
-        for i in range(len(images)):
+
+        for i in range(total_feames):
             for _char in sorted_char_list:
                 if _char.display:
-                    ImageHelper.paint_char_on_image(images[i], char=_char, overwrite=True)
+                    if _char.name == self.char.name:
+                        ImageHelper.merge_two_image(big_image=images[i], 
+                                                    small_image=_char.image,
+                                                    pos=delay_positions[i][0],
+                                                    size=delay_positions[i][1],
+                                                    rotate=delay_positions[i][2],
+                                                    overwrite=True)
+        ***REMOVED***
+                        ImageHelper.paint_char_on_image(images[i], char=_char, overwrite=True)
         return []
 
     def __walk(self, images, sorted_char_list, delay_mode: bool):
@@ -130,7 +160,7 @@ class Action:
             开始位置: 
             结束位置: [-0.2, 0.55]
             比例:   ***REMOVED*** 比例变化，开始比例 - 结束比例
-            方式: 
+            方式:   ***REMOVED*** 自然 / 旋转 / 45 -- 如果是数字的话，会从初始位置旋转到给定角度 , 最后恢复原样
             字幕: ***REMOVED***Yunyang, Male
               - ['','', '跑路', 'resources/ShengYin/卡通搞笑逃跑音效.mp3']
             渲染顺序: 6
@@ -189,7 +219,6 @@ class Action:
         print("ratio: ", ratio)
         frames = int(1/steps * len(images)) ***REMOVED*** 平均分配每一个路线需要的帧数
         
-        m = 0
         for i in range(steps):    ***REMOVED*** 例如：[[120, 200], [10, 12]]
             if i == steps - 1:
                 ***REMOVED*** 最后一步包含剩余的全部图片
@@ -200,32 +229,38 @@ class Action:
             step_x = (end_pos[0] - start_pos[0]) / frames
             step_y = (end_pos[1] - start_pos[1]) / frames
 
-            ***REMOVED*** mode ["自然", "旋转"]:
+            ***REMOVED*** mode ["自然", "旋转", 数字]:
+            rotate = self.char.rotate
+            step_rotate = 0
+            if mode == "旋转":
+                step_rotate = 360 * config_reader.round_per_second / self.activity.fps  ***REMOVED*** 每秒旋转圈数
+            if isinstance(mode, int):
+                step_rotate = mode / self.timespan / self.activity.fps
+            
             for j in range(0, frames):
                 tmp_pos = (int(start_pos[0] + step_x * j), int(start_pos[1] + step_y * j))
+                m = i * steps + j
                 tmp_size = (int(start_size[0] * (1 + ratio_x * m)), int(start_size[1] * (1 + ratio_y * m)))
-                rotate = None
-                if mode == "旋转":
-                    step_rotate = 360 / self.activity.fps * int(config_reader.round_per_second)  ***REMOVED*** 每秒旋转圈数
-                    rotate = step_rotate * i % 360
-                    if i == frames - 1:
-                        ***REMOVED*** 最后一圈恢复原样
-                        rotate = None
+                if i == steps - 1 and j > frames - 2:
+                    ***REMOVED*** 最后一圈最后一帧恢复原样
+                    rotate = self.char.rotate
                 pos.append((tmp_pos, tmp_size, rotate))
-                m += 1
+                rotate += step_rotate
+                rotate = rotate % 360
 
             start_pos = end_pos ***REMOVED*** 重新设置轨迹的开始坐标
         
         if delay_mode:
             return pos
         
-        default_rotate = self.char.rotate
         for i in range(len(images)):
             for _char in sorted_char_list:
+                if i > len(images) - 2:
+                    print("end")
                 if _char.name == self.char.name:
-                    self.char.pos = pos[i][0]
-                    self.char.size = pos[i][1]
-                    self.char.rotate = pos[i][2] if pos[i][2] else default_rotate
+                    _char.pos = pos[i][0]
+                    _char.size = pos[i][1]
+                    _char.rotate = pos[i][2]
                 if _char.display:
                     ImageHelper.paint_char_on_image(images[i], char=_char, overwrite=True)
         return []
@@ -445,8 +480,11 @@ class Action:
             sorted_char_list: 活动中的角色列表 (已排序)
             delay_mode: 延迟绘制其他角色
         Returns:
-            延迟模式下不更新图片，返回当前角色的运行轨迹
-            
+            延迟模式下不更新图片，返回当前角色的运行轨迹, 例如：
+            {
+                "char": self.char, 
+                "position": delay_positions
+        ***REMOVED***
 ***REMOVED***
 ***REMOVED***
             delay_positions = []
@@ -470,7 +508,10 @@ class Action:
             pass
 
             self.__add_subtitle(images)
-            return delay_positions
+            return {
+                "char": self.char, 
+                "position": delay_positions
+        ***REMOVED***
 ***REMOVED***
             print(f"Error: 动作名： {self.name***REMOVED*** - 渲染顺序： {self.render_index***REMOVED***")
             raise(e)
