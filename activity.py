@@ -84,7 +84,7 @@ class Activity:
             if len(act_list) > 1:
                 max_timespan = max([x["action"].timespan for x in act_list])
                 for act in act_list:
-                    if act["action"].timespan == 0:
+                    if act["action"].timespan < max_timespan:
                         act["action"].timespan = max_timespan
 
         if rendered_action_list:
@@ -207,7 +207,6 @@ class Activity:
             delay_positions = []  ***REMOVED*** 被推迟的全部角色轨迹序列
             for act in actions:
                 ***REMOVED*** 注意：一个活动（activity）中不能有两个`镜头`动作(action)
-                print("生成动作：", act["action"].name, ", ", act["action"].render_index)
                 act["start"] = video_start  ***REMOVED*** 给action增加一个start属性
 
                 current_atc_end = start + round(act["action"].timespan * self.fps)
@@ -225,6 +224,7 @@ class Activity:
                 delay_images = images[delay_start : max(action_ends)]
                 if delay_images:
                     for j in range(len(delay_images)):   ***REMOVED*** 在每张图片上绘制全部角色
+                        big_image = None
                         for _char in self.scenario.chars:
                             if not _char.display:
                                 continue
@@ -235,7 +235,13 @@ class Activity:
                                     _char.size = delay_pos[1]
                                     _char.rotate = delay_pos[2]
                                     break
-                            ImageHelper.paint_char_on_image(delay_images[j], char=_char, overwrite=True)
+                            _, big_image = ImageHelper.paint_char_on_image(char=_char, 
+                                                                           image=delay_images[j],
+                                                                           image_obj=big_image,
+                                                                           save=False)
+                        if big_image:
+                            big_image.save(delay_images[j])
+                            big_image.close()
             
             ***REMOVED*** 检查遗漏的背景图片
             if i == (len(action_list) - 1) and max(action_ends) < len(images):
@@ -243,11 +249,17 @@ class Activity:
                 ***REMOVED*** 把剩余的背景图片都绘制上角色
                 missed_images = images[max(action_ends):]
                 print(missed_images)
-                for img in missed_images:   
+                for img in missed_images:
+                    big_image = None
                     for _char in self.scenario.chars:
                         if _char.display:
-                            ImageHelper.paint_char_on_image(img, char=_char, overwrite=True)
-                        
+                            _, big_image = ImageHelper.paint_char_on_image(char=_char, 
+                                                                           image=img,
+                                                                           image_obj=big_image,
+                                                                           save=False)
+                    if big_image:
+                        big_image.save(img)
+                        big_image.close()
             start = max(action_ends)
 
         if self.subtitle:
@@ -270,9 +282,16 @@ class Activity:
         if not draw_char_actions:
             ***REMOVED*** 如果所有的动作都没有绘制角色，则统一绘制一次
             for img in images:
+                big_image = None
                 for _char in self.scenario.chars:
                     if _char.display:
-                        ImageHelper.paint_char_on_image(img, char=_char, overwrite=True)
+                        _, big_image = ImageHelper.paint_char_on_image(char=_char, 
+                                                                      image=img, 
+                                                                      image_obj=big_image,
+                                                                      save=False)
+                if big_image:
+                    big_image.save(img)
+                    big_image.close()
 
         ***REMOVED*** 先把图片转换成视频
         video = VideoHelper.create_video_clip_from_images(images, self.fps)

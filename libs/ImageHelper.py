@@ -25,8 +25,10 @@ def add_text_to_image(image, text, color = 'white', overwrite_image = False, mod
         text_list:
             当mode是list的时候，需要显示一组字幕，最多显示5行文字
     Return:
-        return image
+        None
     """
+    if not text:
+        return
     font_size = config_reader.font_size
     im = Image.open(image)
     m = ImageDraw.Draw(im)
@@ -93,6 +95,9 @@ def zoom_in_out_image(origin_image_path, center, ratio, new_path=None):
     Return:
         新图片路径
     """
+    if ratio == 1:
+        return origin_image_path
+    
     im = Image.open(origin_image_path)
     x_center, y_center = utils.covert_pos(center)
 
@@ -107,8 +112,7 @@ def zoom_in_out_image(origin_image_path, center, ratio, new_path=None):
     im = im.crop((left, top, right, bottom))
     if not new_path:
         new_path = origin_image_path
-    im.save(new_path)
-    resize_image(new_path) ***REMOVED*** 将缩放后的图片重新放大为完全尺寸
+    im.resize((config_reader.g_width, config_reader.g_height)).save(new_path)
     im.close()
     return new_path
 
@@ -144,39 +148,55 @@ def resize_image(image):
     im.resize((config_reader.g_width, config_reader.g_height)).save(image)
     im.close()
 
-def paint_char_on_image(image, char, overwrite=False):
+def paint_char_on_image(char, image=None, image_obj=None, overwrite=False, save=False):
     """Paint a char on image
     
     Params:
-        image: 背景图片
         char: 角色
+        image: 背景图片
+        image_obj: 背景图片内存对象 （当需要连续修改同一张图片时建议使用内存对象）
         overwrite: 是否覆盖大图
+        save: 是否保存图片
     Returns:
-        新图片地址
+        (返回新图片的地址, image_obj)
     """
-    return merge_two_image(image, 
-                           small_image=char.image, 
-                           pos=char.pos, 
+    return merge_two_image(small_image=char.image, 
                            size=char.size, 
+                           pos=char.pos, 
+                           big_image=image, 
+                           big_image_obj=image_obj,
                            rotate=char.rotate, 
-                           overwrite=overwrite)
+                           overwrite=overwrite,
+                           save=save)
 
-def merge_two_image(big_image, small_image, size, pos, rotate=None, overwrite=False):
+def merge_two_image(small_image, 
+                    size, 
+                    pos, 
+                    big_image=None, 
+                    big_image_obj=None, 
+                    rotate=None, 
+                    overwrite=False,
+                    save=False):
     """将小图片粘贴到大图片上
 
     Params:
-        big_image: 大图片，第二张图片会先是在大图片上
         small_image: 小图片，会先是在大图片上
         size: 小图片的显示尺寸, 比如： (100, 120)
         pos: 小图片的显示位置，比如： (300, 400)或者(0.4, 0.5)
+        big_image: 大图片，第二张图片会先是在大图片上
+        big_image_obj: 大图片的内存对象
         rotate: 小图片的显示角度，如 0~360的数字，或者"左右"
         overwrite: 是否覆盖大图
+        save: 是否保存图片
     Return:
-        返回新图片的地址
+        (返回新图片的地址, image_obj)
     """
-    mode1 = 'RGBA' if big_image.endswith('.png') else 'RGB'
-    img1 = Image.open(big_image).copy().convert(mode1) ***REMOVED*** 防止覆盖原图
-    img1 = img1.resize((config_reader.g_width, config_reader.g_height))
+    if big_image_obj:
+        img1 = big_image_obj
+    else:
+        mode1 = 'RGBA' if big_image.endswith('.png') else 'RGB'
+        img1 = Image.open(big_image).copy().convert(mode1) ***REMOVED*** 防止覆盖原图
+        img1 = img1.resize((config_reader.g_width, config_reader.g_height))
 
     mode2 = 'RGBA' if small_image.endswith('.png') else 'RGB'
 
@@ -200,18 +220,19 @@ def merge_two_image(big_image, small_image, size, pos, rotate=None, overwrite=Fa
     else:
         img1.paste(img2, (left, top))
     img2.close()
+    if not save:
+        return None, img1
+
     if overwrite:
         img1.save(big_image)
-        img1.close()
-        return big_image
+        return big_image, img1
     else:
         ***REMOVED*** if isinstance(img1, str):
         ***REMOVED***     return img1
         ***REMOVED*** else:
             new_path = os.path.join(os.path.dirname(big_image), "tmp_"+os.path.basename(big_image))
             img1.save(new_path)
-            img1.close()
-            return new_path
+            return new_path, img1
 
 def add_gif_to_images(images, gif, pos, size):
     """将gif添加到一组图片上

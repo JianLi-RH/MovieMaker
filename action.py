@@ -2,6 +2,7 @@
 这个类用来解析script.yaml中的`动作:`
 """
 ***REMOVED***
+***REMOVED***
 
 from moviepy.editor import *
 from PIL import Image, ImageOps
@@ -21,6 +22,17 @@ class Action:
             return None
         for c in self.activity.scenario.chars:
             if c.name == name:
+                if c.rotate == "左右":
+                    basename = os.path.basename(c.image)
+                    new_path = os.path.join(os.path.dirname(c.image), f"rotate_{basename***REMOVED***")
+                    if not os.path.exists(new_path):
+                        im_mirror = ImageOps.mirror(Image.open(c.image))
+                        im_mirror.save(new_path)
+                    c.image = new_path
+                    c.rotate = 0
+                elif c.rotate == "上下":
+                    c.rotate = 180
+                    
                 return c
         return None
 
@@ -69,7 +81,6 @@ class Action:
             y = original_center[1] + step_y * i
 
             tmp_img = ImageHelper.zoom_in_out_image(images[i], center=(x, y), ratio=tmp_ratio)
-            ImageHelper.resize_image(tmp_img)
             images[i] = tmp_img
 
     def __turn(self, images, sorted_char_list, delay_mode: bool):
@@ -119,15 +130,6 @@ class Action:
                 delay_positions.append([self.char.pos, self.char.size, start_rotate])
                 start_rotate += degree_step
         else:
-            if str_degree == "左右":
-                im_mirror = ImageOps.mirror(Image.open(self.char.image))
-                basename = os.path.basename(self.char.image)
-                new_path = os.path.join(os.path.dirname(images[-1]), basename)
-                im_mirror.save(new_path)
-                self.char.image = new_path
-            elif str_degree == "上下":
-                self.char.rotate = 180
-            
             for i in range(total_feames):
                 delay_positions.append([self.char.pos, self.char.size, self.char.rotate])
         
@@ -135,17 +137,25 @@ class Action:
             return delay_positions
 
         for i in range(total_feames):
+            big_image = None
             for _char in sorted_char_list:
                 if _char.display:
                     if _char.name == self.char.name:
-                        ImageHelper.merge_two_image(big_image=images[i], 
-                                                    small_image=_char.image,
-                                                    pos=delay_positions[i][0],
-                                                    size=delay_positions[i][1],
-                                                    rotate=delay_positions[i][2],
-                                                    overwrite=True)
+                        _, big_image = ImageHelper.merge_two_image(big_image=images[i], 
+                                                                            big_image_obj=big_image,
+                                                                            small_image=_char.image,
+                                                                            pos=delay_positions[i][0],
+                                                                            size=delay_positions[i][1],
+                                                                            rotate=delay_positions[i][2],
+                                                                            save=False)
         ***REMOVED***
-                        ImageHelper.paint_char_on_image(images[i], char=_char, overwrite=True)
+                        _, big_image = ImageHelper.paint_char_on_image(image=images[i], 
+                                                                       big_image=big_image,
+                                                                       char=_char, 
+                                                                       save=False)
+            if big_image:
+                big_image.save(images[i])
+                big_image.close()
         return []
 
     def __walk(self, images, sorted_char_list, delay_mode: bool):
@@ -172,6 +182,9 @@ class Action:
         Return:
             [[tmp_pos, tmp_size, rotate], [tmp_pos, tmp_size, rotate]]
 ***REMOVED***
+        if not self.char:
+            raise Exception("角色不存在")
+        
         start_pos = self.obj["开始位置"] if self.obj.get("开始位置", None) else self.char.pos
         start_pos = utils.covert_pos(start_pos)
         ***REMOVED*** end_pos_list可以是一个固定位置， 如 [230, 120]，
@@ -216,7 +229,6 @@ class Action:
             end_pos_list = [end_pos_list]
 
         steps = len(end_pos_list)
-        print("ratio: ", ratio)
         frames = int(1/steps * len(images)) ***REMOVED*** 平均分配每一个路线需要的帧数
         
         for i in range(steps):    ***REMOVED*** 例如：[[120, 200], [10, 12]]
@@ -254,15 +266,21 @@ class Action:
             return pos
         
         for i in range(len(images)):
+            big_image = None
             for _char in sorted_char_list:
-                if i > len(images) - 2:
-                    print("end")
                 if _char.name == self.char.name:
                     _char.pos = pos[i][0]
                     _char.size = pos[i][1]
                     _char.rotate = pos[i][2]
                 if _char.display:
-                    ImageHelper.paint_char_on_image(images[i], char=_char, overwrite=True)
+                    _, big_image = ImageHelper.paint_char_on_image(char=_char, 
+                                                                   image=images[i],
+                                                                   image_obj=big_image,
+                                                                   save=False)
+            if big_image:
+                big_image.save(images[i])
+                big_image.close()
+
         return []
 
     def __gif(self, images, sorted_char_list, delay_mode):
@@ -329,20 +347,26 @@ class Action:
 ***REMOVED***
                 rotate = int(str_degree)
 
+            big_image = None
             for _char in sorted_char_list:
                 if _char == "GIF":
-                    ImageHelper.merge_two_image(
-                        images[i],
-                        gif_images[j],
-                        pos=pos,
-                        size=size,
-                        rotate=rotate,
-                        overwrite=True
-                    )
+                    _, big_image = ImageHelper.merge_two_image(big_image=images[i],
+                                                                big_image_obj=big_image,
+                                                                small_image=gif_images[j],
+                                                                pos=pos,
+                                                                size=size,
+                                                                rotate=rotate,
+                                                                save=False)
     ***REMOVED***
                     if _char.display and not delay_mode:
                         ***REMOVED*** 这里存在一个显示层级的bug
-                        ImageHelper.paint_char_on_image(images[i], char=_char, overwrite=True)
+                        _, big_image = ImageHelper.paint_char_on_image(image=images[i], 
+                                                                       image_obj=big_image,
+                                                                       char=_char, 
+                                                                       save=False)
+            if big_image:
+                big_image.save(images[i])
+                big_image.close()
         ***REMOVED*** 恢复列表
         sorted_char_list.remove("GIF")
     
@@ -365,10 +389,19 @@ class Action:
             sorted_char_list: 排序后的角色
 ***REMOVED***
         for img in images:
+            big_image = None
             for _char in sorted_char_list:
                 if _char.display:
-                    ImageHelper.paint_char_on_image(img, char=_char, overwrite=True)
-        
+                    t = datetime.datetime.now()
+                    _, big_image = ImageHelper.paint_char_on_image(image=img, 
+                                                                   image_obj=big_image,
+                                                                   char=_char, 
+                                                                   save=False)
+
+            if big_image:
+                big_image.save(img)
+                big_image.close()
+
         if self.obj.get("变化", None):
             ***REMOVED*** 图片有缩放的时候才需要调用镜头方法
             self.__camera(images)
@@ -399,6 +432,8 @@ class Action:
             self.char.display = True if self.obj.get("显示") == '是' else False
         if "图层" in keys:
             self.char.index = int(self.obj.get("图层", 0))
+            
+        self.char = self.__get_char(self.char.name)
     
     def __get_subtitle(self):
 ***REMOVED***获取动作的字幕
@@ -487,6 +522,8 @@ class Action:
         ***REMOVED***
 ***REMOVED***
 ***REMOVED***
+            
+            start = datetime.datetime.now()
             delay_positions = []
             action = self.obj.get("名称")
             if action == "显示":
@@ -507,7 +544,13 @@ class Action:
                 self.__update()
             pass
 
+            duration = datetime.datetime.now() - start
+            print(f"执行动作动【{self.name***REMOVED*** - {self.render_index***REMOVED***】， 共花费：{duration.seconds***REMOVED***秒")
+        
+            start = datetime.datetime.now()
             self.__add_subtitle(images)
+            duration = datetime.datetime.now() - start
+            print(f"添加动作字幕【{self.name***REMOVED*** - {self.render_index***REMOVED***】， 共花费：{duration.seconds***REMOVED***秒")
             return {
                 "char": self.char, 
                 "position": delay_positions
