@@ -84,9 +84,9 @@ def covert_pos(pos):
         elif y_center == '底部':
             y_center = 1
 
-        if x_center <= 1:
+        if x_center >= 0 and x_center <= 1:
             x_center = config_reader.g_width * x_center
-        if y_center <= 1:
+        if y_center >= 0 and y_center <= 1:
             y_center = config_reader.g_height * y_center
 
         return (int(x_center), int(y_center))
