@@ -13,13 +13,16 @@ infos = error.decode("utf-8", errors="ignore")
 
 免费字体： https://www.fonts.net.cn/fonts-zh-1.html
 沙雕配音： https://www.tukuppt.com/yinxiaomuban/zoulukatong.html
-文字转语音: https://voicemaker.in/
-        : https://www.zaixianai.cn/voiceCompose***REMOVED***  -- 收费
+文字转语音: 
+    https://voicemaker.in/
+    https://www.zaixianai.cn/voiceCompose***REMOVED*** 
+    https://peiyin.xunfei.cn/make
+    https://www.luyinzhushou.com/text2voice/
 
 其他素材下载：
 https://huaban.com/pins/4661349227/similar/materials
 https://www.cgjoy.com/thread-205265-1-1.html
-https://www.aigei.com/lib/gif/shuo_hua/
+https://www.aigei.com/lib/gif/shuo_hua/ ***REMOVED*** 图片/声音
 https://www.sdsucai.com/
 
 https://github.com/Zulko/moviepy/blob/master/Dockerfile
@@ -30,6 +33,7 @@ https://github.com/Zulko/moviepy/blob/master/Dockerfile
   https://www.aigei.com/bgremover ***REMOVED*** 背景变透明
   https://www.remove.bg/zh/upload ***REMOVED*** 背景变透明
   https://memes.tw/maker/painter/10274
+  https://www.suxieban.com/index.html***REMOVED*** ***REMOVED*** 在线画图
 沙雕生成器
   https://www.bilibili.com/video/BV1344y1m7fw/
 生成熊猫举牌：http://c.tianhezulin.com/cx3/2825/
