@@ -310,10 +310,13 @@ def preview(scenario, script, bg_img=None, char_name_list=None):
     shutil.copyfile(bg_img, file_path)
     resize_image(file_path)
 
+    image_obj = None
     for char in chars:
         if char.display and char.name in char_name_list:
-            paint_char_on_image(file_path, char=char, overwrite=True)
-            
+            _, image_obj = paint_char_on_image(char=char, image=file_path, image_obj=image_obj, overwrite=True)
+    
+    image_obj.save(file_path)
+    image_obj.close() 
     return file_path
     
 

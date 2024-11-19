@@ -149,9 +149,9 @@ class Action:
                                                                             rotate=delay_positions[i][2],
                                                                             save=False)
         ***REMOVED***
-                        _, big_image = ImageHelper.paint_char_on_image(image=images[i], 
-                                                                       big_image=big_image,
-                                                                       char=_char, 
+                        _, big_image = ImageHelper.paint_char_on_image(char=_char, 
+                                                                       image=images[i], 
+                                                                       image_obj=big_image,
                                                                        save=False)
             if big_image:
                 big_image.save(images[i])
@@ -451,8 +451,13 @@ class Action:
             sPath = subtitle[3]
             if not os.path.exists(sPath):
                 ***REMOVED*** 使用科大讯飞接口生成语音
-                AudioHelper.covert_text_to_sound(subtitle[2], sPath, self.char.speaker)
-                        
+        ***REMOVED***
+                    speaker = self.obj.get("发音人") if self.name == "gif" else self.char.speaker
+                    AudioHelper.covert_text_to_sound(subtitle[2], sPath, speaker)
+        ***REMOVED***
+                    print(f"Convert text failed: ", subtitle[2])
+                    raise(e)
+                    
             _length = AudioFileClip(sPath).duration
             end = start + _length
             subtitle[0] = start

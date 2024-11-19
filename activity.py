@@ -83,6 +83,9 @@ class Activity:
         for act_list in rendered_action_list:
             if len(act_list) > 1:
                 max_timespan = max([x["action"].timespan for x in act_list])
+                if max_timespan == 0:
+                    ***REMOVED*** 当没有设置动作时间时，默认1秒钟
+                    max_timespan = 1
                 for act in act_list:
                     if act["action"].timespan < max_timespan:
                         act["action"].timespan = max_timespan
