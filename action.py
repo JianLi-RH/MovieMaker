@@ -326,8 +326,8 @@ class Action:
         str_degree = self.obj.get("角度") if self.obj.get("角度") else 1
 
         l = len(images)
-        ***REMOVED*** if delay_mode:
-        ***REMOVED***     return [(pos, size, str_degree) for i in range(l)]
+        if delay_mode:
+            return [(pos, size, str_degree) for i in range(l)]
         
         for i in range(0, l):
             j = i % len(gif_images)
@@ -370,7 +370,7 @@ class Action:
         ***REMOVED*** 恢复列表
         sorted_char_list.remove("GIF")
     
-    def __talk(self, images, sorted_char_list):
+    def __talk(self, images, sorted_char_list, delay_mode):
 ***REMOVED***角色说话
         
         Example:
@@ -387,7 +387,13 @@ class Action:
 ***REMOVED***
             images: 背景图片
             sorted_char_list: 排序后的角色
+            delay_mode: 延迟绘制其他角色
+        Return:
+            [[tmp_pos, tmp_size, rotate], [tmp_pos, tmp_size, rotate]]
 ***REMOVED***
+        if delay_mode:
+            return [(self.char.pos, self.char.size, self.char.rotate) for i in range(len(images))]
+        
         for img in images:
             big_image = None
             for _char in sorted_char_list:
@@ -405,6 +411,8 @@ class Action:
         if self.obj.get("变化", None):
             ***REMOVED*** 图片有缩放的时候才需要调用镜头方法
             self.__camera(images)
+        
+        return []
     
     def __update(self):
 ***REMOVED***更新某个角色
@@ -540,7 +548,7 @@ class Action:
             elif action == "行进":
                 delay_positions = self.__walk(images, sorted_char_list, delay_mode)
             elif action == "说话":
-                self.__talk(images, sorted_char_list)
+                delay_positions = self.__talk(images, sorted_char_list, delay_mode)
             elif action == "转身":
                 delay_positions = self.__turn(images, sorted_char_list, delay_mode)
             elif action == "gif":
