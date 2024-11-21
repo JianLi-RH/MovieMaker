@@ -84,9 +84,10 @@ def covert_pos(pos):
         elif y_center == '底部':
             y_center = 1
 
-        if x_center >= 0 and x_center <= 1:
+        ***REMOVED*** x，y的值在1和1.5之间时，是为了走出屏幕
+        if x_center >= 0 and x_center <= 1.5:
             x_center = config_reader.g_width * x_center
-        if y_center >= 0 and y_center <= 1:
+        if y_center >= 0 and y_center <= 1.5:
             y_center = config_reader.g_height * y_center
 
         return (int(x_center), int(y_center))
