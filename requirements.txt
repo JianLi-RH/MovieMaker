@@ -16,3 +16,8 @@ urllib3==2.2.0
 websocket==0.2.1
 websocket-client==1.8.0
 pydub==0.25.1
+***REMOVED*** ChatTTs for text to sound
+chattts==0.2.1
+torch==2.5.1
+torchaudio==2.5.1
+ipython==8.25.0

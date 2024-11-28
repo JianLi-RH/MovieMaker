@@ -19,6 +19,7 @@ sucai_dir = config["sucai_dir"]
 system_font_dir = config["system_font_dir"]
 font = config["font"]
 video_format = ".mp4"
+tts_engine = config["tts_engine"]
 
 
 ***REMOVED*** Personal settings

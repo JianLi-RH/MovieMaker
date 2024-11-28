@@ -1,5 +1,6 @@
-output_dir: /home/jianl/automation/MovieMaker/output
+output_dir: /home/jianl/1_code/personal/MovieMaker/output/第十五回
 sucai_dir: resources
 system_font_dir: /usr/share/fonts/truetype/
 font: fonts/XiaoKeNaiLaoTi/XiaoKeNaiLaoTiShangYongMianFei@QingKeZiTi-2.ttf
 video_format: .mp4
+tts_engine: xunfei  ***REMOVED*** xunfei / ttsmaker

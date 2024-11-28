@@ -4,9 +4,11 @@ __pycache__/
 *$py.class
 
 ***REMOVED*** MovieMaker
+asset
+libs/TTSEngine/speaker
 output/
 tmp/
-resources/
+水浒传
 
 ***REMOVED*** C extensions
 *.so

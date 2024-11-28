@@ -461,7 +461,8 @@ class Action:
                 ***REMOVED*** 使用科大讯飞接口生成语音
         ***REMOVED***
                     speaker = self.obj.get("发音人") if self.name == "gif" else self.char.speaker
-                    AudioHelper.covert_text_to_sound(subtitle[2], sPath, speaker)
+                    ttsengine = self.obj.get("发音人引擎") if self.name == "gif" else self.char.tts_engine
+                    AudioHelper.covert_text_to_sound(subtitle[2], sPath, speaker, ttsengine=ttsengine)
         ***REMOVED***
                     print(f"Convert text failed: ", subtitle[2])
                     raise(e)

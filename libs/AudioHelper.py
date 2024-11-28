@@ -1,11 +1,11 @@
 ***REMOVED***
-***REMOVED***
-***REMOVED***
 
 ***REMOVED***
-from libs import xunfei_tts
+import TTSEngine
+import TTSEngine.chat
+import TTSEngine.xunfei_tts
 
-***REMOVED***
+def covert_text_to_sound(text, output, speaker, ttsengine="xunfei"):
     """
     将文字转换成语音
 
@@ -17,23 +17,10 @@ from libs import xunfei_tts
         语音文件路径
     """
 
-    ***REMOVED*** https://console.xfyun.cn/services/cbm 在这里获取密码
-    wsParam = xunfei_tts.Ws_Param(APPID='bdb4df29',
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-    ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE***REMOVED***)
-***REMOVED***
-***REMOVED***
+    if ttsengine=="xunfei":
+        return TTSEngine.xunfei_tts.covert_text_to_sound(text=text, output=output, speaker=speaker)
+    elif ttsengine=="chat":
+        return TTSEngine.chat.covert_text_to_sound(text=text, output=output, speaker=speaker)
 
 def split_audio(audio_file: str, length=None, start=0):
     """截取音频文件
