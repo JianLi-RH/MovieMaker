@@ -163,7 +163,7 @@ STATUS_LAST_FRAME = 2  ***REMOVED*** 最后一帧的标识
 
 ***REMOVED***
     ***REMOVED*** https://console.xfyun.cn/services/cbm 在这里获取密码
-    wsParam = Ws_Param(APPID='bdb4df29',
+***REMOVED***
 ***REMOVED***
 ***REMOVED***
 ***REMOVED***
