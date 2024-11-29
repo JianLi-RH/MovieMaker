@@ -26,9 +26,9 @@ def get_speaker(speaker='男'):
         return torch.tensor([float(x) for x in spk.split(",")])
     if isinstance(speaker, int):
         ***REMOVED*** https://www.ttslist.com/
-        ***REMOVED*** 男： 14 17 19 400 4200 8800
+        ***REMOVED*** 男： 14 17 19 27 29 400 4200 6200 6400 8800
         ***REMOVED*** 中： 18
-        ***REMOVED*** 女： 16 200 300 4100 9600
+        ***REMOVED*** 女： 16 200 300 4100 6300 9600
         
         csv_file = os.path.join("libs/TTSEngine/speaker", f"{speaker***REMOVED***.csv")
         spk = []
@@ -60,6 +60,8 @@ def covert_text_to_sound(text, output, speaker=None):
                       refine_text_only=False    ***REMOVED*** 禁止自动停顿
                       )
 
+    output_folder = os.path.dirname(output)
+    os.makedirs(output_folder, exist_ok=True)
     try:
         torchaudio.save(output, torch.from_numpy(wavs[0]).unsqueeze(0), 24000)
     except:
@@ -68,4 +70,4 @@ def covert_text_to_sound(text, output, speaker=None):
         
 ***REMOVED***
     ***REMOVED*** get_speaker()
-    covert_text_to_sound("难道想去高俅那里举报洒家", "output/难道想去高俅那里举报洒家.mp3", None)
+    covert_text_to_sound("前面就到沧州大牢了", "output/前面就到沧州大牢了.mp3", 19)

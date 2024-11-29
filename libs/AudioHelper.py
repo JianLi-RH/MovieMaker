@@ -16,6 +16,9 @@ def covert_text_to_sound(text, output, speaker, ttsengine="xunfei"):
     Return:
         语音文件路径
     """
+    
+    if os.path.exists(output):
+        return output
 
     if ttsengine=="xunfei":
         return TTSEngine.xunfei_tts.covert_text_to_sound(text=text, output=output, speaker=speaker)
