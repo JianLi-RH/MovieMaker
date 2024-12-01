@@ -25,7 +25,7 @@ class Character():
 ***REMOVED***
         self.name = obj.get("名字")
         self.image = obj.get("素材")
-        self.tts_engine = obj.get("发音人引擎", config_reader.tts_engine)
+        self.tts_engine = obj.get("发音人引擎") if obj.get("发音人引擎") else config_reader.tts_engine
         self.speaker = obj.get("发音人", None)
         self.pos = utils.covert_pos(obj.get("位置", None)) ***REMOVED*** 位置
         self.size = obj.get("大小", None) ***REMOVED*** 位置    ***REMOVED***大小

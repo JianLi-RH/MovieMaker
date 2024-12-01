@@ -189,13 +189,13 @@ class Action:
         start_pos = utils.covert_pos(start_pos)
         ***REMOVED*** end_pos_list可以是一个固定位置， 如 [230, 120]，
         ***REMOVED*** 也可以是一组位置坐标， 如 [[230, 120]， [330, 180]， [450, 320]]
-        end_pos_list = self.obj["结束位置"]
+        end_pos_list = self.obj.get("结束位置", None)
         ***REMOVED*** ratio： 显示比例，可以有以下几种形式：
         ***REMOVED*** 0.4   --> 相对于开始时，最终的显示比例
         ***REMOVED*** [1, 0.4] --> 变化前后的显示比例
         ***REMOVED*** [[120, 200], [10, 12]] --> 变化前后的具体像素
-        ratio = self.obj["比例"] if self.obj["比例"] else 1
-        mode = self.obj["方式"]
+        ratio = self.obj["比例"] if self.obj.get("比例") else 1
+        mode = self.obj.get("方式", None)
         
         self.char.display = True ***REMOVED*** 强制显示当前角色
 
