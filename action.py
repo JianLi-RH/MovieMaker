@@ -35,6 +35,32 @@ class Action:
                     
                 return c
         return None
+    
+    def __bgm(self, images, sorted_char_list):
+***REMOVED***向视频中插入一段背景音
+        
+        Example:
+          -
+            名称: BGM
+            字幕: 
+              - ['','', 'bgm', 'resources/ShengYin/bgm.mp3']
+        
+***REMOVED***
+            images: 全部背景图片
+            sorted_char_list: 排序后的角色
+***REMOVED***
+        l = len(images)
+        for i in range(0, l):
+            big_image = None
+            for _char in sorted_char_list:
+                if _char.display:
+                    _, big_image = ImageHelper.paint_char_on_image(image=images[i], 
+                                                                    image_obj=big_image,
+                                                                    char=_char, 
+                                                                    save=False)
+            if big_image:
+                big_image.save(images[i])
+                big_image.close()
 
     def __display(self):
 ***REMOVED***将当前动作的角色显示在背景上"""
@@ -554,6 +580,8 @@ class Action:
                 delay_positions = self.__turn(images, sorted_char_list, delay_mode)
             elif action == "gif":
                 self.__gif(images, sorted_char_list, delay_mode)
+            elif action == "BGM":
+                self.__bgm(images, sorted_char_list)
             elif action == "更新":
                 self.__update()
             pass
