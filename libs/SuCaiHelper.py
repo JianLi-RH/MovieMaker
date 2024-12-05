@@ -1,5 +1,5 @@
-***REMOVED***.10
-***REMOVED***
+#!/usr/bin/python3.10
+import os
 
 import config_reader
 
@@ -26,5 +26,5 @@ def get_sucai(args):
     return os.path.join(sucai_dir, *args)
 
 
-***REMOVED***
+if __name__ == "__main__":
     pass

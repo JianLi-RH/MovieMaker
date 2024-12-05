@@ -3,4 +3,4 @@ sucai_dir: resources
 system_font_dir: /usr/share/fonts/truetype/
 font: fonts/XiaoKeNaiLaoTi/XiaoKeNaiLaoTiShangYongMianFei@QingKeZiTi-2.ttf
 video_format: .mp4
-tts_engine: xunfei  ***REMOVED*** xunfei / ttsmaker
+tts_engine: xunfei  # xunfei / ttsmaker

@@ -1,5 +1,5 @@
-***REMOVED***.10
-***REMOVED***
+#!/usr/bin/python3.10
+import os
 dir_path = os.path.dirname(os.path.realpath(__file__))
 os.chdir(dir_path)
 
@@ -9,7 +9,7 @@ try:
 except ImportError:
     from yaml import Loader, Dumper
 
-***REMOVED*** Global settings
+# Global settings
 config = load(open("global_config.yaml"), Loader=Loader)
 output_dir = config["output_dir"]
 if not os.path.exists(output_dir):
@@ -22,10 +22,10 @@ video_format = ".mp4"
 tts_engine = config["tts_engine"]
 
 
-***REMOVED*** Personal settings
+# Personal settings
 config = load(open("config.yaml"), Loader=Loader)
-fps = int(config["fps"])    ***REMOVED*** 每秒显示的帧数
-watermark = config["watermark"] ***REMOVED*** 水印
+fps = int(config["fps"])    # 每秒显示的帧数
+watermark = config["watermark"] # 水印
 g_width = int(config["g_width"])
 g_height = int(config["g_height"])
 round_per_second = config["round_per_second"]

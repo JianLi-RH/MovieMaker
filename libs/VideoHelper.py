@@ -1,8 +1,8 @@
-***REMOVED***.10
-***REMOVED***
+#!/usr/bin/python3.10
+import sys
 
 sys.path.append('../')
-***REMOVED***
+import os
 
 from moviepy.editor import *
 from moviepy.video.tools.subtitles import SubtitlesClip
@@ -57,10 +57,10 @@ def __get_images_when_zoom_in_out_camera(origin_image_path, center, from_ratio, 
     images = []
     for i in range(0, total):
         if from_ratio > to_ratio:
-            ***REMOVED*** 缩小
+            # 缩小
             tmp_ratio = from_ratio - (from_ratio - to_ratio) * i / total
         else:
-            ***REMOVED*** 放大
+            # 放大
             tmp_ratio = from_ratio + (to_ratio - from_ratio) * i / total
         tmp_img = ImageHelper.zoom_in_out_image(origin_image_path, center=center, ratio=tmp_ratio)
         images.append(tmp_img)
@@ -78,11 +78,11 @@ def add_watermark(video, gif_path, pos, size):
     """
     clip = __get_video_clip(video)
     watermark = (VideoFileClip(gif_path, has_mask=True)
-                    .loop()  ***REMOVED*** loop gif
-                    .set_duration(clip.duration)  ***REMOVED*** 水印持续时间
-                    .resize(height=size[1], )  ***REMOVED*** 水印的高度，会等比缩放
-                    .margin(left=pos[0], top=pos[1], opacity=0)  ***REMOVED*** 水印边距和透明度
-                    .set_pos(("left", "top")))  ***REMOVED*** 水印的位置
+                    .loop()  # loop gif
+                    .set_duration(clip.duration)  # 水印持续时间
+                    .resize(height=size[1], )  # 水印的高度，会等比缩放
+                    .margin(left=pos[0], top=pos[1], opacity=0)  # 水印边距和透明度
+                    .set_pos(("left", "top")))  # 水印的位置
 
     return CompositeVideoClip([clip, watermark])
 
@@ -122,7 +122,7 @@ def get_video_section(file_path, start, end):
     if os.path.exists(file_path):
         return VideoFileClip(file_path).subclip(start, end)
     else:
-        raise Exception(f"Could not find video file on {file_path***REMOVED***")
+        raise Exception(f"Could not find video file on {file_path}")
 
 def add_audio_to_video(video, audio_file, start=None):
     """
@@ -163,14 +163,14 @@ def create_video_clip_from_images(images, fps=config_reader.fps):
         Instance of VideoClip.
     """
     clips = []
-    ***REMOVED*** l = len(images)
+    # l = len(images)
     for img in images:
         tmp_clip = ImageClip(img).set_duration(1/fps)
         tmp_clip.fps=fps
         clips.append(tmp_clip)
-    ***REMOVED*** for i in range(0, l, 1000):
-    ***REMOVED***     print(f"正在使用第{i*1000***REMOVED*** 到 {i + 1000 - 1***REMOVED***个图片生成视频...")
-    ***REMOVED***     clips.append(ImageSequenceClip(images[i], fps))
+    # for i in range(0, l, 1000):
+    #     print(f"正在使用第{i*1000} 到 {i + 1000 - 1}个图片生成视频...")
+    #     clips.append(ImageSequenceClip(images[i], fps))
     concat_clip = concatenate_videoclips(clips, method="compose")
     return concat_clip
 
@@ -179,15 +179,15 @@ def composite_videos(main_video, sub_video, sub_video_start_time = 0, sub_video_
     Composite two videos
 
     Examples for position:
-        clip2.set_position((45,150)) ***REMOVED*** x=45, y=150 , in pixels
-        clip2.set_position("center") ***REMOVED*** automatically centered
-        ***REMOVED*** clip2 is horizontally centered, and at the top of the picture
+        clip2.set_position((45,150)) # x=45, y=150 , in pixels
+        clip2.set_position("center") # automatically centered
+        # clip2 is horizontally centered, and at the top of the picture
         clip2.set_position(("center","top"))
-        ***REMOVED*** clip2 is vertically centered, at the left of the picture
+        # clip2 is vertically centered, at the left of the picture
         clip2.set_position(("left","center"))
-        ***REMOVED*** clip2 is at 40% of the width, 70% of the height of the screen:
+        # clip2 is at 40% of the width, 70% of the height of the screen:
         clip2.set_position((0.4,0.7), relative=True)
-        ***REMOVED*** clip2's position is horizontally centered, and moving down !
+        # clip2's position is horizontally centered, and moving down !
         clip2.set_position(lambda t: ('center', 50+t) )
 
     Params:
@@ -252,13 +252,13 @@ def insert_image_to_video(video, image_path, position, duration, size=None):
     image = image.set_duration(timespan)
 
     image_clips.append(image)
-    ***REMOVED*** if size:
-    ***REMOVED***     i = Image.open(image_path)
-    ***REMOVED***     x, y = i.size
+    # if size:
+    #     i = Image.open(image_path)
+    #     x, y = i.size
 
-    ***REMOVED***     x = x * size[0] if size[0] < 1 else size[0]
-    ***REMOVED***     y = y * size[1] if size[1] < 1 else size[1]
-    ***REMOVED***     image.resize(weight=x,height=y)
+    #     x = x * size[0] if size[0] < 1 else size[0]
+    #     y = y * size[1] if size[1] < 1 else size[1]
+    #     image.resize(weight=x,height=y)
 
     return CompositeVideoClip([clip] + image_clips)
     pass
@@ -278,31 +278,31 @@ def zoom_in_out_camera(origin_image_path, center, from_ratio, to_ratio, duration
         A list of images.
     """
     images = __get_images_when_zoom_in_out_camera(origin_image_path, center, from_ratio=from_ratio, to_ratio=to_ratio, duration=duration)
-    ***REMOVED*** return create_video_clip_from_images(images=images, duration=duration)
+    # return create_video_clip_from_images(images=images, duration=duration)
     return images
 
-***REMOVED***
-    ***REMOVED*** duration = 5
-    ***REMOVED*** images = __get_images_when_zoom_in_out_camera("JiChuSuCai/BeiJing/1.jpg", (0.2, 0.1), 0.5, duration)
-    ***REMOVED*** create_video_clip_from_images(images=images, duration=duration).write_videofile("zoom_images.mp4")
+if __name__ == "__main__":
+    # duration = 5
+    # images = __get_images_when_zoom_in_out_camera("JiChuSuCai/BeiJing/1.jpg", (0.2, 0.1), 0.5, duration)
+    # create_video_clip_from_images(images=images, duration=duration).write_videofile("zoom_images.mp4")
 
-    ***REMOVED*** zoom_in_out_camera("JiChuSuCai/BeiJing/1.jpg", (0.2, 0.1), 0.6, 1, 3).write_videofile("zoom_out_images.mp4")
-    ***REMOVED*** zoom_in_out_camera("JiChuSuCai/BeiJing/1.jpg", (0.2, 0.1), 0.9, 0.5, 3).write_videofile("zoom_in_images.mp4")
+    # zoom_in_out_camera("JiChuSuCai/BeiJing/1.jpg", (0.2, 0.1), 0.6, 1, 3).write_videofile("zoom_out_images.mp4")
+    # zoom_in_out_camera("JiChuSuCai/BeiJing/1.jpg", (0.2, 0.1), 0.9, 0.5, 3).write_videofile("zoom_in_images.mp4")
 
-    ***REMOVED*** images = [
-    ***REMOVED***     "JiChuSuCai/JiaoTongGongJu/MoTuoChe/1.png",
-    ***REMOVED***     "JiChuSuCai/JiaoTongGongJu/MoTuoChe/2.png",
-    ***REMOVED***     "JiChuSuCai/JiaoTongGongJu/MoTuoChe/3.png",
-    ***REMOVED***     "JiChuSuCai/JiaoTongGongJu/MoTuoChe/4.png"
-    ***REMOVED*** ]
-    ***REMOVED*** create_video_clip_from_images(images, "10秒").write_videofile("images.mp4")
-    ***REMOVED*** concatenate_videos("test.mp4", "29.mp4").write_videofile("my_concatenation.mp4")
+    # images = [
+    #     "JiChuSuCai/JiaoTongGongJu/MoTuoChe/1.png",
+    #     "JiChuSuCai/JiaoTongGongJu/MoTuoChe/2.png",
+    #     "JiChuSuCai/JiaoTongGongJu/MoTuoChe/3.png",
+    #     "JiChuSuCai/JiaoTongGongJu/MoTuoChe/4.png"
+    # ]
+    # create_video_clip_from_images(images, "10秒").write_videofile("images.mp4")
+    # concatenate_videos("test.mp4", "29.mp4").write_videofile("my_concatenation.mp4")
 
-    ***REMOVED*** add_watermark("output/final.mp4", "resources/SuCai/watermark.gif").write_videofile("output/gif.mp4")
+    # add_watermark("output/final.mp4", "resources/SuCai/watermark.gif").write_videofile("output/gif.mp4")
 
-    ***REMOVED*** insert_image_to_video("output/test1.mp4", "resources/JiChuSuCai/JiaoTongGongJu/MoTuoChe/1.png", (0.2, 0.5), 1, [80, 60]).write_videofile("output/images2.mp4")
+    # insert_image_to_video("output/test1.mp4", "resources/JiChuSuCai/JiaoTongGongJu/MoTuoChe/1.png", (0.2, 0.5), 1, [80, 60]).write_videofile("output/images2.mp4")
 
-    ***REMOVED*** add_audio_to_video("29.mp4", "JiChuSuCai/ShengYin/1.王琪 - 可可托海的牧羊人.mp3", start=30, end=37).write_videofile("test1.mp4")
-    ***REMOVED*** composite_videos("test1.mp4", "29.mp4", sub_video_position="center", sub_video_size=(350, 350)).write_videofile("my_concatenation.mp4")
+    # add_audio_to_video("29.mp4", "JiChuSuCai/ShengYin/1.王琪 - 可可托海的牧羊人.mp3", start=30, end=37).write_videofile("test1.mp4")
+    # composite_videos("test1.mp4", "29.mp4", sub_video_position="center", sub_video_size=(350, 350)).write_videofile("my_concatenation.mp4")
 
     pass

@@ -1,5 +1,5 @@
-***REMOVED***
-***REMOVED***
+import os
+import sys
 import yaml
 
 sys.path.append('../')
@@ -32,11 +32,11 @@ def add_text_to_image(image, text, color = 'white', overwrite_image = False, mod
     font_size = config_reader.font_size
     im = Image.open(image)
     m = ImageDraw.Draw(im)
-    ***REMOVED*** Add Text to an image
+    # Add Text to an image
     x, y = im.size
     if not mode or mode == 'normal' or mode == 'bottom':
         x = (x - len(text) * font_size) / 2
-        y = y - font_size - 20 ***REMOVED*** 距离底边20个像素
+        y = y - font_size - 20 # 距离底边20个像素
     elif mode == 'top':
         x = (x - len(text) * font_size) / 2
         y = 20
@@ -48,20 +48,20 @@ def add_text_to_image(image, text, color = 'white', overwrite_image = False, mod
         x = 0
 
     if mode == 'list':
-        height = font_size * (len(text_list) - 1) * 0.8 + font_size   ***REMOVED*** 20是行间距, height是总的文本高度
+        height = font_size * (len(text_list) - 1) * 0.8 + font_size   # 20是行间距, height是总的文本高度
         start_y = (y - height) / 2
 
         l = len(text_list)
         for i in range(0, l):
             if text_list[i] != text:
-                tmp_font_size = font_size * 0.8 ***REMOVED*** 非当前文字缩小显示
+                tmp_font_size = font_size * 0.8 # 非当前文字缩小显示
                 color = 'black'
-***REMOVED***
+            else:
                 tmp_font_size = font_size
                 color = 'red'
             tmp_x = (x - len(text_list[i]) * tmp_font_size) / 2
 
-            ***REMOVED*** 这行代码必须放在mf前面
+            # 这行代码必须放在mf前面
             if i > 0:
                 start_y = start_y + font_size
 
@@ -78,7 +78,7 @@ def add_text_to_image(image, text, color = 'white', overwrite_image = False, mod
     if overwrite_image:
         im.save(image)
     else:
-        ***REMOVED*** Display edited image on which we have added the text
+        # Display edited image on which we have added the text
         im.show()
     im.close()
 
@@ -125,14 +125,14 @@ def get_frames_from_gif(gif):
         gif图片每一帧的存储路径
     """
     if not gif.lower().endswith(".gif"):
-        raise Exception(f"{gif***REMOVED*** is not a gif picture.")
+        raise Exception(f"{gif} is not a gif picture.")
     output_path = os.path.join(config_reader.output_dir, "gif", os.path.basename(gif).lower().replace('.gif', ''))
     os.makedirs(output_path, exist_ok=True)
     frames = []
     with Image.open(gif) as im:
         i = 0
         for frame in  ImageSequence.Iterator(im):
-            tmp_path = f"{output_path***REMOVED***/{i***REMOVED***-gif.png"
+            tmp_path = f"{output_path}/{i}-gif.png"
             i += 1
             frame.save(tmp_path)
             frames.append(tmp_path)
@@ -195,12 +195,12 @@ def merge_two_image(small_image,
         img1 = big_image_obj
     else:
         mode1 = 'RGBA' if big_image.endswith('.png') else 'RGB'
-        img1 = Image.open(big_image).copy().convert(mode1) ***REMOVED*** 防止覆盖原图
+        img1 = Image.open(big_image).copy().convert(mode1) # 防止覆盖原图
         img1 = img1.resize((config_reader.g_width, config_reader.g_height))
 
     mode2 = 'RGBA' if small_image.endswith('.png') else 'RGB'
 
-    size = utils.covert_pos(size) ***REMOVED*** 可以使用小数（百分比）表示图片尺寸
+    size = utils.covert_pos(size) # 可以使用小数（百分比）表示图片尺寸
     img2 = Image.open(small_image).resize(size).convert(mode2)
     if rotate:
         if rotate == "左右":
@@ -227,9 +227,9 @@ def merge_two_image(small_image,
         img1.save(big_image)
         return big_image, img1
     else:
-        ***REMOVED*** if isinstance(img1, str):
-        ***REMOVED***     return img1
-        ***REMOVED*** else:
+        # if isinstance(img1, str):
+        #     return img1
+        # else:
             new_path = os.path.join(os.path.dirname(big_image), "tmp_"+os.path.basename(big_image))
             img1.save(new_path)
             return new_path, img1
@@ -256,7 +256,7 @@ def create_text_png(text, size=None, font = None):
     im = Image.new(mode='RGBA', size=size)
     draw_table = ImageDraw.Draw(im=im)
     font = font if font else 'fonts/QingNiaoHuaGuangJianMeiHei/QingNiaoHuaGuangJianMeiHei-2.ttf'
-    draw_table.text(xy=(0,0), text=text, fill='***REMOVED***008B8B', font=ImageFont.truetype(font=font, size=50))
+    draw_table.text(xy=(0,0), text=text, fill='#008B8B', font=ImageFont.truetype(font=font, size=50))
     im.show()
 
 def create_gif(images, file_name = None):
@@ -268,7 +268,7 @@ def create_gif(images, file_name = None):
     Return:
         gif图片路径
     """
-    file_name = file_name if file_name else f"{utils.get_random_str(8)***REMOVED***.gif"
+    file_name = file_name if file_name else f"{utils.get_random_str(8)}.gif"
     gif = os.path.join(config_reader.output_dir, file_name)
     img = Image.open(images[0])
     gif_frames = [img]
@@ -320,10 +320,10 @@ def preview(scenario, script, bg_img=None, char_name_list=None):
     return file_path
     
 
-***REMOVED***
-    ***REMOVED*** add_text_to_image("resources/JiChuSuCai/BeiJing/太空.jpg", r'中文阿斯asdsad顿萨杜萨的', save_image=False)
-    ***REMOVED*** zoom_in_out_image("resources/JiChuSuCai/BeiJing/1.jpg", (0.5, 0.5), 0.9)
-    ***REMOVED*** test("resources/JiChuSuCai/BeiJing/1.jpg", "resources/SuCai/watermark.gif")
-    ***REMOVED*** get_frames_from_gif("resources/SuCai/watermark.gif")
-    ***REMOVED*** merge_two_image("resources/JiChuSuCai/BeiJing/1.jpg", "output/watermark.gif/0.png", size=(100, 100), pos=(100, 20), rotate=45)
+if __name__ == "__main__":
+    # add_text_to_image("resources/JiChuSuCai/BeiJing/太空.jpg", r'中文阿斯asdsad顿萨杜萨的', save_image=False)
+    # zoom_in_out_image("resources/JiChuSuCai/BeiJing/1.jpg", (0.5, 0.5), 0.9)
+    # test("resources/JiChuSuCai/BeiJing/1.jpg", "resources/SuCai/watermark.gif")
+    # get_frames_from_gif("resources/SuCai/watermark.gif")
+    # merge_two_image("resources/JiChuSuCai/BeiJing/1.jpg", "output/watermark.gif/0.png", size=(100, 100), pos=(100, 20), rotate=45)
     pass

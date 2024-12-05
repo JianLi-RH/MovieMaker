@@ -1,4 +1,4 @@
-***REMOVED***
+#!/usr/bin/python3
 
 '''
 这是程序入口，可以通过以下几种方式生成视频：
@@ -13,8 +13,8 @@
 '''
 
 import getopt
-***REMOVED***
-***REMOVED***
+import os
+import sys
 
 import yaml
 from moviepy.editor import VideoFileClip
@@ -47,8 +47,8 @@ def connect_videos(final_video_name: str, videos=[], script='script.yaml', delet
         for f in videos:
             if os.path.exists(f):
                 os.remove(f)
-***REMOVED***
-                print(f"WARN: {f***REMOVED*** 不存在")
+            else:
+                print(f"WARN: {f} 不存在")
     p = os.path.join(config_reader.output_dir, final_video_name)
     final.write_videofile(p)
     return p
@@ -74,17 +74,17 @@ def run(output=None, script='script.yaml', scenario=None):
             new_video = VideoHelper.concatenate_videos(*videos)
             if scenario.bgm:
                 new_video = VideoHelper.add_audio_to_video(new_video, scenario.bgm)
-            scenario_file = os.path.join(config_reader.output_dir, f"{scenario.name***REMOVED***.{config_reader.video_format***REMOVED***")
+            scenario_file = os.path.join(config_reader.output_dir, f"{scenario.name}.{config_reader.video_format}")
             new_video.set_fps(config_reader.fps)
             new_video.write_videofile(scenario_file)
             final_videos_files.append(scenario_file)
 
         if not output:
             if scenario:
-                output = os.path.join(config_reader.output_dir, f"{scenario.name***REMOVED***.{config_reader.video_format***REMOVED***")
-***REMOVED***
+                output = os.path.join(config_reader.output_dir, f"{scenario.name}.{config_reader.video_format}")
+            else:
                 script = script.split('.')[0]
-                output = os.path.join(config_reader.output_dir, f"{script***REMOVED***.{config_reader.video_format***REMOVED***")
+                output = os.path.join(config_reader.output_dir, f"{script}.{config_reader.video_format}")
         connect_videos(output, final_videos_files, delete_old=True)
     return 0
 
@@ -94,7 +94,7 @@ def main(argv):
     """
     options = "o:s:c:"
     opts , args = getopt.getopt(argv, options)
-    print(f"arguments: {opts***REMOVED***")
+    print(f"arguments: {opts}")
 
     output, scenario, script = '', '', ''
     for currentArgument, currentValue in opts:
@@ -113,8 +113,8 @@ def main(argv):
 
     return run(output=output, scenario=scenario, script=script)
 
-***REMOVED***
-    ***REMOVED***
+if __name__ == "__main__":
+    import datetime
     print(datetime.datetime.now())
     if len(sys.argv) > 1:
         result = main(sys.argv[1:])
@@ -122,5 +122,5 @@ def main(argv):
         result = run(script='script/水浒传/水浒传第三回.yaml', scenario="杀退官兵")
     print(datetime.datetime.now())
     sys.exit(result)
-    ***REMOVED*** videos=["output/京城外.mp4", "output/路上.mp4", "output/龙虎山下.mp4", "output/请张真人.mp4"]
-    ***REMOVED*** connect_videos("水浒传第二回.mp4", script="水浒传第二回.yaml", delete_old=False)
+    # videos=["output/京城外.mp4", "output/路上.mp4", "output/龙虎山下.mp4", "output/请张真人.mp4"]
+    # connect_videos("水浒传第二回.mp4", script="水浒传第二回.yaml", delete_old=False)

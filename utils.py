@@ -1,7 +1,7 @@
-***REMOVED***
-***REMOVED***
+#!/usr/bin/python3
+import os
 import re
-***REMOVED***
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "libs"))
 from moviepy.editor import *
@@ -84,7 +84,7 @@ def covert_pos(pos):
         elif y_center == '底部':
             y_center = 1
 
-        ***REMOVED*** x，y的值在1和1.5之间时，是为了走出屏幕
+        # x，y的值在1和1.5之间时，是为了走出屏幕
         if x_center > -1 and x_center < 2:
             x_center = config_reader.g_width * x_center
         if y_center > -1 and y_center < 2:
@@ -110,7 +110,7 @@ def get_audio_length(audio):
     else:
         return audio.duration
 
-***REMOVED***
-    ***REMOVED*** get_sub_title_list("tmp/养生论.txt")
+if __name__ == "__main__":
+    # get_sub_title_list("tmp/养生论.txt")
     print(get_random_str(4))
     pass
