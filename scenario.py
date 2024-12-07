@@ -3,6 +3,7 @@
 这个类用来解析script.yaml中的`场景:`
 """
 import os
+import shutil
 
 import activity
 import character
@@ -24,8 +25,9 @@ class Scenario:
         if original_image.lower().endswith(".gif"):
             return original_image
         new_path = os.path.join(config_reader.output_dir, os.path.basename(original_image))
-        ImageHelper.resize_image(original_image)
-        return ImageHelper.zoom_in_out_image(original_image, self.focus, self.ratio, new_path)
+        shutil.copy(original_image, new_path)
+        ImageHelper.resize_image(new_path)
+        return ImageHelper.zoom_in_out_image(new_path, self.focus, self.ratio)
 
     def __init__(self, obj):
         self.name = obj.get("名字", None)
