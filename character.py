@@ -25,6 +25,10 @@ class Character():
         """
         self.name = obj.get("名字")
         self.image = obj.get("素材")
+        if self.image.lower().endswith(".gif"):
+            self.gif_frames = ImageHelper.get_frames_from_gif(self.image)
+        else:
+            self.gif_frames = []
         self.tts_engine = obj.get("发音人引擎") if obj.get("发音人引擎") else config_reader.tts_engine
         self.speaker = obj.get("发音人", None)
         self.pos = utils.covert_pos(obj.get("位置", None)) # 位置

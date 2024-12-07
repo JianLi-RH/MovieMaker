@@ -48,7 +48,7 @@ class Action:
         Params:
             images: 全部背景图片
             sorted_char_list: 排序后的角色
-        """
+        """     
         l = len(images)
         for i in range(0, l):
             big_image = None
@@ -57,7 +57,8 @@ class Action:
                     _, big_image = ImageHelper.paint_char_on_image(image=images[i], 
                                                                     image_obj=big_image,
                                                                     char=_char, 
-                                                                    save=False)
+                                                                    save=False,
+                                                                    gif_index=i)
             if big_image:
                 big_image.save(images[i])
                 big_image.close()
@@ -178,7 +179,8 @@ class Action:
                         _, big_image = ImageHelper.paint_char_on_image(char=_char, 
                                                                        image=images[i], 
                                                                        image_obj=big_image,
-                                                                       save=False)
+                                                                       save=False,
+                                                                       gif_index=i)
             if big_image:
                 big_image.save(images[i])
                 big_image.close()
@@ -302,7 +304,8 @@ class Action:
                     _, big_image = ImageHelper.paint_char_on_image(char=_char, 
                                                                    image=images[i],
                                                                    image_obj=big_image,
-                                                                   save=False)
+                                                                   save=False,
+                                                                   gif_index=i)
             if big_image:
                 big_image.save(images[i])
                 big_image.close()
@@ -316,6 +319,7 @@ class Action:
           -
             名称: gif
             素材: resources/SuCai/说话声/1.gif
+            发音人引擎: 
             字幕: 
               - ['','', '小女孩哭泣声', 'resources/ShengYin/小女孩哭泣声.mp3']
             位置: [0.6, 0.2]
@@ -389,7 +393,8 @@ class Action:
                         _, big_image = ImageHelper.paint_char_on_image(image=images[i], 
                                                                        image_obj=big_image,
                                                                        char=_char, 
-                                                                       save=False)
+                                                                       save=False,
+                                                                       gif_index=i)
             if big_image:
                 big_image.save(images[i])
                 big_image.close()
@@ -420,6 +425,7 @@ class Action:
         if delay_mode:
             return [(self.char.pos, self.char.size, self.char.rotate) for i in range(len(images))]
         
+        gif_index = 0
         for img in images:
             big_image = None
             for _char in sorted_char_list:
@@ -428,11 +434,13 @@ class Action:
                     _, big_image = ImageHelper.paint_char_on_image(image=img, 
                                                                    image_obj=big_image,
                                                                    char=_char, 
-                                                                   save=False)
+                                                                   save=False,
+                                                                   gif_index=gif_index)
 
             if big_image:
                 big_image.save(img)
                 big_image.close()
+            gif_index += 1
 
         if self.obj.get("变化", None):
             # 图片有缩放的时候才需要调用镜头方法

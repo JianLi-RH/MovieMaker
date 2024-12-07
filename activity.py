@@ -241,7 +241,8 @@ class Activity:
                             _, big_image = ImageHelper.paint_char_on_image(char=_char, 
                                                                            image=delay_images[j],
                                                                            image_obj=big_image,
-                                                                           save=False)
+                                                                           save=False,
+                                                                           gif_index=j)
                         if big_image:
                             big_image.save(delay_images[j])
                             big_image.close()
@@ -252,6 +253,7 @@ class Activity:
                 # 把剩余的背景图片都绘制上角色
                 missed_images = images[max(action_ends):]
                 print(missed_images)
+                gif_index = 0
                 for img in missed_images:
                     big_image = None
                     for _char in self.scenario.chars:
@@ -259,10 +261,12 @@ class Activity:
                             _, big_image = ImageHelper.paint_char_on_image(char=_char, 
                                                                            image=img,
                                                                            image_obj=big_image,
-                                                                           save=False)
+                                                                           save=False,
+                                                                           gif_index=gif_index)
                     if big_image:
                         big_image.save(img)
                         big_image.close()
+                    gif_index += 1
             start = max(action_ends)
 
         if self.subtitle:

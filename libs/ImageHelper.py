@@ -148,7 +148,7 @@ def resize_image(image):
     im.resize((config_reader.g_width, config_reader.g_height)).save(image)
     im.close()
 
-def paint_char_on_image(char, image=None, image_obj=None, overwrite=False, save=False):
+def paint_char_on_image(char, image=None, image_obj=None, overwrite=False, save=False, gif_index=0):
     """Paint a char on image
     
     Params:
@@ -157,10 +157,12 @@ def paint_char_on_image(char, image=None, image_obj=None, overwrite=False, save=
         image_obj: 背景图片内存对象 （当需要连续修改同一张图片时建议使用内存对象）
         overwrite: 是否覆盖大图
         save: 是否保存图片
+        gif_index: 如果角色素材是gif图片，则显示指定下标的frame
     Returns:
         (返回新图片的地址, image_obj)
     """
-    return merge_two_image(small_image=char.image, 
+    small_image=char.image if not char.image.lower().endswith(".gif") else char.gif_frames[gif_index % len(char.gif_frames)]
+    return merge_two_image(small_image=small_image, 
                            size=char.size, 
                            pos=char.pos, 
                            big_image=image, 
