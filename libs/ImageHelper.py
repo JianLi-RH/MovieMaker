@@ -280,6 +280,30 @@ def create_gif(images, file_name = None):
     gif_frames[0].save(gif, save_all=True, append_images=gif_frames[1:], duration=len(images), loop=0)
     return gif
 
+def hightlight_char(image_obj, char):
+    """高亮显示当前角色
+    
+    Params:
+        image_obj: 背景图片内存对象 （当需要连续修改同一张图片时建议使用内存对象）
+        char: 角色
+    Returns:
+        None (直接编辑image_obj内存对象)
+    """
+    total_w, total_h = image_obj.size
+    x, y = char.pos
+    w, h = char.size
+    for i in range(0, total_w):
+        for j in range(0, total_h):
+            if i > x and i < (x + w) and j > y and j < (y + h):
+                continue
+            # 获取当前像素的颜色值
+            pixel_color = image_obj.getpixel((i, j))
+            # 调整每个颜色通道的亮度（这里简单地减小亮度，可以根据需要调整系数）
+            new_color = (max(0, pixel_color[0] - 100), max(0, pixel_color[1] - 100), max(0, pixel_color[2] - 100))
+            # 设置新的颜色值  
+            image_obj.putpixel((i, j), new_color)    
+    return image_obj
+
 def preview(scenario, script, bg_img=None, char_name_list=None):
     """
     预览角色在背景图上的显示效果

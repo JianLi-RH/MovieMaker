@@ -408,6 +408,7 @@ class Action:
           -
             名称: 说话
             角色: 鲁智深
+            高亮: 是
             焦点: 
             变化: 
             字幕: #Yunyang, Male
@@ -438,6 +439,9 @@ class Action:
                                                                    gif_index=gif_index)
 
             if big_image:
+                if self.obj.get("高亮") == "是":
+                    ImageHelper.hightlight_char(big_image, self.char)
+
                 big_image.save(img)
                 big_image.close()
             gif_index += 1
