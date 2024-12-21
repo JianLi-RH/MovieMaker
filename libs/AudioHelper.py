@@ -4,6 +4,7 @@ from pydub import AudioSegment
 import TTSEngine
 import TTSEngine.chat
 import TTSEngine.xunfei_tts
+import config_reader
 
 def covert_text_to_sound(text, output, speaker, ttsengine="xunfei"):
     """
@@ -19,6 +20,10 @@ def covert_text_to_sound(text, output, speaker, ttsengine="xunfei"):
     
     if os.path.exists(output):
         return output
+    
+    if not ttsengine:
+        ttsengine = config_reader.tts_engine
+    print("使用引擎‘", ttsengine, "'生成音频文件")
 
     if ttsengine=="xunfei":
         return TTSEngine.xunfei_tts.covert_text_to_sound(text=text, output=output, speaker=speaker)
