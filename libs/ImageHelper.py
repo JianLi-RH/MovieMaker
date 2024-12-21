@@ -148,7 +148,7 @@ def resize_image(image):
     im.resize((config_reader.g_width, config_reader.g_height)).save(image)
     im.close()
 
-def paint_char_on_image(char, image=None, image_obj=None, overwrite=False, save=False, gif_index=0):
+def paint_char_on_image(char, image=None, image_obj=None, overwrite=False, save=False, gif_index=0, dark=False):
     """Paint a char on image
     
     Params:
@@ -158,10 +158,14 @@ def paint_char_on_image(char, image=None, image_obj=None, overwrite=False, save=
         overwrite: 是否覆盖大图
         save: 是否保存图片
         gif_index: 如果角色素材是gif图片，则显示指定下标的frame
+        dark: 设置角色为灰色显示
     Returns:
         (返回新图片的地址, image_obj)
     """
     small_image=char.image if not char.image.lower().endswith(".gif") else char.gif_frames[gif_index % len(char.gif_frames)]
+    if dark:
+        small_image = dark_image(small_image)
+    
     return merge_two_image(small_image=small_image, 
                            size=char.size, 
                            pos=char.pos, 
@@ -182,7 +186,7 @@ def merge_two_image(small_image,
     """将小图片粘贴到大图片上
 
     Params:
-        small_image: 小图片，会先是在大图片上
+        small_image: 小图片，会先是在大图片上/ 可以是图片地址，也可以是Image对象
         size: 小图片的显示尺寸, 比如： (100, 120)
         pos: 小图片的显示位置，比如： (300, 400)或者(0.4, 0.5)
         big_image: 大图片，第二张图片会先是在大图片上
@@ -200,10 +204,16 @@ def merge_two_image(small_image,
         img1 = Image.open(big_image).copy().convert(mode1) # 防止覆盖原图
         img1 = img1.resize((config_reader.g_width, config_reader.g_height))
 
-    mode2 = 'RGBA' if small_image.endswith('.png') else 'RGB'
+    if isinstance(small_image, str):
+        mode2 = 'RGBA' if small_image.endswith('.png') else 'RGB'
+    else:
+        mode2 = small_image._mode
 
     size = utils.covert_pos(size) # 可以使用小数（百分比）表示图片尺寸
-    img2 = Image.open(small_image).resize(size).convert(mode2)
+    if isinstance(small_image, str):
+        img2 = Image.open(small_image).resize(size).convert(mode2)
+    else:
+        img2 = small_image.resize(size).convert(mode2)
     if rotate:
         if rotate == "左右":
             im_mirror = ImageOps.mirror(img2)
@@ -280,6 +290,36 @@ def create_gif(images, file_name = None):
     gif_frames[0].save(gif, save_all=True, append_images=gif_frames[1:], duration=len(images), loop=0)
     return gif
 
+def dark_image(image):
+    """使图片变暗
+    
+    Params:
+        image: 图片地址
+    Returns:
+        image_obj内存对象
+    """
+    image_obj = Image.open(image)
+    total_w, total_h = image_obj.size
+    for i in range(0, total_w):
+        for j in range(0, total_h):
+            # 获取当前像素的颜色值
+            pixel_color = image_obj.getpixel((i, j))
+            if isinstance(pixel_color, int):
+                # png图像的没有颜色的部位
+                if image_obj._mode == "RGBA":
+                    new_color = (0,0,0,0)
+                else:
+                    new_color = (0,0,0)
+            else:
+            # 调整每个颜色通道的亮度（这里简单地减小亮度，可以根据需要调整系数）
+                if image_obj._mode == "RGBA":
+                    new_color = (max(0, pixel_color[0] - 100), max(0, pixel_color[1] - 100), max(0, pixel_color[2] - 100), pixel_color[3])
+                else:
+                    new_color = (max(0, pixel_color[0] - 100), max(0, pixel_color[1] - 100), max(0, pixel_color[2] - 100))
+            # 设置新的颜色值  
+            image_obj.putpixel((i, j), new_color)
+    return image_obj
+    
 def hightlight_char(image_obj, char):
     """高亮显示当前角色
     

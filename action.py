@@ -426,22 +426,25 @@ class Action:
         if delay_mode:
             return [(self.char.pos, self.char.size, self.char.rotate) for i in range(len(images))]
         
+        hightlight = self.obj.get("高亮") == "是"
         gif_index = 0
         for img in images:
             big_image = None
+            if hightlight:
+                big_image = ImageHelper.dark_image(img)
             for _char in sorted_char_list:
                 if _char.display:
-                    t = datetime.datetime.now()
+                    dark = False
+                    if hightlight and _char.name != self.char.name:
+                        dark = True
                     _, big_image = ImageHelper.paint_char_on_image(image=img, 
                                                                    image_obj=big_image,
                                                                    char=_char, 
                                                                    save=False,
-                                                                   gif_index=gif_index)
+                                                                   gif_index=gif_index,
+                                                                   dark=dark)
 
             if big_image:
-                if self.obj.get("高亮") == "是":
-                    ImageHelper.hightlight_char(big_image, self.char)
-
                 big_image.save(img)
                 big_image.close()
             gif_index += 1

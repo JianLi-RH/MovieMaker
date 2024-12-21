@@ -9,6 +9,7 @@ moviepy==2.0.0.dev2
 numpy==1.26.4
 pillow==10.2.0
 proglog==0.1.10
+Pygame==2.6.1
 PyYAML==6.0.1
 requests==2.31.0
 tqdm==4.66.2
