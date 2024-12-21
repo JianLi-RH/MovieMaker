@@ -15,25 +15,27 @@ infos = error.decode("utf-8", errors="ignore")
 沙雕配音： https://www.tukuppt.com/yinxiaomuban/zoulukatong.html
 文字转语音: 
     https://voicemaker.in/
+    https://www.text-to-speech.cn/  **********
     https://www.zaixianai.cn/voiceCompose# 
     https://peiyin.xunfei.cn/make
     https://www.luyinzhushou.com/text2voice/
+    https://ttsmaker.com/
 
 其他素材下载：
+https://www.aigei.com/lib/gif/shuo_hua/ # 图片/声音
 https://huaban.com/pins/4661349227/similar/materials
 https://www.cgjoy.com/thread-205265-1-1.html
-https://www.aigei.com/lib/gif/shuo_hua/ # 图片/声音
 https://www.sdsucai.com/
 
 https://github.com/Zulko/moviepy/blob/master/Dockerfile
 
 
 在线生成图片：
-  https://www.doutub.com/picEdit  # 合成图片
+  https://www.doutub.com/picEdit  # 合成图片 ******************
+  https://www.remove.bg/zh/upload # 背景变透明 ******************
   https://www.aigei.com/bgremover # 背景变透明
-  https://www.remove.bg/zh/upload # 背景变透明
-  https://memes.tw/maker/painter/10274
-  https://www.suxieban.com/index.html# # 在线画图
+  https://www.suxieban.com/index.html# # 在线画图 
+  https://www.canva.cn/ # 编辑图片
 沙雕生成器
   https://www.bilibili.com/video/BV1344y1m7fw/
 生成熊猫举牌：http://c.tianhezulin.com/cx3/2825/
