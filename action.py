@@ -77,33 +77,34 @@ class Action:
         ***一个活动中不能有两个`镜头`动作***
         """
         length = len(images)    # 总帧数
-        original_center = utils.covert_pos(self.activity.scenario.focus)  # 原有的焦点
-        self.activity.scenario.focus = self.obj.get("焦点", None) # 新焦点
         if not self.activity.scenario.focus:
+            self.activity.scenario.focus = "中心"
+        original_center = utils.covert_pos(self.activity.scenario.focus)  # 原有的焦点
+
+        if self.obj.get("焦点", None):
+            new_center = utils.covert_pos(self.obj.get("焦点"))
+        else: 
             if self.char:
                 x, y = self.char.pos
                 w, h = self.char.size
-                self.activity.scenario.focus = [(x + w / 2), (y + h / 2)]
+                new_center = [(x + w / 2), (y + h / 2)]
             else:
-                self.activity.scenario.focus = "中心"
-        
-        center = utils.covert_pos(self.activity.scenario.focus)
+                new_center = original_center
 
-        step_x = (center[0] - original_center[0]) / length
-        step_y = (center[1] - original_center[1]) / length
+        step_x = (new_center[0] - original_center[0]) / length
+        step_y = (new_center[1] - original_center[1]) / length
 
         ratio = self.obj.get("变化")
         if isinstance(ratio, float):
             ratio = [1, ratio]
         from_ratio = ratio[0]
         to_ratio = ratio[1]
-        ration_step = (to_ratio - from_ratio) / length
-        
+        ratio_step = (to_ratio - from_ratio) / length
         
         self.activity.scenario.ratio = to_ratio
 
         for i in range(0, length):
-            tmp_ratio = from_ratio + ration_step * i
+            tmp_ratio = from_ratio + ratio_step * i
             x = original_center[0] + step_x * i
             y = original_center[1] + step_y * i
 
