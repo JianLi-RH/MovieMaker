@@ -229,7 +229,7 @@ class Activity:
                     for j in range(len(delay_images)):   # 在每张图片上绘制全部角色
                         big_image = None
                         for _char in self.scenario.chars:
-                            if not _char.display:
+                            if isinstance(_char, Character) and not _char.display:
                                 continue
                             for char_pos in delay_positions:
                                 if _char == char_pos["char"]:
@@ -246,6 +246,12 @@ class Activity:
                         if big_image:
                             big_image.save(delay_images[j])
                             big_image.close()
+
+                for _char in self.scenario.chars:
+                    # 防止gif对象继续存在与其他动作中，所以需要在执行结束删除它
+                    if _char.name.lower() == "gif":
+                        self.scenario.chars.remove(_char)
+                        break
             
             # 检查遗漏的背景图片
             if i == (len(action_list) - 1) and max(action_ends) < len(images):

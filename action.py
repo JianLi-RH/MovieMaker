@@ -333,17 +333,21 @@ class Action:
             sorted_char_list: 排序后的角色
             delay_mode: 延迟绘制其他角色
         """
-        index = self.obj.get("图层") if self.obj.get("图层") else sys.maxsize # 默认将gif显示在最上层
+        self.obj.update({"名字": "gif", "显示": "是"})
+        gif_char = Character(self.obj)
+        gif_images = gif_char.gif_frames
+        
         # 将GIF标记添加在显示列表中，用来设置显示顺序
+        added_index = -1
         for i in range(len(sorted_char_list)):
-            if sorted_char_list[i].index > index:
-                sorted_char_list.insert(i, "GIF")
+            if sorted_char_list[i].index > gif_char.index:
+                added_index = i
+                sorted_char_list.insert(i, gif_char)
                 break
-        if "GIF" not in sorted_char_list:
-            sorted_char_list.append("GIF")
+        if added_index == -1:
+            added_index = len(sorted_char_list)
+            sorted_char_list.append(gif_char)
             
-        gif_images = ImageHelper.get_frames_from_gif(self.obj.get("素材"))
-
         img1 = Image.open(images[0])
         img_w, img_h = img1.size
         img1.close()
@@ -380,7 +384,7 @@ class Action:
 
             big_image = None
             for _char in sorted_char_list:
-                if _char == "GIF":
+                if _char.name.lower() == "gif":
                     _, big_image = ImageHelper.merge_two_image(big_image=images[i],
                                                                 big_image_obj=big_image,
                                                                 small_image=gif_images[j],
@@ -400,7 +404,7 @@ class Action:
                 big_image.save(images[i])
                 big_image.close()
         # 恢复列表
-        sorted_char_list.remove("GIF")
+        sorted_char_list.pop(added_index)
     
     def __talk(self, images, sorted_char_list, delay_mode):
         """角色说话
