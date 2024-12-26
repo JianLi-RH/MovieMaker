@@ -146,6 +146,7 @@ class Action:
         str_degree = self.obj.get("角度", 0)
         delay_positions = []
         total_feames = len(images)
+        self.char.display = True # 强制显示当前角色
         
         if isinstance(str_degree, int):
             str_degree = [self.char.rotate, str_degree]
@@ -414,8 +415,7 @@ class Action:
             名称: 说话
             角色: 鲁智深
             高亮: 是
-            焦点: 
-            变化: 
+            变化:  # 可以是： 0 - 1数字； 近景；
             字幕: #Yunyang, Male
               - ['','', '你这斯诈死', '水浒传/第四回/打死镇关西/你这斯诈死.mp3']
               - ['','', '等我回家再与你理会', '水浒传/第四回/打死镇关西/等我回家再与你理会.mp3']
@@ -455,9 +455,12 @@ class Action:
             gif_index += 1
 
         if self.obj.get("变化", None):
-            # 图片有缩放的时候才需要调用镜头方法
-            self.__camera(images)
-        
+            if isinstance(self.obj.get("变化"), float):
+                # 图片有缩放的时候才需要调用镜头方法
+                self.__camera(images)
+            elif self.obj.get("变化") == "近景":
+                for img in images:
+                    ImageHelper.cut_image(img, self.char)
         return []
     
     def __update(self):

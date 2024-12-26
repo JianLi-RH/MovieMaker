@@ -82,6 +82,49 @@ def add_text_to_image(image, text, color = 'white', overwrite_image = False, mod
         im.show()
     im.close()
 
+def cut_image(image, char):
+    """根据角色裁剪图片 （直接修改图片）
+    
+    Params:
+        image: the origin image file path.
+        char: 角色实例
+    Return:
+        none
+    """
+    if isinstance(image, str):
+        im = Image.open(image)
+    else:
+        im = image
+    
+    w = config_reader.g_width
+    h = config_reader.g_height
+    c_w, c_h = char.size
+    c_x, c_y = char.pos
+    
+    x_ratio = (c_w + 50) / w
+    y_ratio = (c_h + 50) / h
+    
+    left = c_x * (1 - x_ratio)
+    if (w - c_x - c_w) < 0:
+        # 角色的一部分在屏幕右边
+        # 加负数，向左移动
+        left + (w - c_x - c_w) * (1 - x_ratio)
+        right = 1
+    else:
+        right = c_x + c_w + (w - c_x - c_w) * x_ratio
+
+    top = c_y * (1 - y_ratio)
+    if (h - c_y - c_h) < 0:
+        # 角色的一部分在屏幕下面
+        # 加负数，向上移动
+        top + (h - c_y - c_h) * (1 - y_ratio)
+        bottom = h
+    else:
+        bottom = c_y + c_h + (h - c_y - c_h) * y_ratio
+
+    im = im.crop((left, top, right, bottom))
+    im.resize((config_reader.g_width, config_reader.g_height)).save(image)
+
 def zoom_in_out_image(origin_image_path, center, ratio, new_path=None):
     """
     zoom in or zoom out. 拉近、拉远镜头 (覆盖原图), 也可切换焦点
