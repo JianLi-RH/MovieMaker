@@ -205,9 +205,15 @@ def paint_char_on_image(char, image=None, image_obj=None, overwrite=False, save=
     Returns:
         (返回新图片的地址, image_obj)
     """
-    small_image=char.image if not char.image.lower().endswith(".gif") else char.gif_frames[gif_index % len(char.gif_frames)]
+    if not char.image.lower().endswith(".gif"):
+        small_image = char.image
+    else:
+        if not char.gif_frames:
+            char.gif_frames = get_frames_from_gif(char.image) 
+        small_image = char.gif_frames[gif_index % len(char.gif_frames)]
+
     if dark:
-        small_image = dark_image(small_image)
+        small_image = small_image = dark_image(small_image)
     
     return merge_two_image(small_image=small_image, 
                            size=char.size, 
