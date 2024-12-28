@@ -209,6 +209,8 @@ class Activity:
             action_ends = [0]
             delay_positions = []  # 被推迟的全部角色轨迹序列
             for act in actions:
+                if delay_mode and act["action"].name.lower() in ["更新", "显示", "消失", "镜头", "BGM"]:
+                    raise Exception("动作【" + act["action"].name + "】不能使用delay模式（不能和其它动作同时运行）")
                 # 注意：一个活动（activity）中不能有两个`镜头`动作(action)
                 act["start"] = video_start  # 给action增加一个start属性
 
