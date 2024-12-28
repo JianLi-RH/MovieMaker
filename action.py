@@ -22,7 +22,7 @@ class Action:
             return None
         for c in self.activity.scenario.chars:
             if c.name == name:
-                if c.rotate == "左右":
+                if c.rotate == "左右" and c.name.lower() != "gif":
                     basename = os.path.basename(c.image)
                     new_path = os.path.join(os.path.dirname(c.image), f"rotate_{basename}")
                     if not os.path.exists(new_path):
