@@ -170,19 +170,15 @@ class Action:
             for _char in sorted_char_list:
                 if _char.display:
                     if _char.name == self.char.name:
-                        _, big_image = ImageHelper.merge_two_image(big_image=images[i], 
-                                                                            big_image_obj=big_image,
-                                                                            small_image=_char.image,
-                                                                            pos=delay_positions[i][0],
-                                                                            size=delay_positions[i][1],
-                                                                            rotate=delay_positions[i][2],
-                                                                            save=False)
-                    else:
-                        _, big_image = ImageHelper.paint_char_on_image(char=_char, 
-                                                                       image=images[i], 
-                                                                       image_obj=big_image,
-                                                                       save=False,
-                                                                       gif_index=i)
+                        _char.pos = delay_positions[i][0]
+                        _char.size = delay_positions[i][1]
+                        _char.rotate = delay_positions[i][2]
+
+                    _, big_image = ImageHelper.paint_char_on_image(char=_char, 
+                                                                    image=images[i], 
+                                                                    image_obj=big_image,
+                                                                    save=False,
+                                                                    gif_index=i)
             if big_image:
                 big_image.save(images[i])
                 big_image.close()
