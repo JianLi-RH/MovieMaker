@@ -34,7 +34,7 @@ class Action:
                     c.rotate = 180
                     
                 return c
-        return None
+        raise Exception(f"角色【{name}】不存在")
     
     def __bgm(self, images, sorted_char_list):
         """向视频中插入一段背景音
@@ -499,6 +499,8 @@ class Action:
         """
         subtitle_color = self.obj.get("字幕颜色") if self.obj.get("字幕颜色") else None
         subtitles = self.obj.get("字幕") if self.obj.get("字幕") else []
+        if not isinstance(subtitles, list):
+            raise Exception("字幕错误: ", subtitles)
         start, end = 0, 0
         for subtitle in subtitles:
             sPath = subtitle[3]
