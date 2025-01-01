@@ -411,7 +411,7 @@ def preview(scenario, script, bg_img=None, char_name_list=None):
 
     scenarios = script["场景"]
     scenario_obj = next(filter(lambda x: x.get("名字", None) == scenario, scenarios))
-    scenario = Scenario(scenario_obj)
+    scenario = Scenario(scenario_obj, preview=True)
     if not bg_img:
         bg_img = scenario.background_image
     chars = scenario.chars

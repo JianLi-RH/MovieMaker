@@ -29,7 +29,16 @@ class Scenario:
         ImageHelper.resize_image(new_path)
         return ImageHelper.zoom_in_out_image(new_path, self.focus, self.ratio)
 
-    def __init__(self, obj):
+    def __init__(self, obj, preview=False):
+        """初始化场景
+        
+        Params:
+            obj: yaml对象
+            preview： 是否仅用于预览
+        Returns:
+            none
+        """
+        
         self.name = obj.get("名字", None)
         self.focus = obj.get("焦点", "中心")    # 镜头对准的中心点
         self.ratio = float(obj.get("比例", 1)) # 显示背景图片的比例 （注意总大小仍然在config.ini中配置）
@@ -38,5 +47,6 @@ class Scenario:
         __chars = [character.Character(char) for char in obj.get("角色", [])]
         self.chars = sorted(__chars, key=lambda x: x.index)
         self.activities = []
-        for a in obj.get("活动", None):
-            self.activities.append(activity.Activity(self, a))
+        if not preview:
+            for a in obj.get("活动", None):
+                self.activities.append(activity.Activity(self, a))
