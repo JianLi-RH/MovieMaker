@@ -216,6 +216,8 @@ class Action:
         # end_pos_list可以是一个固定位置， 如 [230, 120]，
         # 也可以是一组位置坐标， 如 [[230, 120]， [330, 180]， [450, 320]]
         end_pos_list = self.obj.get("结束位置", None)
+        if not end_pos_list:
+            raise Exception(f"'结束位置'不能为空")
         # ratio： 显示比例，可以有以下几种形式：
         # 0.4   --> 相对于开始时，最终的显示比例
         # [1, 0.4] --> 变化前后的显示比例
@@ -586,7 +588,10 @@ class Action:
             
             start = datetime.datetime.now()
             delay_positions = []
-            action = self.obj.get("名称")
+            action = self.obj.get("名称").lower()
+            if action in ["行进", "说话", "转身", "gif", "bgm"] and (len(images) == 0 or self.timespan == 0):
+                raise Exception(f"动作[{action}]执行时间不能为0")
+
             if action == "显示":
                 self.__display()
             elif action == "消失":
@@ -601,10 +606,12 @@ class Action:
                 delay_positions = self.__turn(images, sorted_char_list, delay_mode)
             elif action == "gif":
                 self.__gif(images, sorted_char_list, delay_mode)
-            elif action == "BGM":
+            elif action == "bgm":
                 self.__bgm(images, sorted_char_list)
             elif action == "更新":
                 self.__update()
+                # 重新排序所有角色
+                sorted_char_list.sort(key=lambda x: x.index)
             pass
 
             duration = datetime.datetime.now() - start
