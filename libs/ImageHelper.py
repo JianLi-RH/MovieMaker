@@ -191,7 +191,13 @@ def resize_image(image):
     im.resize((config_reader.g_width, config_reader.g_height)).save(image)
     im.close()
 
-def paint_char_on_image(char, image=None, image_obj=None, overwrite=False, save=False, gif_index=0, dark=False):
+def paint_char_on_image(char, 
+                        image=None, 
+                        image_obj=None, 
+                        overwrite=False, 
+                        save=False, 
+                        gif_index=0, 
+                        dark=False):
     """Paint a char on image
     
     Params:
@@ -212,8 +218,10 @@ def paint_char_on_image(char, image=None, image_obj=None, overwrite=False, save=
             char.gif_frames = get_frames_from_gif(char.image) 
         small_image = char.gif_frames[gif_index % len(char.gif_frames)]
 
-    if dark:
-        small_image = small_image = dark_image(small_image)
+    reduce_light = 100 if dark else 0
+    alpha = char.transparency if char.transparency is not None else 1
+    if reduce_light != 0 or alpha != 1:
+        small_image = dark_image(small_image, reduce_light=reduce_light, alpha=alpha)
     
     return merge_two_image(small_image=small_image, 
                            size=char.size, 
@@ -254,9 +262,8 @@ def merge_two_image(small_image,
         img1 = img1.resize((config_reader.g_width, config_reader.g_height))
 
     if isinstance(small_image, str):
-        mode2 = 'RGBA' if small_image.endswith('.png') else 'RGB'
-    else:
-        mode2 = small_image._mode
+        small_image = Image.open(small_image)
+    mode2 = small_image._mode
 
     size = utils.covert_pos(size) # 可以使用小数（百分比）表示图片尺寸
     if isinstance(small_image, str):
@@ -339,15 +346,19 @@ def create_gif(images, file_name = None):
     gif_frames[0].save(gif, save_all=True, append_images=gif_frames[1:], duration=len(images), loop=0)
     return gif
 
-def dark_image(image):
+def dark_image(image, reduce_light=100, alpha=1):
     """使图片变暗
     
     Params:
-        image: 图片地址
+        image: 图片地址或者PIL.Image.Image对象
+        reduce_light: 亮度减少的数值
+        alpha: 透明度
     Returns:
         image_obj内存对象
     """
-    image_obj = Image.open(image)
+    image_obj = image
+    if not isinstance(image, Image.Image):
+        image_obj = Image.open(image)
     total_w, total_h = image_obj.size
     for i in range(0, total_w):
         for j in range(0, total_h):
@@ -362,9 +373,9 @@ def dark_image(image):
             else:
             # 调整每个颜色通道的亮度（这里简单地减小亮度，可以根据需要调整系数）
                 if image_obj._mode == "RGBA":
-                    new_color = (max(0, pixel_color[0] - 100), max(0, pixel_color[1] - 100), max(0, pixel_color[2] - 100), pixel_color[3])
+                    new_color = (max(0, pixel_color[0] - reduce_light), max(0, pixel_color[1] - reduce_light), max(0, pixel_color[2] - reduce_light), int(pixel_color[3] * alpha))
                 else:
-                    new_color = (max(0, pixel_color[0] - 100), max(0, pixel_color[1] - 100), max(0, pixel_color[2] - 100))
+                    new_color = (max(0, pixel_color[0] - reduce_light), max(0, pixel_color[1] - reduce_light), max(0, pixel_color[2] - reduce_light))
             # 设置新的颜色值  
             image_obj.putpixel((i, j), new_color)
     return image_obj

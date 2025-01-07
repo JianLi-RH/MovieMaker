@@ -470,6 +470,7 @@ class Action:
             角色: 鲁智深
             素材: 水浒传/人物/鲁智深1.png
             角度: 左右
+            透明度: 0.2
             字幕: #Kangkang, Male
               - ['','', '啪啪啪', 'resources/ShengYin/打耳光.mp3']
             渲染顺序: 2
@@ -483,6 +484,8 @@ class Action:
             self.char.size = self.obj.get("大小")
         if "角度" in keys:
             self.char.rotate = self.obj.get("角度")
+        if "透明度" in keys:
+            self.char.transparency = self.obj.get("透明度")
         if "显示" in keys:
             self.char.display = True if self.obj.get("显示") == '是' else False
         if "图层" in keys:
