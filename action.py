@@ -332,7 +332,7 @@ class Action:
             sorted_char_list: 排序后的角色
             delay_mode: 延迟绘制其他角色
         """
-        self.obj.update({"名字": "gif", "显示": "是"})
+        self.obj.update({"名字": f"gif_{len(sorted_char_list)}", "显示": "是"})
         gif_char = Character(self.obj)
         gif_images = gif_char.gif_frames
         
@@ -383,7 +383,7 @@ class Action:
 
             big_image = None
             for _char in sorted_char_list:
-                if _char.name.lower() == "gif":
+                if _char.name.lower().startswith("gif_"):
                     _, big_image = ImageHelper.merge_two_image(big_image=images[i],
                                                                 big_image_obj=big_image,
                                                                 small_image=gif_images[j],

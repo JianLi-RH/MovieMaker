@@ -245,6 +245,8 @@ class Activity:
                                                                            image_obj=big_image,
                                                                            save=False,
                                                                            gif_index=j)
+                            if _char.name.lower().startswith("gif_"):
+                                self.scenario.chars.remove(_char)
                         if big_image:
                             big_image.save(delay_images[j])
                             big_image.close()
