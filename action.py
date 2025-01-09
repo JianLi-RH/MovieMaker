@@ -331,9 +331,12 @@ class Action:
             images: 全部背景图片
             sorted_char_list: 排序后的角色
             delay_mode: 延迟绘制其他角色
+        Return:
+            [[tmp_pos, tmp_size, rotate], [tmp_pos, tmp_size, rotate]]
         """
         self.obj.update({"名字": f"gif_{len(sorted_char_list)}", "显示": "是"})
         gif_char = Character(self.obj)
+        self.char = gif_char
         gif_images = gif_char.gif_frames
         
         # 将GIF标记添加在显示列表中，用来设置显示顺序
@@ -360,9 +363,8 @@ class Action:
         str_degree = self.obj.get("角度") if self.obj.get("角度") else 1
 
         l = len(images)
-        if delay_mode:
-            return [(pos, size, str_degree) for i in range(l)]
         
+        delay_pos = []
         for i in range(0, l):
             j = i % len(gif_images)
 
@@ -381,6 +383,10 @@ class Action:
             else:
                 rotate = int(str_degree)
 
+            if delay_mode:
+                delay_pos.append((pos, size, rotate, gif_images[j]))
+                continue
+                
             big_image = None
             for _char in sorted_char_list:
                 if _char.name.lower().startswith("gif_"):
@@ -392,18 +398,22 @@ class Action:
                                                                 rotate=rotate,
                                                                 save=False)
                 else:
-                    if _char.display and not delay_mode:
+                    if _char.display:
                         # 这里存在一个显示层级的bug
                         _, big_image = ImageHelper.paint_char_on_image(image=images[i], 
                                                                        image_obj=big_image,
                                                                        char=_char, 
                                                                        save=False,
                                                                        gif_index=i)
-            if big_image:
+            
+            if big_image and not delay_mode:
                 big_image.save(images[i])
                 big_image.close()
-        # 恢复列表
-        sorted_char_list.pop(added_index)
+        
+        if not delay_mode:
+            # 恢复列表
+            sorted_char_list.pop(added_index)
+        return delay_pos
     
     def __talk(self, images, sorted_char_list, delay_mode):
         """角色说话
@@ -608,7 +618,7 @@ class Action:
             elif action == "转身":
                 delay_positions = self.__turn(images, sorted_char_list, delay_mode)
             elif action == "gif":
-                self.__gif(images, sorted_char_list, delay_mode)
+                delay_positions = self.__gif(images, sorted_char_list, delay_mode)
             elif action == "bgm":
                 self.__bgm(images, sorted_char_list)
             elif action == "更新":

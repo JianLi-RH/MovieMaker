@@ -239,14 +239,16 @@ class Activity:
                                     _char.pos = delay_pos[0]
                                     _char.size = delay_pos[1]
                                     _char.rotate = delay_pos[2]
+                                    
+                                    if len(delay_pos) > 3:
+                                        _char.image = delay_pos[3]
                                     break
                             _, big_image = ImageHelper.paint_char_on_image(char=_char, 
                                                                            image=delay_images[j],
                                                                            image_obj=big_image,
                                                                            save=False,
                                                                            gif_index=j)
-                            if _char.name.lower().startswith("gif_"):
-                                self.scenario.chars.remove(_char)
+
                         if big_image:
                             big_image.save(delay_images[j])
                             big_image.close()
