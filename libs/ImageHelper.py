@@ -263,7 +263,7 @@ def merge_two_image(small_image,
 
     if isinstance(small_image, str):
         small_image = Image.open(small_image)
-    mode2 = small_image._mode
+    mode2 = 'RGBA' if small_image.filename.endswith('.png') else 'RGB'
 
     size = utils.covert_pos(size) # 可以使用小数（百分比）表示图片尺寸
     if isinstance(small_image, str):
@@ -274,7 +274,10 @@ def merge_two_image(small_image,
         if rotate == "左右":
             im_mirror = ImageOps.mirror(img2)
             img2.close()
-            basename = os.path.basename(small_image)
+            if isinstance(small_image, str):
+                basename = os.path.basename(small_image)
+            else:
+                basename = os.path.basename(small_image.filename)
             new_path = os.path.join(os.path.dirname(big_image), basename)
             im_mirror.save(new_path)
             img2 = Image.open(new_path)
