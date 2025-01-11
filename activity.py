@@ -255,7 +255,7 @@ class Activity:
 
                 for _char in self.scenario.chars:
                     # 防止gif对象继续存在与其他动作中，所以需要在执行结束删除它
-                    if _char.name.lower() == "gif":
+                    if _char.name.lower().startswith("gif_"):
                         self.scenario.chars.remove(_char)
                         break
             
