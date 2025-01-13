@@ -140,7 +140,7 @@ class Action:
             sorted_char_list: 排序后的角色
             delay_mode: 延迟绘制其他角色
         Return:
-            [[tmp_pos, tmp_size, rotate], [tmp_pos, tmp_size, rotate]]
+            [[tmp_pos, tmp_size, rotate, img], [tmp_pos, tmp_size, rotate, img]]
         """
         
         str_degree = self.obj.get("角度", 0)
@@ -196,7 +196,7 @@ class Action:
             开始位置: 
             结束位置: [-0.2, 0.55]
             比例:   # 比例变化，开始比例 - 结束比例
-            方式:   # 自然 / 旋转 / 45 -- 如果是数字的话，会从初始位置旋转到给定角度 , 最后恢复原样
+            方式:   # 自然 / 旋转 / 眩晕 / 45 -- 如果是数字的话，会从初始位置旋转到给定角度 , 最后恢复原样
             字幕: #Yunyang, Male
               - ['','', '跑路', 'resources/ShengYin/卡通搞笑逃跑音效.mp3']
             渲染顺序: 6
@@ -206,7 +206,7 @@ class Action:
             sorted_char_list: 排序后的角色
             delay_mode: 延迟绘制其他角色
         Return:
-            [[tmp_pos, tmp_size, rotate], [tmp_pos, tmp_size, rotate]]
+            [[tmp_pos, tmp_size, rotate, img], [tmp_pos, tmp_size, rotate, img]]
         """
         if not self.char:
             raise Exception("角色不存在")
@@ -259,6 +259,26 @@ class Action:
         steps = len(end_pos_list)
         frames = int(1/steps * len(images)) # 平均分配每一个路线需要的帧数
         
+        # mode ["自然", "旋转", "眩晕", 数字]:
+        rotate = self.char.rotate
+        step_rotates = []
+        total_image = len(images)
+        if mode == "旋转":
+            _step_rotate = 360 * config_reader.round_per_second / self.activity.fps  # 每秒旋转圈数
+            step_rotates = [self.char.rotate + num * _step_rotate for num in range(0, total_image)]
+        elif mode == "眩晕":
+            rotate_per_image = 45 / (self.activity.fps / 4) # 45度角来回摆动
+            initial_degree = self.char.rotate
+            for i in range(1, total_image + 1):
+                if i % self.activity.fps > (self.activity.fps / 4) and i % self.activity.fps <= (self.activity.fps - self.activity.fps / 4):
+                    initial_degree += rotate_per_image
+                else:
+                    initial_degree -= rotate_per_image
+                step_rotates.append(initial_degree)
+        elif isinstance(mode, int):
+            _step_rotate = mode / self.timespan / self.activity.fps
+            step_rotates = [self.char.rotate + num * _step_rotate for num in range(0, total_image)]
+        
         for i in range(steps):    # 例如：[[120, 200], [10, 12]]
             if i == steps - 1:
                 # 最后一步包含剩余的全部图片
@@ -268,14 +288,6 @@ class Action:
             # 每一步在x,y方向的进度
             step_x = (end_pos[0] - start_pos[0]) / frames
             step_y = (end_pos[1] - start_pos[1]) / frames
-
-            # mode ["自然", "旋转", 数字]:
-            rotate = self.char.rotate
-            step_rotate = 0
-            if mode == "旋转":
-                step_rotate = 360 * config_reader.round_per_second / self.activity.fps  # 每秒旋转圈数
-            if isinstance(mode, int):
-                step_rotate = mode / self.timespan / self.activity.fps
             
             for j in range(0, frames):
                 tmp_pos = (int(start_pos[0] + step_x * j), int(start_pos[1] + step_y * j))
@@ -285,8 +297,7 @@ class Action:
                     # 最后一圈最后一帧恢复原样
                     rotate = self.char.rotate
                 pos.append((tmp_pos, tmp_size, rotate))
-                rotate += step_rotate
-                rotate = rotate % 360
+                rotate = step_rotates[j] % 360
 
             start_pos = end_pos # 重新设置轨迹的开始坐标
         
@@ -332,79 +343,39 @@ class Action:
             sorted_char_list: 排序后的角色
             delay_mode: 延迟绘制其他角色
         Return:
-            [[tmp_pos, tmp_size, rotate], [tmp_pos, tmp_size, rotate]]
+            [[tmp_pos, tmp_size, rotate, img], [tmp_pos, tmp_size, rotate, img]]
         """
         self.obj.update({"名字": f"gif_{len(sorted_char_list)}", "显示": "是"})
-        gif_char = Character(self.obj)
-        self.char = gif_char
-        gif_images = gif_char.gif_frames
+        self.char  = Character(self.obj)
         
         # 将GIF标记添加在显示列表中，用来设置显示顺序
         added_index = -1
         for i in range(len(sorted_char_list)):
-            if sorted_char_list[i].index > gif_char.index:
+            if sorted_char_list[i].index > self.char.index:
                 added_index = i
-                sorted_char_list.insert(i, gif_char)
+                sorted_char_list.insert(i, self.char)
                 break
         if added_index == -1:
             added_index = len(sorted_char_list)
-            sorted_char_list.append(gif_char)
-            
-        img1 = Image.open(images[0])
-        img_w, img_h = img1.size
-        img1.close()
-        pos = self.obj.get("位置")
-        pos[0] = pos[0] if pos[0] > 1 else int(pos[0] * img_w)
-        pos[1] = pos[1] if pos[1] > 1 else int(pos[1] * img_h)
-
-        gif1 = Image.open(gif_images[0])
-        size = self.obj.get("大小") if self.obj.get("大小") else gif1.size
-        gif1.close()
-        str_degree = self.obj.get("角度") if self.obj.get("角度") else 1
+            sorted_char_list.append(self.char)
 
         l = len(images)
-        
         delay_pos = []
         for i in range(0, l):
-            j = i % len(gif_images)
-
-            if str_degree == "左右":
-                _img = Image.open(gif_images[j])
-                im_mirror = ImageOps.mirror(_img)
-                _img.close()
-                basename = os.path.basename(gif_images[j])
-                new_path = os.path.join(os.path.dirname(images[-1]), basename)
-                im_mirror.save(new_path)
-                im_mirror.close()
-                gif_images[j] = new_path
-                rotate = 0
-            elif str_degree == "上下":
-                rotate = 180
-            else:
-                rotate = int(str_degree)
-
+            j = i % len(self.char.gif_frames)
             if delay_mode:
-                delay_pos.append((pos, size, rotate, gif_images[j]))
+                delay_pos.append((self.char.pos, self.char.size, self.char.rotate, self.char.gif_frames[j]))
                 continue
                 
             big_image = None
             for _char in sorted_char_list:
-                if _char.name.lower().startswith("gif_"):
-                    _, big_image = ImageHelper.merge_two_image(big_image=images[i],
-                                                                big_image_obj=big_image,
-                                                                small_image=gif_images[j],
-                                                                pos=pos,
-                                                                size=size,
-                                                                rotate=rotate,
-                                                                save=False)
-                else:
-                    if _char.display:
-                        # 这里存在一个显示层级的bug
-                        _, big_image = ImageHelper.paint_char_on_image(image=images[i], 
-                                                                       image_obj=big_image,
-                                                                       char=_char, 
-                                                                       save=False,
-                                                                       gif_index=i)
+                if _char.display:
+                    # 这里存在一个显示层级的bug
+                    _, big_image = ImageHelper.paint_char_on_image(image=images[i], 
+                                                                    image_obj=big_image,
+                                                                    char=_char, 
+                                                                    save=False,
+                                                                    gif_index=i)
             
             if big_image and not delay_mode:
                 big_image.save(images[i])
@@ -434,7 +405,7 @@ class Action:
             sorted_char_list: 排序后的角色
             delay_mode: 延迟绘制其他角色
         Return:
-            [[tmp_pos, tmp_size, rotate], [tmp_pos, tmp_size, rotate]]
+            [[tmp_pos, tmp_size, rotate, img], [tmp_pos, tmp_size, rotate, img]]
         """
         if delay_mode:
             return [(self.char.pos, self.char.size, self.char.rotate) for i in range(len(images))]
@@ -600,6 +571,9 @@ class Action:
         try:
             
             start = datetime.datetime.now()
+            
+            # [[tmp_pos, tmp_size, rotate], [tmp_pos, tmp_size, rotate]] 
+            # [[tmp_pos, tmp_size, rotate, img], [tmp_pos, tmp_size, rotate, img]]
             delay_positions = []
             action = self.obj.get("名称").lower()
             if action in ["行进", "说话", "转身", "gif", "bgm"] and (len(images) == 0 or self.timespan == 0):

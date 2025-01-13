@@ -252,12 +252,6 @@ class Activity:
                         if big_image:
                             big_image.save(delay_images[j])
                             big_image.close()
-
-                for _char in self.scenario.chars:
-                    # 防止gif对象继续存在与其他动作中，所以需要在执行结束删除它
-                    if _char.name.lower().startswith("gif_"):
-                        self.scenario.chars.remove(_char)
-                        break
             
             # 检查遗漏的背景图片
             if i == (len(action_list) - 1) and max(action_ends) < len(images):
@@ -279,6 +273,12 @@ class Activity:
                         big_image.save(img)
                         big_image.close()
                     gif_index += 1
+
+            for _char in self.scenario.chars:
+                # 防止gif对象继续存在与其他动作中，所以需要在执行结束删除它
+                if _char.name.lower().startswith("gif_"):
+                    self.scenario.chars.remove(_char)
+                    break
             start = max(action_ends)
 
         if self.subtitle:
