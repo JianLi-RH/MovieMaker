@@ -7,6 +7,7 @@ import shutil
 
 import activity
 import character
+import copy
 import config_reader
 from libs import ImageHelper, SuCaiHelper
 
@@ -44,7 +45,21 @@ class Scenario:
         self.ratio = float(obj.get("比例", 1)) # 显示背景图片的比例 （注意总大小仍然在config.ini中配置）
         self.background_image = self.__create_bg_image(obj.get("背景", None))
         self.bgm = obj.get("背景音乐", None)
-        __chars = [character.Character(char) for char in obj.get("角色", [])]
+        __chars = []
+        __char_obj = obj.get("角色", [])
+        for char_obj in __char_obj:
+            _pos = char_obj.get("位置", None)
+            if isinstance(_pos, list) and isinstance(_pos[0], list):
+                i = 0
+                for p in _pos:
+                    _obj = copy.deepcopy(char_obj)
+                    _obj["名字"] = char_obj.get("名字") + str(i)
+                    _obj["位置"] = p
+                    __chars.append(character.Character(_obj))
+                    i += 1
+            else:
+                _char = character.Character(char_obj)
+                __chars.append(_char)
         self.chars = sorted(__chars, key=lambda x: x.index)
         self.activities = []
         if not preview:
