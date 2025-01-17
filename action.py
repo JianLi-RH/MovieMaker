@@ -134,6 +134,15 @@ class Action:
             字幕:
             - ['','', '听说菜园里来了个新和尚', '水浒传/第九回/泼皮偷菜/听说菜园里来了个新和尚.mp3']
             渲染顺序: 1
+          -
+            名称: 转身
+            角色: 鲁智深
+            持续时间: 
+            角度: [[0, -30],[-30, 0],[0, -30]] # 多角度转动，通常用于来回转动
+            比例: 1
+            字幕:
+            - ['','', '听说菜园里来了个新和尚', '水浒传/第九回/泼皮偷菜/听说菜园里来了个新和尚.mp3']
+            渲染顺序: 1
             
         Params:
             images: 全部背景图片
@@ -153,11 +162,26 @@ class Action:
         
         if isinstance(str_degree, list):
             # 连续转动
-            degree_step = (str_degree[1] - str_degree[0]) / total_feames
             start_rotate = self.char.rotate
-            for i in range(total_feames):
-                delay_positions.append([self.char.pos, self.char.size, start_rotate])
-                start_rotate += degree_step
+            if isinstance(str_degree[0], list):
+                steps = len(str_degree)
+                step_frames = int(total_feames / steps)
+                for i in range(steps):
+                    start = str_degree[i][0]
+                    end = str_degree[i][1]
+                    if i == (steps - 1):
+                        # 最后一步占用剩余的全部图片
+                        step_frames = total_feames - step_frames * i
+                    degree_step = (start - end) / step_frames
+                    for i in range(step_frames):
+                        delay_positions.append([self.char.pos, self.char.size, start_rotate])
+                        start_rotate += degree_step
+                pass
+            else:
+                degree_step = (str_degree[1] - str_degree[0]) / total_feames
+                for i in range(total_feames):
+                    delay_positions.append([self.char.pos, self.char.size, start_rotate])
+                    start_rotate += degree_step
         else:
             for i in range(total_feames):
                 delay_positions.append([self.char.pos, self.char.size, self.char.rotate])
@@ -227,7 +251,6 @@ class Action:
         
         self.char.display = True # 强制显示当前角色
 
-        pos = [] # 每一个元素：(tmp_pos, tmp_size, rotate)
         img1 = Image.open(self.char.image)
         img_w, img_h = img1.size    # 角色图片的原始尺寸
         img1.close()
@@ -260,7 +283,6 @@ class Action:
         frames = int(1/steps * len(images)) # 平均分配每一个路线需要的帧数
         
         # mode ["自然", "旋转", "眩晕", 数字]:
-        rotate = self.char.rotate
         step_rotates = []
         total_image = len(images)
         if mode == "旋转":
@@ -278,7 +300,16 @@ class Action:
         elif isinstance(mode, int):
             _step_rotate = mode / self.timespan / self.activity.fps
             step_rotates = [self.char.rotate + num * _step_rotate for num in range(0, total_image)]
+        else:
+            step_rotates = [self.char.rotate] * total_image
+        step_rotates[-1] = self.char.rotate # 最后一张图片恢复角色角度
+            
+        step_size = []
+        for i in range(0, total_image):
+            tmp_size = (int(start_size[0] * (1 + ratio_x * i)), int(start_size[1] * (1 + ratio_y * i)))
+            step_size.append(tmp_size)
         
+        step_pos = []
         for i in range(steps):    # 例如：[[120, 200], [10, 12]]
             if i == steps - 1:
                 # 最后一步包含剩余的全部图片
@@ -291,15 +322,12 @@ class Action:
             
             for j in range(0, frames):
                 tmp_pos = (int(start_pos[0] + step_x * j), int(start_pos[1] + step_y * j))
-                m = i * steps + j
-                tmp_size = (int(start_size[0] * (1 + ratio_x * m)), int(start_size[1] * (1 + ratio_y * m)))
-                if i == steps - 1 and j > frames - 2:
-                    # 最后一圈最后一帧恢复原样
-                    rotate = self.char.rotate
-                pos.append((tmp_pos, tmp_size, rotate))
-                rotate = step_rotates[j] % 360
-
+                step_pos.append(tmp_pos)
             start_pos = end_pos # 重新设置轨迹的开始坐标
+        
+        pos = [] # 每一个元素：(tmp_pos, tmp_size, rotate)
+        for i in range(0, total_image):
+            pos.append((step_pos[i], step_size[i], step_rotates[i]))
         
         if delay_mode:
             return pos
