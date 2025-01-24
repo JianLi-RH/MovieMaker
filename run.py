@@ -5,7 +5,7 @@
     1. 执行整个 demo/水浒传.yaml 文件，生成完整的视频
     python run.py -o "水浒传.mp4" -s 'demo/水浒传.yaml'
     2. 执行 demo/水浒传.yaml 文件中的 毒杀武大 场景，生成单一场景视频
-    python run.py -o "水浒传.mp4" -c '毒杀武大' -s 'demo/水浒传.yaml'
+    python run.py -o "水浒传.mp4" -c '商议对策' -s 'demo/水浒传.yaml'
 
     生成的视频文件将会被保存在config_reader.output_dir下面
 '''
@@ -58,7 +58,7 @@ def run(script, output=None, scenario=None):
         output: 输出的视频文件名
         scenario: 需要创建视频的场景，没指定的话将对整个script.yaml进行生成
     """
-    with open(script, 'r') as file:
+    with open(script, 'rb') as file:
         script = yaml.safe_load(file)
 
         scenarios = script["场景"]
