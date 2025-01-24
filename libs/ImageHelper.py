@@ -420,11 +420,13 @@ def preview(scenario, script, bg_img=None, char_name_list=None):
         gif图片路径
     """
     import shutil
-    with open(script, 'r') as file:
+    with open(script, 'rb') as file:
         script = yaml.safe_load(file)
 
-    scenarios = script["场景"]
-    scenario_obj = next(filter(lambda x: x.get("名字", None) == scenario, scenarios))
+    scenarios = list(filter(lambda x: x.get("名字", None) == scenario, script["场景"]))
+    if not scenarios:
+        raise Exception("场景不存在")
+    scenario_obj = scenarios[0]
     scenario = Scenario(scenario_obj, preview=True)
     if not bg_img:
         bg_img = scenario.background_image
