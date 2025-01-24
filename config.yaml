@@ -1,6 +1,6 @@
 fps: 4
 g_width: 1080
-g_height: 960
+g_height: 800
 font_size: 70
 watermark: ''
-round_per_second: 5
+round_per_second: 2

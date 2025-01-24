@@ -64,9 +64,9 @@ def get_speaker(speaker='男'):
         return torch.tensor([float(x) for x in spk.split(",")])
     if isinstance(speaker, int):
         # https://www.ttslist.com/
-        # 男： 14 17 19 27 29 400 4200 6200 6400 8800
+        # 男： 14 17 19 27 29 101 104 105 106 107 400 502 503 504 506 507 800 4200 6200 6400 8800
         # 中： 18
-        # 女： 16 200 300 4100 6300 9600
+        # 女： 16 102 200 300 508？ 4100 6300 9600
         
         csv_file = os.path.join("libs/TTSEngine/speaker", f"{speaker}.csv")
         spk = []
@@ -119,7 +119,7 @@ def covert_text_to_sound(text, output, speaker=None):
         
 if __name__ == "__main__":
     # get_speaker()
-    covert_text_to_sound("在此吃了饭再走不迟", "output/在此吃了饭再走不迟.mp3", speaker=200)
+    covert_text_to_sound("在此吃了饭再走不迟", "output/在此吃了饭再走不迟.mp3", speaker=800)
    
     sound = AudioSegment.from_file("output/在此吃了饭再走不迟.mp3", format="mp3")
     play(sound)
