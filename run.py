@@ -15,7 +15,7 @@ import os
 import sys
 
 import yaml
-from moviepy.editor import VideoFileClip
+from moviepy import VideoFileClip
 
 import config_reader
 from libs import VideoHelper
@@ -47,6 +47,12 @@ def connect_videos(final_video_name: str, videos=[], script='script.yaml', delet
                 os.remove(f)
             else:
                 print(f"WARN: {f} 不存在")
+
+    # 避免出现同名文件导致"xxx bytes wanted but 0 bytes read"错误
+    # 更新文件名
+    if os.path.exists(final_video_name):
+        base_name = final_video_name.replace(config_reader.video_format, "")
+        final_video_name = base_name + "_new" + config_reader.video_format
     final.write_videofile(final_video_name)
     return final_video_name
 
@@ -58,6 +64,10 @@ def run(script, output=None, scenario=None):
         output: 输出的视频文件名
         scenario: 需要创建视频的场景，没指定的话将对整个script.yaml进行生成
     """
+    # 为每个脚本分配一个输出路径
+    script_name = os.path.basename(script).split('.')[0]
+    config_reader.output_dir = os.path.join(config_reader.output_dir, script_name)
+    os.makedirs(config_reader.output_dir, exist_ok=True)
     with open(script, 'rb') as file:
         script = yaml.safe_load(file)
 
@@ -72,7 +82,7 @@ def run(script, output=None, scenario=None):
             if scenario.bgm:
                 new_video = VideoHelper.add_audio_to_video(new_video, scenario.bgm)
             scenario_file = os.path.join(config_reader.output_dir, f"{scenario.name}{config_reader.video_format}")
-            new_video.set_fps(config_reader.fps)
+            new_video.with_fps(config_reader.fps)
             new_video.write_videofile(scenario_file)
             final_videos_files.append(scenario_file)
 
@@ -117,12 +127,12 @@ def main(argv):
     return run(output=output, scenario=scenario, script=script)
 
 if __name__ == "__main__":
-    script_name="水浒传.yaml"
+    script_name="水浒传第六十二回.yaml"
     
     if len(sys.argv) > 1:
         result = main(sys.argv[1:])
     else:
-        result = run(script=f"demo/{script_name}", scenario="商议对策")
+        result = run(script=f"script/水浒传/{script_name}", scenario="验尸")
     sys.exit(result)
     
     # connect_videos(f"{script_name}.mp4", script=f"script/水浒传/{script_name}", delete_old=False)

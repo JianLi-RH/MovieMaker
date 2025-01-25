@@ -1,12 +1,14 @@
 
-程序入口： run.py
+# 程序入口
+run.py
 
-Prerequests:
+# Prerequests:
+## 安装ImageMagicK
 https://imagemagick.org/script/download.php
 https://imagemagick.org/script/install-source.php
 https://crotoc.github.io/2018/09/28/Install-customized-fonts-for-imagemagick/#Install-customized-fonts-for-imagemagick
 
-imagemagick的bug:
+imagemagick 1.0的bug:
 /home/jianl/.local/lib/python3.10/site-packages/moviepy/video/io/ffmpeg_reader.py # 259
 infos = error.decode("utf-8", errors="ignore")
 

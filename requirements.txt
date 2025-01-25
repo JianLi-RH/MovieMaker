@@ -4,8 +4,7 @@ decorator==4.4.2
 idna==3.6
 imageio==2.34.0
 imageio-ffmpeg==0.4.9
-# moviepy==1.0.3
-moviepy==2.0.0.dev2
+moviepy==2.1.2
 numpy==1.26.4
 pillow==10.2.0
 proglog==0.1.10

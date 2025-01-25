@@ -1,10 +1,10 @@
 """
 这个类用来解析script.yaml中的`动作:`
 """
-import sys
+import os
 import datetime
 
-from moviepy.editor import *
+from moviepy import *
 from PIL import Image, ImageOps
 
 import config_reader
@@ -604,7 +604,7 @@ class Action:
             # [[tmp_pos, tmp_size, rotate, img], [tmp_pos, tmp_size, rotate, img]]
             delay_positions = []
             action = self.obj.get("名称").lower()
-            if action in ["行进", "说话", "转身", "gif", "bgm"] and (len(images) == 0 or self.timespan == 0):
+            if action not in ["显示", "消失", "镜头", "更新"] and (len(images) == 0 or self.timespan == 0):
                 raise Exception(f"动作[{action}]执行时间不能为0")
 
             if action == "显示":

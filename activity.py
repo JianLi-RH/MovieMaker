@@ -320,7 +320,7 @@ class Activity:
             video = VideoHelper.add_audio_to_video(video, self.bgm)
         if self.subtitle:
             # 添加字幕声音 -- 活动的字幕
-            audio_list = [AudioFileClip(st[3]).set_start(st[0]) for st in self.subtitle if len(st) > 3 and st[3]]
+            audio_list = [AudioFileClip(st[3]).with_start(st[0]) for st in self.subtitle if len(st) > 3 and st[3]]
             if audio_list:
                 fd, tmp_audio_path = tempfile.mkstemp(suffix=".mp3")
                 print(f"把声音组装起来保存到{tmp_audio_path}")

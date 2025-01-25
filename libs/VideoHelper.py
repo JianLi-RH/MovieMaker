@@ -4,7 +4,8 @@ import sys
 sys.path.append('../')
 import os
 
-from moviepy.editor import *
+# from moviepy.editor import *
+from moviepy import *
 from moviepy.video.tools.subtitles import SubtitlesClip
 
 try:
@@ -79,10 +80,10 @@ def add_watermark(video, gif_path, pos, size):
     clip = __get_video_clip(video)
     watermark = (VideoFileClip(gif_path, has_mask=True)
                     .loop()  # loop gif
-                    .set_duration(clip.duration)  # 水印持续时间
+                    .with_duration(clip.duration)  # 水印持续时间
                     .resize(height=size[1], )  # 水印的高度，会等比缩放
                     .margin(left=pos[0], top=pos[1], opacity=0)  # 水印边距和透明度
-                    .set_pos(("left", "top")))  # 水印的位置
+                    .with_pos(("left", "top")))  # 水印的位置
 
     return CompositeVideoClip([clip, watermark])
 
@@ -103,7 +104,7 @@ def add_subtitile(video, text, time_span):
 
     subs = [(time_span, text)]
     subtitles = SubtitlesClip(subs, generator)
-    result = CompositeVideoClip([clip, subtitles.set_pos(('center','bottom'))])
+    result = CompositeVideoClip([clip, subtitles.with_position(('center','bottom'))])
     result.fps = clip.fps
     return result
 
@@ -146,11 +147,11 @@ def add_audio_to_video(video, audio_file, start=None):
         audioclip = audioclip.subclip(0, v_du)
 
     start = start if start else 0
-    audios = [audioclip.set_start(start)]
+    audios = [audioclip.with_start(start)]
     if v.audio:
         audios.append(v.audio)
     new_audioclip = CompositeAudioClip(audios)
-    return v.set_audio(new_audioclip)
+    return v.with_audio(new_audioclip)
 
 def create_video_clip_from_images(images, fps=config_reader.fps):
     """
@@ -164,7 +165,7 @@ def create_video_clip_from_images(images, fps=config_reader.fps):
     """
     clips = []
     for img in images:
-        tmp_clip = ImageClip(img).set_duration(1/fps)
+        tmp_clip = ImageClip(img).with_duration(1/fps)
         tmp_clip.fps=fps
         clips.append(tmp_clip)
     concat_clip = concatenate_videoclips(clips, method="compose")
@@ -175,16 +176,16 @@ def composite_videos(main_video, sub_video, sub_video_start_time = 0, sub_video_
     Composite two videos
 
     Examples for position:
-        clip2.set_position((45,150)) # x=45, y=150 , in pixels
-        clip2.set_position("center") # automatically centered
+        clip2.with_position((45,150)) # x=45, y=150 , in pixels
+        clip2.with_position("center") # automatically centered
         # clip2 is horizontally centered, and at the top of the picture
-        clip2.set_position(("center","top"))
+        clip2.with_position(("center","top"))
         # clip2 is vertically centered, at the left of the picture
-        clip2.set_position(("left","center"))
+        clip2.with_position(("left","center"))
         # clip2 is at 40% of the width, 70% of the height of the screen:
-        clip2.set_position((0.4,0.7), relative=True)
+        clip2.with_position((0.4,0.7), relative=True)
         # clip2's position is horizontally centered, and moving down !
-        clip2.set_position(lambda t: ('center', 50+t) )
+        clip2.with_position(lambda t: ('center', 50+t) )
 
     Params:
         main_video: the main video, sub_video will put on it
@@ -198,9 +199,9 @@ def composite_videos(main_video, sub_video, sub_video_start_time = 0, sub_video_
     """
     main_clip = __get_video_clip(main_video).resize(width=config_reader.g_width, height=config_reader.g_height)
     sub_clip = __get_video_clip(sub_video)
-    sub_clip.set_start(sub_video_start_time)
+    sub_clip.with_start(sub_video_start_time)
     if sub_video_position:
-        sub_clip = sub_clip.set_position(sub_video_position)
+        sub_clip = sub_clip.with_position(sub_video_position)
     if sub_video_size:
         sub_clip = sub_clip.resize(sub_video_size)
 
@@ -242,10 +243,10 @@ def insert_image_to_video(video, image_path, position, duration, size=None):
     outer_x, outer_y = clip.size
     pos_x = position[0] if position[0] > 1 else outer_x * position[0]
     pos_y = position[1] if position[1] > 1 else outer_y * position[1]
-    image = image.set_position((pos_x, pos_y))
+    image = image.with_position((pos_x, pos_y))
 
     timespan = utils.get_time(duration)
-    image = image.set_duration(timespan)
+    image = image.with_duration(timespan)
 
     image_clips.append(image)
     # if size:

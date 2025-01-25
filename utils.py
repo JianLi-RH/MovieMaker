@@ -4,8 +4,6 @@ import re
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "libs"))
-from moviepy.editor import *
-
 import config_reader
 
 import random

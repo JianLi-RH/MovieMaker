@@ -5,6 +5,7 @@ __pycache__/
 
 # MovieMaker
 asset
+demo
 libs/TTSEngine/speaker
 output/
 tmp/
