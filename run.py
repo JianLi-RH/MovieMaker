@@ -15,7 +15,7 @@ import os
 import sys
 
 import yaml
-from moviepy import VideoFileClip
+from moviepy import VideoFileClip, video
 
 import config_reader
 from libs import VideoHelper
@@ -30,16 +30,20 @@ def connect_videos(final_video_name: str, videos=[], script='script.yaml', delet
         script: 脚本文件，当没有提供videos时，根据脚本文件读取对应的场景视频
         delete_old: 是否删除旧的视频文件
     """
+    script_name = os.path.basename(script).split('.')[0]
     if not videos:
         with open(script, 'r') as file:
             script = yaml.safe_load(file)
 
             scenarios = script["场景"]
-            videos = [os.path.join(config_reader.output_dir, x.get("名字") + config_reader.video_format) for x in scenarios]
+            videos = [os.path.join(config_reader.output_dir, script_name, x.get("名字") + config_reader.video_format) for x in scenarios]
         
     final_videos = []
     for f in videos:
-        final_videos.append(VideoFileClip(f))
+        if isinstance(f, video.VideoClip.VideoClip):
+            final_videos.append(f)
+        else:
+            final_videos.append(VideoFileClip(f))
     final = VideoHelper.concatenate_videos(*final_videos)
     if delete_old:
         for f in videos:
@@ -51,8 +55,9 @@ def connect_videos(final_video_name: str, videos=[], script='script.yaml', delet
     # 避免出现同名文件导致"xxx bytes wanted but 0 bytes read"错误
     # 更新文件名
     if os.path.exists(final_video_name):
-        base_name = final_video_name.replace(config_reader.video_format, "")
-        final_video_name = base_name + "_new" + config_reader.video_format
+        os.remove(final_video_name)
+    if config_reader.output_dir not in final_video_name:
+        final_video_name = os.path.join(config_reader.output_dir, final_video_name)
     final.write_videofile(final_video_name)
     return final_video_name
 
@@ -81,10 +86,8 @@ def run(script, output=None, scenario=None):
             new_video = VideoHelper.concatenate_videos(*videos)
             if scenario.bgm:
                 new_video = VideoHelper.add_audio_to_video(new_video, scenario.bgm)
-            scenario_file = os.path.join(config_reader.output_dir, f"{scenario.name}{config_reader.video_format}")
             new_video.with_fps(config_reader.fps)
-            new_video.write_videofile(scenario_file)
-            final_videos_files.append(scenario_file)
+            final_videos_files.append(new_video)
 
         if not output:
             if scenario:
@@ -122,17 +125,11 @@ def main(argv):
         if scenario:
             output = scenario + config_reader.video_format
         else:
-            output = script.split('.') + config_reader.video_format
+            output = os.path.basename(script).replace(".yaml", "") + config_reader.video_format
 
+    print(output, scenario, script)
     return run(output=output, scenario=scenario, script=script)
 
 if __name__ == "__main__":
-    script_name="水浒传第六十二回.yaml"
-    
-    if len(sys.argv) > 1:
-        result = main(sys.argv[1:])
-    else:
-        result = run(script=f"script/水浒传/{script_name}", scenario="验尸")
+    result = main(sys.argv[1:])
     sys.exit(result)
-    
-    # connect_videos(f"{script_name}.mp4", script=f"script/水浒传/{script_name}", delete_old=False)
