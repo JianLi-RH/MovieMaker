@@ -1,21 +1,24 @@
 certifi==2024.2.2
 charset-normalizer==3.3.2
 decorator==4.4.2
+# https://ffmpeg.org/download.html
 idna==3.6
 imageio==2.34.0
 imageio-ffmpeg==0.4.9
+librosa==0.10.2.post1
 moviepy==2.1.2
 numpy==1.26.4
 pillow==10.2.0
 proglog==0.1.10
+pydub==0.25.1
 Pygame==2.6.1
 PyYAML==6.0.1
 requests==2.31.0
+soundfile==0.13.1
 tqdm==4.66.2
 urllib3==2.2.0
 websocket==0.2.1
 websocket-client==1.8.0
-pydub==0.25.1
 # ChatTTs for text to sound
 chattts==0.2.1
 torch==2.5.1
