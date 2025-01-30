@@ -83,9 +83,9 @@ class Activity:
         for act_list in rendered_action_list:
             if len(act_list) > 1:
                 max_timespan = max([x["action"].timespan for x in act_list])
-                if max_timespan == 0:
-                    # 当没有设置动作时间时，默认1秒钟
-                    max_timespan = 1
+                # if max_timespan == 0:
+                #     # 当没有设置动作时间时，默认1秒钟
+                #     max_timespan = 1
                 for act in act_list:
                     if act["action"].timespan < max_timespan:
                         act["action"].timespan = max_timespan
@@ -131,6 +131,25 @@ class Activity:
 
         return max([self.keep, bgm_length, subtitle_length, action_length])
 
+    def __pre_check(self):
+        """预检测yaml文件"""
+        for acts in self.action_list:
+            if len(acts) > 1:
+                # deply模式检测
+                act_names = [x["action"] for x in acts if x["action"].name in ["显示", "消失", "镜头", "更新"]]
+                if act_names:
+                    raise Exception(f"动作[{act_names[0].name}]不能使用delap模式, action index: {act_names[0].render_index}")
+
+                # 执行时间检测
+                action_time = [x["action"].timespan for x in acts]
+                max_timespan = max(action_time)
+                if max_timespan == 0:
+                    raise Exception(f"动作[{acts[0]["action"].name}]执行时间不能为0, action index: {acts[0]["action"].render_index}")
+            else:
+                if acts[0]["action"].name not in ["显示", "消失", "镜头", "更新"] and acts[0]["action"].timespan == 0:
+                    raise Exception(f"动作[{acts[0]["action"].name}]执行时间不能为0, action index: {acts[0]["action"].render_index}")
+
+
     def __init__(self, scenario, obj):
         """
         初始化Activity
@@ -153,6 +172,9 @@ class Activity:
         self.timespan = self.__get_timespan(obj)    # 活动的总长度
         self.fps = int(obj.get("fps")) if obj.get("fps") else config_reader.fps
         self.total_frame = math.ceil(self.timespan * self.fps)   # 根据当前活动的总时长，得到当前活动所需的视频总帧数
+        self.action_list = self.__get_render_list()
+        
+        self.__pre_check()
 
 
     def to_video(self):
@@ -163,7 +185,6 @@ class Activity:
             视频片段clip
         """
         images = self.__check_images()
-        action_list = self.__get_render_list()
 
         if self.subtitle:
             # 添加字幕
@@ -201,8 +222,8 @@ class Activity:
                 self.subtitle[i].append((start_num, end_number))
 
         start = 0 # 每个action的开始位置 （图片下标）
-        for i in range(len(action_list)):
-            actions = action_list[i]
+        for i in range(len(self.action_list)):
+            actions = self.action_list[i]
             delay_mode = len(actions) > 1   # 当同时运行多个动作的时候，需要在所有动作执行结束再绘制其他角色
             video_start = start/len(images) # action在整段视频中的开始位置，方便后面添加声音
             delay_start = start
@@ -254,7 +275,7 @@ class Activity:
                             big_image.close()
             
             # 检查遗漏的背景图片
-            if i == (len(action_list) - 1) and max(action_ends) < len(images):
+            if i == (len(self.action_list) - 1) and max(action_ends) < len(images):
                 # 当执行最后一个动作的时候， 最后一个绘制角色的图片不是全部背景图片的最后一张的时候
                 # 把剩余的背景图片都绘制上角色
                 missed_images = images[max(action_ends):]
@@ -297,7 +318,7 @@ class Activity:
 
         # 等待所有线程完成
         q.join()
-        draw_char_actions = set([act["action"].name for act_in_same_level in action_list for act in act_in_same_level]) - set({"显示", "消失"})
+        draw_char_actions = set([act["action"].name for act_in_same_level in self.action_list for act in act_in_same_level]) - set({"显示", "消失"})
         if not draw_char_actions:
             # 如果所有的动作都没有绘制角色，则统一绘制一次
             for img in images:
@@ -328,7 +349,7 @@ class Activity:
                 video = VideoHelper.add_audio_to_video(video, tmp_audio_path, start=self.subtitle[0][0])
         
         video_total_length = video.duration
-        for actions in action_list:
+        for actions in self.action_list:
             # 添加动作的声音
             action_ends = []
             start = actions[0]["start"] * video_total_length

@@ -604,8 +604,6 @@ class Action:
             # [[tmp_pos, tmp_size, rotate, img], [tmp_pos, tmp_size, rotate, img]]
             delay_positions = []
             action = self.obj.get("名称").lower()
-            if action not in ["显示", "消失", "镜头", "更新"] and (len(images) == 0 or self.timespan == 0):
-                raise Exception(f"动作[{action}]执行时间不能为0")
 
             if action == "显示":
                 self.__display()
