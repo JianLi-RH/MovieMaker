@@ -420,6 +420,7 @@ def preview(scenario, script, bg_img=None, char_name_list=None):
         gif图片路径
     """
     import shutil
+    scenario_folder = os.path.basename(script).replace(".yaml", "")
     with open(script, 'rb') as file:
         script = yaml.safe_load(file)
 
@@ -435,7 +436,7 @@ def preview(scenario, script, bg_img=None, char_name_list=None):
         char_name_list = [c.name for c in chars]
     
     file_name = os.path.basename(bg_img)
-    new_bg_folder = os.path.join(config_reader.output_dir, "tmp")
+    new_bg_folder = os.path.join(config_reader.output_dir, scenario_folder, "tmp")
     os.makedirs(new_bg_folder, exist_ok=True)
     file_path = os.path.join(new_bg_folder, file_name)
     shutil.copyfile(bg_img, file_path)
