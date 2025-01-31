@@ -20,6 +20,10 @@ class Action:
         """查找指定名称的角色"""
         if not name:
             return None
+        if ' ' in name:
+            # 打斗等组合动作可以同时操作多个角色
+            # 因此不能在这里获取角色
+            return None
         for c in self.activity.scenario.chars:
             if c.name == name:
                 if c.rotate == "左右" and not c.name.lower().startswith("gif"):
@@ -111,6 +115,195 @@ class Action:
             tmp_img = ImageHelper.zoom_in_out_image(images[i], center=(x, y), ratio=tmp_ratio)
             images[i] = tmp_img
 
+    def __fight(self, images, sorted_char_list):
+        """一组随机的打斗动作， 
+            因为不能保证相同渲染顺序的动作不使用同一个角色，所以不可以使用delay模式
+        
+        Example:
+        -
+        名称: 打斗
+        角色: 武松 西门庆 刀 剑 (前两个是人物，后面两个是武器，武器可以省略)
+        字幕: 
+        - ['','', '', 'resources/ShengYin/游戏中打斗声音音效.mp3']
+        渲染顺序: 6
+        
+        Params:
+            images: 全部背景图片
+            sorted_char_list: 排序后的角色
+        Return:
+            NA
+        """
+        str_chars = self.obj.get("角色")
+        chars = [self.__get_char(x) for x in str_chars.split(" ")]
+        if len(chars) < 2 :
+            raise Exception("打斗动作至少包含两个角色")
+        chars = sorted(chars, key=lambda x: x.pos[0])
+
+        delay_positions = []
+        for i in range(0, len(chars)):
+            self.char = chars[i]
+            if i % 2 == 0:
+                x_arr = [200, -100, 200]
+                y_arr = [200, -200, 200]
+            else:
+                x_arr = [-200, 100, -200]
+                y_arr = [-200, 200, -200]
+                
+            self.obj["结束位置"] = [
+                [self.char.pos[0] + x_arr[0], self.char.pos[1] + y_arr[0]],
+                [self.char.pos[0] + x_arr[1], self.char.pos[1] + y_arr[1]],
+                [self.char.pos[0] + x_arr[2], self.char.pos[1] + y_arr[2]]]
+            self.obj["方式"] = "旋转"
+            pos = self.__walk(images, sorted_char_list=sorted_char_list,delay_mode=True)
+            delay_positions.append({
+                "char": self.char, 
+                "position": pos
+            })
+        
+        
+        for j in range(len(images)):   # 在每张图片上绘制全部角色
+            big_image = None
+            for _char in sorted_char_list:
+                for char_pos in delay_positions:
+                    if _char == char_pos["char"]:
+                        delay_pos = char_pos["position"][j]
+                        _char.pos = delay_pos[0]
+                        _char.size = delay_pos[1]
+                        _char.rotate = delay_pos[2]
+                        
+                        if len(delay_pos) > 3:
+                            _char.image = delay_pos[3]
+                        break
+                _, big_image = ImageHelper.paint_char_on_image(char=_char, 
+                                                                image=images[j],
+                                                                image_obj=big_image,
+                                                                save=False,
+                                                                gif_index=j)
+
+            if big_image:
+                big_image.save(images[j])
+                big_image.close()
+        pass
+
+    def __gif(self, images, sorted_char_list, delay_mode):
+        """向视频中插入一段gif
+        
+        Example:
+        -
+        名称: gif
+        素材: resources/SuCai/说话声/1.gif
+        发音人引擎: 
+        字幕: 
+        - ['','', '小女孩哭泣声', 'resources/ShengYin/小女孩哭泣声.mp3']
+        位置: [0.6, 0.2]
+        图层: 100
+        角度: 左右
+        大小: [300, 300]
+        
+        Params:
+            images: 全部背景图片
+            sorted_char_list: 排序后的角色
+            delay_mode: 延迟绘制其他角色
+        Return:
+            [[tmp_pos, tmp_size, rotate, img], [tmp_pos, tmp_size, rotate, img]]
+        """
+        self.obj.update({"名字": f"gif_{len(sorted_char_list)}", "显示": "是"})
+        self.char  = Character(self.obj)
+        
+        # 将GIF标记添加在显示列表中，用来设置显示顺序
+        added_index = -1
+        for i in range(len(sorted_char_list)):
+            if sorted_char_list[i].index > self.char.index:
+                added_index = i
+                sorted_char_list.insert(i, self.char)
+                break
+        if added_index == -1:
+            added_index = len(sorted_char_list)
+            sorted_char_list.append(self.char)
+
+        l = len(images)
+        delay_pos = []
+        for i in range(0, l):
+            j = i % len(self.char.gif_frames)
+            if delay_mode:
+                delay_pos.append((self.char.pos, self.char.size, self.char.rotate, self.char.gif_frames[j]))
+                continue
+                
+            big_image = None
+            for _char in sorted_char_list:
+                if _char.display:
+                    # 这里存在一个显示层级的bug
+                    _, big_image = ImageHelper.paint_char_on_image(image=images[i], 
+                                                                    image_obj=big_image,
+                                                                    char=_char, 
+                                                                    save=False,
+                                                                    gif_index=i)
+            
+            if big_image and not delay_mode:
+                big_image.save(images[i])
+                big_image.close()
+        
+        if not delay_mode:
+            # 恢复列表
+            sorted_char_list.pop(added_index)
+        return delay_pos
+
+    def __talk(self, images, sorted_char_list, delay_mode):
+        """角色说话
+        
+        Example:
+        -
+        名称: 说话
+        角色: 鲁智深
+        高亮: 是
+        变化:  # 可以是： 0 - 1数字； 近景；
+        字幕: #Yunyang, Male
+            - ['','', '你这斯诈死', '水浒传/第四回/打死镇关西/你这斯诈死.mp3']
+            - ['','', '等我回家再与你理会', '水浒传/第四回/打死镇关西/等我回家再与你理会.mp3']
+        渲染顺序: 5
+            
+        Params:
+            images: 背景图片
+            sorted_char_list: 排序后的角色
+            delay_mode: 延迟绘制其他角色
+        Return:
+            [[tmp_pos, tmp_size, rotate, img], [tmp_pos, tmp_size, rotate, img]]
+        """
+        if delay_mode:
+            return [(self.char.pos, self.char.size, self.char.rotate) for i in range(len(images))]
+        
+        hightlight = self.obj.get("高亮") == "是"
+        gif_index = 0
+        for img in images:
+            big_image = None
+            if hightlight:
+                big_image = ImageHelper.dark_image(img)
+            for _char in sorted_char_list:
+                if _char.display:
+                    dark = False
+                    if hightlight and _char.name != self.char.name:
+                        dark = True
+                    _, big_image = ImageHelper.paint_char_on_image(image=img, 
+                                                                   image_obj=big_image,
+                                                                   char=_char, 
+                                                                   save=False,
+                                                                   gif_index=gif_index,
+                                                                   dark=dark)
+
+            if big_image:
+                big_image.save(img)
+                big_image.close()
+            gif_index += 1
+
+        if self.obj.get("变化", None):
+            if isinstance(self.obj.get("变化"), float):
+                # 图片有缩放的时候才需要调用镜头方法
+                self.__camera(images)
+            elif self.obj.get("变化") == "近景":
+                for img in images:
+                    ImageHelper.cut_image(img, self.char)
+        return []
+    
     def __turn(self, images, sorted_char_list, delay_mode: bool):
         """让角色转动，如左右转身，上下翻转，指定角度翻转
         
@@ -123,7 +316,7 @@ class Action:
             持续时间: 
             角度: 270 # 左右, 上下， 45(逆时针角度), -45(顺时针) -- 如果是数字的话，会从初始位置旋转到给定角度
             字幕:
-              - ['','', '啊啊啊', 'resources/ShengYin/惨叫-男1.mp3']
+            - ['','', '啊啊啊', 'resources/ShengYin/惨叫-男1.mp3']
             渲染顺序: 0
           -
             名称: 转身
@@ -208,6 +401,38 @@ class Action:
                 big_image.close()
         return []
 
+    def __update(self):
+        """更新某个角色
+        
+        Example:
+          -
+            名称: 更新
+            角色: 鲁智深
+            素材: 水浒传/人物/鲁智深1.png
+            角度: 左右
+            透明度: 0.2
+            字幕: #Kangkang, Male
+              - ['','', '啪啪啪', 'resources/ShengYin/打耳光.mp3']
+            渲染顺序: 2
+        """
+        keys = self.obj.keys()
+        if "素材" in keys:
+            self.char.image = self.obj.get("素材", None)
+        if "位置" in keys:
+            self.char.pos = utils.covert_pos(self.obj.get("位置", None))
+        if "大小" in keys:
+            self.char.size = self.obj.get("大小")
+        if "角度" in keys:
+            self.char.rotate = self.obj.get("角度")
+        if "透明度" in keys:
+            self.char.transparency = self.obj.get("透明度")
+        if "显示" in keys:
+            self.char.display = True if self.obj.get("显示") == '是' else False
+        if "图层" in keys:
+            self.char.index = int(self.obj.get("图层", 0))
+            
+        self.char = self.__get_char(self.char.name)
+    
     def __walk(self, images, sorted_char_list, delay_mode: bool):
         """角色移动
             延迟模式下返回角色运行轨迹, 否则返回空[]
@@ -351,157 +576,6 @@ class Action:
 
         return []
 
-    def __gif(self, images, sorted_char_list, delay_mode):
-        """向视频中插入一段gif
-        
-        Example:
-          -
-            名称: gif
-            素材: resources/SuCai/说话声/1.gif
-            发音人引擎: 
-            字幕: 
-              - ['','', '小女孩哭泣声', 'resources/ShengYin/小女孩哭泣声.mp3']
-            位置: [0.6, 0.2]
-            图层: 100
-            角度: 左右
-            大小: [300, 300]
-        
-        Params:
-            images: 全部背景图片
-            sorted_char_list: 排序后的角色
-            delay_mode: 延迟绘制其他角色
-        Return:
-            [[tmp_pos, tmp_size, rotate, img], [tmp_pos, tmp_size, rotate, img]]
-        """
-        self.obj.update({"名字": f"gif_{len(sorted_char_list)}", "显示": "是"})
-        self.char  = Character(self.obj)
-        
-        # 将GIF标记添加在显示列表中，用来设置显示顺序
-        added_index = -1
-        for i in range(len(sorted_char_list)):
-            if sorted_char_list[i].index > self.char.index:
-                added_index = i
-                sorted_char_list.insert(i, self.char)
-                break
-        if added_index == -1:
-            added_index = len(sorted_char_list)
-            sorted_char_list.append(self.char)
-
-        l = len(images)
-        delay_pos = []
-        for i in range(0, l):
-            j = i % len(self.char.gif_frames)
-            if delay_mode:
-                delay_pos.append((self.char.pos, self.char.size, self.char.rotate, self.char.gif_frames[j]))
-                continue
-                
-            big_image = None
-            for _char in sorted_char_list:
-                if _char.display:
-                    # 这里存在一个显示层级的bug
-                    _, big_image = ImageHelper.paint_char_on_image(image=images[i], 
-                                                                    image_obj=big_image,
-                                                                    char=_char, 
-                                                                    save=False,
-                                                                    gif_index=i)
-            
-            if big_image and not delay_mode:
-                big_image.save(images[i])
-                big_image.close()
-        
-        if not delay_mode:
-            # 恢复列表
-            sorted_char_list.pop(added_index)
-        return delay_pos
-    
-    def __talk(self, images, sorted_char_list, delay_mode):
-        """角色说话
-        
-        Example:
-          -
-            名称: 说话
-            角色: 鲁智深
-            高亮: 是
-            变化:  # 可以是： 0 - 1数字； 近景；
-            字幕: #Yunyang, Male
-              - ['','', '你这斯诈死', '水浒传/第四回/打死镇关西/你这斯诈死.mp3']
-              - ['','', '等我回家再与你理会', '水浒传/第四回/打死镇关西/等我回家再与你理会.mp3']
-            渲染顺序: 5
-            
-        Params:
-            images: 背景图片
-            sorted_char_list: 排序后的角色
-            delay_mode: 延迟绘制其他角色
-        Return:
-            [[tmp_pos, tmp_size, rotate, img], [tmp_pos, tmp_size, rotate, img]]
-        """
-        if delay_mode:
-            return [(self.char.pos, self.char.size, self.char.rotate) for i in range(len(images))]
-        
-        hightlight = self.obj.get("高亮") == "是"
-        gif_index = 0
-        for img in images:
-            big_image = None
-            if hightlight:
-                big_image = ImageHelper.dark_image(img)
-            for _char in sorted_char_list:
-                if _char.display:
-                    dark = False
-                    if hightlight and _char.name != self.char.name:
-                        dark = True
-                    _, big_image = ImageHelper.paint_char_on_image(image=img, 
-                                                                   image_obj=big_image,
-                                                                   char=_char, 
-                                                                   save=False,
-                                                                   gif_index=gif_index,
-                                                                   dark=dark)
-
-            if big_image:
-                big_image.save(img)
-                big_image.close()
-            gif_index += 1
-
-        if self.obj.get("变化", None):
-            if isinstance(self.obj.get("变化"), float):
-                # 图片有缩放的时候才需要调用镜头方法
-                self.__camera(images)
-            elif self.obj.get("变化") == "近景":
-                for img in images:
-                    ImageHelper.cut_image(img, self.char)
-        return []
-    
-    def __update(self):
-        """更新某个角色
-        
-        Example:
-          -
-            名称: 更新
-            角色: 鲁智深
-            素材: 水浒传/人物/鲁智深1.png
-            角度: 左右
-            透明度: 0.2
-            字幕: #Kangkang, Male
-              - ['','', '啪啪啪', 'resources/ShengYin/打耳光.mp3']
-            渲染顺序: 2
-        """
-        keys = self.obj.keys()
-        if "素材" in keys:
-            self.char.image = self.obj.get("素材", None)
-        if "位置" in keys:
-            self.char.pos = utils.covert_pos(self.obj.get("位置", None))
-        if "大小" in keys:
-            self.char.size = self.obj.get("大小")
-        if "角度" in keys:
-            self.char.rotate = self.obj.get("角度")
-        if "透明度" in keys:
-            self.char.transparency = self.obj.get("透明度")
-        if "显示" in keys:
-            self.char.display = True if self.obj.get("显示") == '是' else False
-        if "图层" in keys:
-            self.char.index = int(self.obj.get("图层", 0))
-            
-        self.char = self.__get_char(self.char.name)
-    
     def __get_subtitle(self):
         """获取动作的字幕
         
@@ -605,26 +679,28 @@ class Action:
             delay_positions = []
             action = self.obj.get("名称").lower()
 
-            if action == "显示":
-                self.__display()
+            if action == "bgm":
+                self.__bgm(images, sorted_char_list)
             elif action == "消失":
                 self.__disappear()
+            elif action == "显示":
+                self.__display()
             elif action == "镜头":  # 还需要验证
                 self.__camera(images)
-            elif action == "行进":
-                delay_positions = self.__walk(images, sorted_char_list, delay_mode)
-            elif action == "说话":
-                delay_positions = self.__talk(images, sorted_char_list, delay_mode)
-            elif action == "转身":
-                delay_positions = self.__turn(images, sorted_char_list, delay_mode)
-            elif action == "gif":
-                delay_positions = self.__gif(images, sorted_char_list, delay_mode)
-            elif action == "bgm":
-                self.__bgm(images, sorted_char_list)
             elif action == "更新":
                 self.__update()
                 # 重新排序所有角色
                 sorted_char_list.sort(key=lambda x: x.index)
+            elif action == "打斗":
+                self.__fight(images, sorted_char_list)
+            elif action == "gif":
+                delay_positions = self.__gif(images, sorted_char_list, delay_mode)
+            elif action == "说话":
+                delay_positions = self.__talk(images, sorted_char_list, delay_mode)
+            elif action == "转身":
+                delay_positions = self.__turn(images, sorted_char_list, delay_mode)
+            elif action == "行进":
+                delay_positions = self.__walk(images, sorted_char_list, delay_mode)
             pass
 
             duration = datetime.datetime.now() - start

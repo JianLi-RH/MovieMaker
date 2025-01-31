@@ -27,6 +27,7 @@ class Character():
             图层: 0
             角度: 0
         """
+        self.obj = obj
         self.name = obj.get("名字")
         self.image = obj.get("素材")
         if self.image.lower().endswith(".gif"):
