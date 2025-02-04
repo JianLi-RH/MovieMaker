@@ -38,7 +38,7 @@ class Action:
                     c.rotate = 180
                     
                 return c
-        raise Exception(f"角色【{name}】不存在")
+        raise Exception(f"角色【{name}】不存在, 渲染顺序：{self.render_index}")
     
     def __bgm(self, images, sorted_char_list):
         """向视频中插入一段背景音
@@ -75,10 +75,18 @@ class Action:
         """让角色消失"""
         self.char.display = False
 
-    def __camera(self, images):
+    def __camera(self, images, add_chars=False):
         """
         处理 `镜头` 相关的动作，例如切换焦点，镜头拉近、拉远
         ***一个活动中不能有两个`镜头`动作***
+        
+        Example:
+        -
+          名称: 镜头
+          持续时间: 1
+          焦点: 中心
+          变化: 
+          渲染顺序: 0
         """
         length = len(images)    # 总帧数
         if not self.activity.scenario.focus:
@@ -106,6 +114,24 @@ class Action:
         ratio_step = (to_ratio - from_ratio) / length
         
         self.activity.scenario.ratio = to_ratio
+        
+        if add_chars:
+            # 单独调用镜头动作的时候，需要绘制角色
+            gif_index = 0
+            for img in images:
+                big_image = None
+                for _char in self.activity.scenario.chars:
+                    if _char.display:
+                        _, big_image = ImageHelper.paint_char_on_image(image=img, 
+                                                                    image_obj=big_image,
+                                                                    char=_char, 
+                                                                    save=False,
+                                                                    gif_index=gif_index,
+                                                                    dark=False)
+            
+                big_image.save(img)
+                big_image.close()
+                gif_index += 1
 
         for i in range(0, length):
             tmp_ratio = from_ratio + ratio_step * i
@@ -298,7 +324,7 @@ class Action:
         if self.obj.get("变化", None):
             if isinstance(self.obj.get("变化"), float):
                 # 图片有缩放的时候才需要调用镜头方法
-                self.__camera(images)
+                self.__camera(images, add_chars=False)
             elif self.obj.get("变化") == "近景":
                 for img in images:
                     ImageHelper.cut_image(img, self.char)
@@ -635,8 +661,8 @@ class Action:
         self.activity = activity
         self.obj = obj
         self.name = self.obj.get("名称")
-        self.char = self.__get_char(self.obj.get("角色"))
         self.render_index = self.obj.get("渲染顺序") if self.obj.get("渲染顺序") else 0    # 动作执行的顺序，数值一样的同时执行， 从小到达执行
+        self.char = self.__get_char(self.obj.get("角色"))
         self.subtitle_color, self.subtitle = self.__get_subtitle()
         if self.subtitle_color == None and self.activity.subtitle_color:
             # 当动作没有设置字幕颜色时，使用活动的字幕颜色覆盖动作的字幕颜色
@@ -686,7 +712,7 @@ class Action:
             elif action == "显示":
                 self.__display()
             elif action == "镜头":  # 还需要验证
-                self.__camera(images)
+                self.__camera(images, add_chars=True)
             elif action == "更新":
                 self.__update()
                 # 重新排序所有角色
