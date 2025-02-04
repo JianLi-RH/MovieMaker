@@ -133,7 +133,13 @@ class Activity:
 
     def __pre_check(self):
         """预检测yaml文件"""
+        chars = [c.name for c in self.scenario.chars]
         for acts in self.action_list:
+            
+            for act in acts:
+                if act.get("obj") and act.obj.get("角色") and act.obj.get("角色") not in chars:
+                    raise Exception(f"角色【{act.obj.get("角色")}】不存在, 渲染顺序：{act.render_index}")
+            
             if len(acts) > 1:
                 # deply模式检测
                 act_names = [x["action"] for x in acts if x["action"].name in ["显示", "消失", "镜头", "更新"]]
