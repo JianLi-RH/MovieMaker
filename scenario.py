@@ -46,7 +46,7 @@ class Scenario:
         self.background_image = self.__create_bg_image(obj.get("背景", None))
         self.bgm = obj.get("背景音乐", None)
         __chars = []
-        __char_obj = obj.get("角色", [])
+        __char_obj = obj.get("角色") if obj.get("角色") else []
         for char_obj in __char_obj:
             _pos = char_obj.get("位置", None)
             if isinstance(_pos, list) and isinstance(_pos[0], list):

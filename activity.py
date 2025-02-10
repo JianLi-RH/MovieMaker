@@ -174,7 +174,7 @@ class Activity:
         # 在活动节点中设置的时间，与具体动作无关
         self.keep = utils.get_time(obj.get("持续时间", None))
         self.bgm = obj.get("背景音乐", None)
-        self.actions = [Action(self, action) for action in obj.get("动作", [])]
+        self.actions = [Action(self, action) for action in obj.get("动作")] if obj.get("动作") else []
         self.timespan = self.__get_timespan(obj)    # 活动的总长度
         self.fps = int(obj.get("fps")) if obj.get("fps") else config_reader.fps
         self.total_frame = math.ceil(self.timespan * self.fps)   # 根据当前活动的总时长，得到当前活动所需的视频总帧数
