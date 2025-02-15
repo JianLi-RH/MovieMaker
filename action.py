@@ -190,6 +190,8 @@ class Action:
         for j in range(len(images)):   # 在每张图片上绘制全部角色
             big_image = None
             for _char in sorted_char_list:
+                if not _char.display:
+                    continue
                 for char_pos in delay_positions:
                     if _char == char_pos["char"]:
                         delay_pos = char_pos["position"][j]
@@ -661,7 +663,7 @@ class Action:
         self.activity = activity
         self.obj = obj
         self.name = self.obj.get("名称")
-        self.render_index = self.obj.get("渲染顺序") if self.obj.get("渲染顺序") else 0    # 动作执行的顺序，数值一样的同时执行， 从小到达执行
+        self.render_index = float(self.obj.get("渲染顺序")) if self.obj.get("渲染顺序") else 0.0    # 动作执行的顺序，数值一样的同时执行， 从小到达执行
         self.char = self.__get_char(self.obj.get("角色"))
         self.subtitle_color, self.subtitle = self.__get_subtitle()
         if self.subtitle_color == None and self.activity.subtitle_color:
