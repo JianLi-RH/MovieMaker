@@ -83,7 +83,7 @@ def add_text_to_image(image, text, color = 'white', overwrite_image = False, mod
     im.close()
 
 def cut_image(image, char):
-    """根据角色裁剪图片 （直接修改图片）
+    """在大图中裁剪出角色 （直接修改图片）
     
     Params:
         image: the origin image file path.
@@ -101,26 +101,29 @@ def cut_image(image, char):
     c_w, c_h = char.size
     c_x, c_y = char.pos
     
-    x_ratio = (c_w + 50) / w
-    y_ratio = (c_h + 50) / h
-    
-    left = c_x * (1 - x_ratio)
-    if (w - c_x - c_w) < 0:
-        # 角色的一部分在屏幕右边
-        # 加负数，向左移动
-        left + (w - c_x - c_w) * (1 - x_ratio)
-        right = 1
-    else:
-        right = c_x + c_w + (w - c_x - c_w) * x_ratio
+    x_ratio = (c_w + 100) / w
+    y_ratio = (c_h + 100) / h
 
-    top = c_y * (1 - y_ratio)
-    if (h - c_y - c_h) < 0:
-        # 角色的一部分在屏幕下面
-        # 加负数，向上移动
-        top + (h - c_y - c_h) * (1 - y_ratio)
+    # 保留角色外50个像素
+    if c_x < 50:
+        left = 0
+        right = w * x_ratio
+    elif c_x + c_w > w:
+        left = w * (1 - x_ratio)
+        right = w
+    else:
+        left = c_x - 50
+        right = c_x + c_w + 50
+
+    if c_y < 50:
+        top = 0
+        bottom = h * y_ratio
+    elif c_y + c_h > h:
+        top = h * (1 - y_ratio)
         bottom = h
     else:
-        bottom = c_y + c_h + (h - c_y - c_h) * y_ratio
+        top = c_y - 50
+        bottom = c_y + c_h + 50
 
     im = im.crop((left, top, right, bottom))
     im.resize((config_reader.g_width, config_reader.g_height)).save(image)
