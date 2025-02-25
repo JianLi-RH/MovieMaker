@@ -1,29 +1,24 @@
 #!/usr/bin/python3.10
 import os
 
-import config_reader
-
-def get_sucai(args):
+def get_material(material):
     """
     Get sucai file path.
 
     Params:
-        args: sucai path, like [`JiaoTongGongJu`, `MoTuoChe`]
+        material: material file path, like: "resources/SuCai/JueSe/捕快2.png", "resources\\SuCai\\杂物\\书信1.png"
 
     Return:
-        The path of sucai.
+        The path of material.
     """
-    sucai_dir = config_reader.sucai_dir
-    if not args:
-        return None
+    if os.path.exists(material):
+        return material
 
-    if isinstance(args, str):
-        if os.path.exists(args):
-            return args
-        else:
-            return os.path.join(sucai_dir, args)
+    material = material.replace("\\", "/")
+    if os.path.exists(material):
+        return material
 
-    return os.path.join(sucai_dir, *args)
+    raise Exception(f"Material is not exists: {material}")
 
 
 if __name__ == "__main__":

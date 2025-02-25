@@ -29,7 +29,7 @@ class Character():
         """
         self.obj = obj
         self.name = obj.get("名字")
-        self.image = obj.get("素材")
+        self.image = SuCaiHelper.get_material(obj.get("素材"))
         if self.image.lower().endswith(".gif"):
             self.gif_frames = ImageHelper.get_frames_from_gif(self.image)
         else:

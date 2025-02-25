@@ -43,7 +43,7 @@ class Scenario:
         self.name = obj.get("名字", None)
         self.focus = obj.get("焦点", "中心")    # 镜头对准的中心点
         self.ratio = float(obj.get("比例", 1)) # 显示背景图片的比例 （注意总大小仍然在config.ini中配置）
-        self.background_image = self.__create_bg_image(obj.get("背景", None))
+        self.background_image = self.__create_bg_image(SuCaiHelper.get_material(obj.get("背景")))
         self.bgm = obj.get("背景音乐", None)
         __chars = []
         __char_obj = obj.get("角色") if obj.get("角色") else []
