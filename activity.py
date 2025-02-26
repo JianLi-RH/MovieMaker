@@ -144,7 +144,7 @@ class Activity:
                 # deply模式检测
                 act_names = [x["action"] for x in acts if x["action"].name in ["显示", "消失", "镜头", "更新"]]
                 if act_names:
-                    raise Exception(f"动作[{act_names[0].name}]不能使用delap模式, action index: {act_names[0].render_index}")
+                    raise Exception(f"动作[{act_names[0].name}]不能使用delay模式, action index: {act_names[0].render_index}")
 
                 # 执行时间检测
                 action_time = [x["action"].timespan for x in acts]

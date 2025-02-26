@@ -168,6 +168,8 @@ class Action:
         delay_positions = []
         for i in range(0, len(chars)):
             self.char = chars[i]
+            initial_pos = self.char.pos # 起始位置
+            # 固定变化的3个位置
             if i % 2 == 0:
                 x_arr = [200, -100, 200]
                 y_arr = [200, -200, 200]
@@ -178,7 +180,8 @@ class Action:
             self.obj["结束位置"] = [
                 [self.char.pos[0] + x_arr[0], self.char.pos[1] + y_arr[0]],
                 [self.char.pos[0] + x_arr[1], self.char.pos[1] + y_arr[1]],
-                [self.char.pos[0] + x_arr[2], self.char.pos[1] + y_arr[2]]]
+                [self.char.pos[0] + x_arr[2], self.char.pos[1] + y_arr[2]],
+                initial_pos]# 使角色恢复起始位置
             self.obj["方式"] = "旋转"
             pos = self.__walk(images, sorted_char_list=sorted_char_list,delay_mode=True)
             delay_positions.append({
@@ -395,14 +398,14 @@ class Action:
                         step_frames = total_feames - step_frames * i
                     degree_step = (start - end) / step_frames
                     for i in range(step_frames):
-                        delay_positions.append([self.char.pos, self.char.size, start_rotate])
                         start_rotate += degree_step
+                        delay_positions.append([self.char.pos, self.char.size, start_rotate])
                 pass
             else:
                 degree_step = (str_degree[1] - str_degree[0]) / total_feames
                 for i in range(total_feames):
-                    delay_positions.append([self.char.pos, self.char.size, start_rotate])
                     start_rotate += degree_step
+                    delay_positions.append([self.char.pos, self.char.size, start_rotate])
         else:
             for i in range(total_feames):
                 delay_positions.append([self.char.pos, self.char.size, self.char.rotate])
