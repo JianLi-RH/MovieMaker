@@ -286,6 +286,7 @@ class Action:
         -
         名称: 说话
         角色: 鲁智深
+        焦点: [0.05, 0.65]  # 焦点 和 变化 不能同时设置，变化的优先级更高
         高亮: 是
         变化:  # 可以是： 0 - 1数字； 近景；
         字幕: #Yunyang, Male
@@ -333,6 +334,11 @@ class Action:
             elif self.obj.get("变化") == "近景":
                 for img in images:
                     ImageHelper.cut_image(img, self.char)
+        elif self.obj.get("焦点", None):
+            focus = utils.covert_pos(self.obj.get("焦点", None))
+            for img in images:
+                ImageHelper.cut_image_by_focus(img, focus)
+            
         return []
     
     def __turn(self, images, sorted_char_list, delay_mode: bool):

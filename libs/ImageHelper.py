@@ -91,6 +91,18 @@ def cut_image(image, char):
     Return:
         none
     """
+    cut_image_by_focus(image=image, focus=char.pos, size=char.size)
+    
+def cut_image_by_focus(image, focus, size=None):
+    """根据焦点切割图片
+    
+    Params:
+        image: the origin image file path.
+        focus: 焦点 (显示区域的左上角坐标)
+        size: 待切割的图片大小， 例如: [300, 400], 默认原图的30% + 100
+    Return:
+        none
+    """
     if isinstance(image, str):
         im = Image.open(image)
     else:
@@ -98,8 +110,18 @@ def cut_image(image, char):
     
     w = config_reader.g_width
     h = config_reader.g_height
-    c_w, c_h = char.size
-    c_x, c_y = char.pos
+    
+    if not size:
+        size = [w * 0.3, h * 0.3]
+
+    c_x, c_y = focus
+    c_w, c_h = size
+    
+    # 防止剪切后的图片超出原始图片范围
+    if c_w > w:
+        c_x = c_x - (c_w - w)
+    if c_h > h:
+        c_y = c_y - (c_h - h)
     
     x_ratio = (c_w + 100) / w
     y_ratio = (c_h + 100) / h
