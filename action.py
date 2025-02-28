@@ -68,12 +68,48 @@ class Action:
                 big_image.close()
 
     def __display(self):
-        """将当前动作的角色显示在背景上"""
-        self.char.display = True
+        """将当前动作的角色显示在背景上
+        
+        Example:
+          -
+            名称: 显示
+            角色: 花荣 宋江 燕顺 王英 郑天寿
+            渲染顺序: 1
+          -
+            名称: 显示
+            角色: 花荣
+            渲染顺序: 2
+        """
+        if ' ' in self.obj.get("角色"):
+            str_chars = self.obj.get("角色")
+            for str_char in str_chars.split(" "):
+                c = self.__get_char(str_char)
+                if c:
+                    c.display = True
+        else:
+            self.char.display = True
 
     def __disappear(self):
-        """让角色消失"""
-        self.char.display = False
+        """让角色消失
+        
+        Example:
+          -
+            名称: 消失
+            角色: 花荣 宋江 燕顺 王英 郑天寿
+            渲染顺序: 1
+          -
+            名称: 消失
+            角色: 花荣
+            渲染顺序: 2
+        """
+        if ' ' in self.obj.get("角色"):
+            str_chars = self.obj.get("角色")
+            for str_char in str_chars.split(" "):
+                c = self.__get_char(str_char)
+                if c:
+                    c.display = False
+        else:
+            self.char.display = False
 
     def __camera(self, images, add_chars=False):
         """
@@ -668,6 +704,13 @@ class Action:
     def __init__(self, activity, obj):
         """
         初始化Action
+        
+        通用属性：
+        -
+          名称:         # 动作名称
+          角色:         # 角色列表中存在的角色“名字”
+          字幕颜色:     # 当前动作使用的字母颜色，如: black。如果没设置的话，会使用活动中的字幕颜色
+          渲染顺序:     # 当前动作在本次活动中的渲染顺序，默认是0。可以设置为整数，浮点数等数值类型
         """
         self.activity = activity
         self.obj = obj
