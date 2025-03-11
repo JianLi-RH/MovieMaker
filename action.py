@@ -28,7 +28,11 @@ class Action:
             if c.name == name:
                 if c.rotate == "左右" and not c.name.lower().startswith("gif"):
                     basename = os.path.basename(c.image)
-                    new_path = os.path.join(os.path.dirname(c.image), f"rotate_{basename}")
+                    if "rotate_" in basename:
+                        basename = basename.replace("rotate_", "")
+                    else:
+                        basename = f"rotate_{basename}"
+                    new_path = os.path.join(os.path.dirname(c.image), basename)
                     if not os.path.exists(new_path):
                         im_mirror = ImageOps.mirror(Image.open(c.image))
                         im_mirror.save(new_path)
@@ -517,6 +521,9 @@ class Action:
             持续时间: 
             开始位置: 
             结束位置: [-0.2, 0.55]
+            开始角度: 
+            结束角度: 左右
+            结束消失: 是    # 不能用在delay模式
             比例:   # 比例变化，开始比例 - 结束比例
             方式:   # 自然 / 旋转 / 眩晕 / 45 -- 如果是数字的话，会从初始位置旋转到给定角度 , 最后恢复原样
             字幕: #Yunyang, Male
@@ -532,6 +539,10 @@ class Action:
         """
         if not self.char:
             raise Exception("角色不存在")
+        
+        if self.obj.get("开始角度"):
+            self.char.rotate = self.obj.get("开始角度")
+            self.char = self.__get_char(self.char.name)
         
         start_pos = self.obj["开始位置"] if self.obj.get("开始位置", None) else self.char.pos
         start_pos = utils.covert_pos(start_pos)
@@ -626,8 +637,13 @@ class Action:
         pos = [] # 每一个元素：(tmp_pos, tmp_size, rotate)
         for i in range(0, total_image):
             pos.append((step_pos[i], step_size[i], step_rotates[i]))
-        
+     
         if delay_mode:
+            if self.obj.get("结束角度"):
+                self.char.rotate = self.obj.get("结束角度")
+                self.char = self.__get_char(self.char.name)
+                pos[-1] = (pos[-1][0], pos[-1][2], self.char.rotate)
+
             return pos
         
         for i in range(len(images)):
@@ -646,7 +662,14 @@ class Action:
             if big_image:
                 big_image.save(images[i])
                 big_image.close()
-
+    
+        if self.obj.get("结束角度"):
+            self.char.rotate = self.obj.get("结束角度")
+            self.char = self.__get_char(self.char.name)
+        
+        if self.obj.get("结束消失", None) == "是":
+            self.__disappear()
+            
         return []
 
     def __get_subtitle(self):
@@ -664,7 +687,7 @@ class Action:
             raise Exception("字幕错误: ", subtitles)
         start, end = 0, 0
         for subtitle in subtitles:
-            sPath = subtitle[3]
+            sPath = subtitle[3] # ["start", "end"， “text”， “music file”, xxx, xxx]
             if not os.path.exists(sPath):
                 # 使用科大讯飞接口生成语音
                 try:
@@ -725,7 +748,7 @@ class Action:
         if keep > 0:
             self.timespan = keep
         elif self.subtitle:
-            self.timespan = self.subtitle[-1][1] if self.subtitle else 0
+            self.timespan = self.subtitle[-1][1] if self.subtitle else 0 # 最后一个字幕的第二个字段就是全部字幕的时长
         elif self.activity.bgm:
             # 以活动的背景声音长度作为动作的长度
             self.timespan = AudioFileClip(self.activity.bgm).duration
