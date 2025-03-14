@@ -41,7 +41,7 @@ class Character():
         self.rotate = obj.get("角度") if obj.get("角度") else 0 # 显示角度
         self.display = True if obj.get("显示", None) == '是' else False # 默认不显示
         self.transparency = obj.get("透明度", 1) # 透明度取值 0 ～ 1： 0，完全透明；1， 完全不透明
-        self.index = int(obj.get("图层", 0)) # 角色显示的图层 （数值大的会覆盖数值小的）， 默认是0
+        self.index = int(obj.get("图层")) if obj.get("图层") else 0 # 角色显示的图层 （数值大的会覆盖数值小的）， 默认是0
         pass
 
 

@@ -642,7 +642,7 @@ class Action:
             if self.obj.get("结束角度"):
                 self.char.rotate = self.obj.get("结束角度")
                 self.char = self.__get_char(self.char.name)
-                pos[-1] = (pos[-1][0], pos[-1][2], self.char.rotate)
+                pos[-1] = (pos[-1][0], pos[-1][1], self.char.rotate)
 
             return pos
         
@@ -695,7 +695,7 @@ class Action:
                     ttsengine = self.obj.get("发音人引擎") if self.name == "gif" else self.char.tts_engine
                     AudioHelper.covert_text_to_sound(subtitle[2], sPath, speaker, ttsengine=ttsengine)
                 except Exception as e:
-                    print(f"Convert text failed: ", subtitle[2])
+                    print(f"Convert text failed: ", subtitle)
                     raise(e)
                     
             _length = AudioFileClip(sPath).duration

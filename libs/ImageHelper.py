@@ -10,6 +10,18 @@ import config_reader
 from scenario import Scenario
 import utils
 
+def __open_image(image):
+    """open image file
+    
+    Returns:
+    An ~PIL.Image.Image object.
+    """
+    try:
+        return Image.open(image)
+    except Exception as e:
+        print(f"Open image failed: {image}")
+        raise e
+
 
 def add_text_to_image(image, text, color = 'white', overwrite_image = False, mode='normal', text_list=None):
     """
@@ -30,7 +42,7 @@ def add_text_to_image(image, text, color = 'white', overwrite_image = False, mod
     if not text:
         return
     font_size = config_reader.font_size
-    im = Image.open(image)
+    im = __open_image(image=image)
     m = ImageDraw.Draw(im)
     # Add Text to an image
     x, y = im.size
@@ -104,7 +116,7 @@ def cut_image_by_focus(image, focus, size=None):
         none
     """
     if isinstance(image, str):
-        im = Image.open(image)
+        im = __open_image(image=image)
     else:
         im = image
     
@@ -212,7 +224,7 @@ def resize_image(image):
     Params:
         image: 图片地址
     """
-    im = Image.open(image)
+    im = __open_image(image=image)
     im.resize((config_reader.g_width, config_reader.g_height)).save(image)
     im.close()
 
@@ -248,14 +260,18 @@ def paint_char_on_image(char,
     if reduce_light != 0 or alpha != 1:
         small_image = dark_image(small_image, reduce_light=reduce_light, alpha=alpha)
     
-    return merge_two_image(small_image=small_image, 
-                           size=char.size, 
-                           pos=char.pos, 
-                           big_image=image, 
-                           big_image_obj=image_obj,
-                           rotate=char.rotate, 
-                           overwrite=overwrite,
-                           save=save)
+    try:
+        return merge_two_image(small_image=small_image, 
+                            size=char.size, 
+                            pos=char.pos, 
+                            big_image=image, 
+                            big_image_obj=image_obj,
+                            rotate=char.rotate, 
+                            overwrite=overwrite,
+                            save=save)
+    except Exception as e:
+        print("Paint char failed: ", char.obj)
+        raise e
 
 def merge_two_image(small_image, 
                     size, 
@@ -386,7 +402,7 @@ def dark_image(image, reduce_light=100, alpha=1):
     """
     image_obj = image
     if not isinstance(image, Image.Image):
-        image_obj = Image.open(image)
+        image_obj = __open_image(image=image)
     total_w, total_h = image_obj.size
     for i in range(0, total_w):
         for j in range(0, total_h):
