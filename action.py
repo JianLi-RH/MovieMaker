@@ -523,7 +523,7 @@ class Action:
             结束位置: [-0.2, 0.55]
             开始角度: 
             结束角度: 左右
-            结束消失: 是    # 不能用在delay模式
+            结束消失: 是
             比例:   # 比例变化，开始比例 - 结束比例
             方式:   # 自然 / 旋转 / 眩晕 / 45 -- 如果是数字的话，会从初始位置旋转到给定角度 , 最后恢复原样
             字幕: #Yunyang, Male
@@ -770,7 +770,8 @@ class Action:
             延迟模式下不更新图片，返回当前角色的运行轨迹, 例如：
             {
                 "char": self.char, 
-                "position": delay_positions
+                "position": delay_positions,
+                "disappear_end": True  # 结束后隐藏角色
             }
         """
         try:
@@ -813,10 +814,14 @@ class Action:
             self.__add_subtitle(images)
             duration = datetime.datetime.now() - start
             print(f"添加动作字幕【{self.name} - {self.render_index}】， 共花费：{duration.seconds}秒")
-            return {
+            result = {
                 "char": self.char, 
                 "position": delay_positions
             }
+            if self.obj.get("结束消失", None) == "是":
+                result["disappear_end"] = True
+            return result
+            
         except Exception as e:
             print(f"Error: 动作名： {self.name} - 渲染顺序： {self.render_index}")
             raise(e)

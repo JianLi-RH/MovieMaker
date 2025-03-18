@@ -279,6 +279,11 @@ class Activity:
                         if big_image:
                             big_image.save(delay_images[j])
                             big_image.close()
+                
+                for char_pos in delay_positions:
+                    # 结束后隐藏角色
+                    if char_pos.get("disappear_end", None):
+                        char_pos["char"].display = False
             
             # 检查遗漏的背景图片
             if i == (len(self.action_list) - 1) and max(action_ends) < len(images):
