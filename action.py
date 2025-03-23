@@ -328,11 +328,23 @@ class Action:
         角色: 鲁智深
         焦点: [0.05, 0.65]  # 焦点 和 变化 不能同时设置，变化的优先级更高
         高亮: 是
-        变化:  # 可以是： 0 - 1数字； 近景；
+        变化:  # 可以是： 1, 空值, 这种情况人物会上下跳动5个像素; 2, (0 - 1)数字实现拉近效果; 3, 近景； 4, 一组新图片
         字幕: #Yunyang, Male
             - ['','', '你这斯诈死', '水浒传/第四回/打死镇关西/你这斯诈死.mp3']
             - ['','', '等我回家再与你理会', '水浒传/第四回/打死镇关西/等我回家再与你理会.mp3']
-        渲染顺序: 5
+        渲染顺序: 0
+        -
+        名称: 说话
+        角色: 宋江
+        焦点: 
+        高亮: 
+        变化: 
+            - 水浒传/人物/宋江3.png
+            - 水浒传/人物/宋江4.png
+        字幕: 
+        - ['','', '宋江在此谢谢各位好汉相救', '水浒传/第一百六回/商议报仇/宋江在此谢谢各位好汉相救.mp3']
+        - ['','', '只恨黄文炳至今逍遥自在', '水浒传/第一百六回/商议报仇/只恨黄文炳至今逍遥自在.mp3']
+        渲染顺序: 1
             
         Params:
             images: 背景图片
@@ -346,10 +358,35 @@ class Action:
         
         hightlight = self.obj.get("高亮") == "是"
         gif_index = 0
+        
+        # 为角色说话做准备
+        pos = self.char.pos[:]
+        initial = True
+        img_index = 0
+        initial_char_img = self.char.image
+        char_images = self.obj.get("变化") # 只有当变化是多个图片时才有用
+                
         for img in images:
             big_image = None
             if hightlight:
                 big_image = ImageHelper.dark_image(img)
+            
+            if not self.obj.get("变化", None) and not self.obj.get("焦点", None):
+                # 当没有设置 变化 和 焦点 的时候
+                # 让角色说话的时候有上下跳动的感觉 
+                if initial:
+                    self.char.pos[1] -= 5
+                else:
+                    self.char.pos[1] += 5
+                initial = not initial
+            elif isinstance(self.obj.get("变化"), list):
+                # 当 变化 是一组图片的时候
+                # 使用多个图片，实现角色说话的效果
+                if img_index == len(char_images):
+                    img_index = 0
+                self.char.image = char_images[img_index]
+                img_index += 1
+            
             for _char in sorted_char_list:
                 if _char.display:
                     dark = False
@@ -367,6 +404,9 @@ class Action:
                 big_image.close()
             gif_index += 1
 
+        self.char.pos = pos
+        self.char.image = initial_char_img
+
         if self.obj.get("变化", None):
             if isinstance(self.obj.get("变化"), float):
                 # 图片有缩放的时候才需要调用镜头方法
@@ -378,7 +418,6 @@ class Action:
             focus = utils.covert_pos(self.obj.get("焦点", None))
             for img in images:
                 ImageHelper.cut_image_by_focus(img, focus)
-            
         return []
     
     def __turn(self, images, sorted_char_list, delay_mode: bool):
@@ -630,7 +669,7 @@ class Action:
             step_y = (end_pos[1] - start_pos[1]) / frames
             
             for j in range(0, frames):
-                tmp_pos = (int(start_pos[0] + step_x * j), int(start_pos[1] + step_y * j))
+                tmp_pos = [int(start_pos[0] + step_x * j), int(start_pos[1] + step_y * j)]
                 step_pos.append(tmp_pos)
             start_pos = end_pos # 重新设置轨迹的开始坐标
         
@@ -775,7 +814,6 @@ class Action:
             }
         """
         try:
-            
             start = datetime.datetime.now()
             
             # [[tmp_pos, tmp_size, rotate], [tmp_pos, tmp_size, rotate]] 

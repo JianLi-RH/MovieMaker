@@ -89,7 +89,7 @@ def covert_pos(pos):
         if y_center > -1 and y_center < 2:
             y_center = config_reader.g_height * y_center
 
-        return (int(x_center), int(y_center))
+        return [int(x_center), int(y_center)]
     except Exception as e:
         print("不支持的坐标: ", pos)
         raise(e)

@@ -36,7 +36,7 @@ class Character():
             self.gif_frames = []
         self.tts_engine = obj.get("发音人引擎") if obj.get("发音人引擎") else config_reader.tts_engine
         self.speaker = obj.get("发音人", None)
-        self.pos = utils.covert_pos(obj.get("位置", None)) # 位置
+        self.pos = utils.covert_pos(obj.get("位置")) # 位置
         self.size = obj.get("大小", None) # 位置    #大小
         self.rotate = obj.get("角度") if obj.get("角度") else 0 # 显示角度
         self.display = True if obj.get("显示", None) == '是' else False # 默认不显示

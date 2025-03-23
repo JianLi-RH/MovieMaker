@@ -228,7 +228,7 @@ def resize_image(image):
     im.resize((config_reader.g_width, config_reader.g_height)).save(image)
     im.close()
 
-def paint_char_on_image(char, 
+def paint_char_on_image(*, char, 
                         image=None, 
                         image_obj=None, 
                         overwrite=False, 
