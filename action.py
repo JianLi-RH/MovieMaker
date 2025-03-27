@@ -579,7 +579,7 @@ class Action:
         if not self.char:
             raise Exception("角色不存在")
         
-        if self.obj.get("开始角度"):
+        if self.obj.get("开始角度") != None:
             self.char.rotate = self.obj.get("开始角度")
             self.char = self.__get_char(self.char.name)
         
@@ -678,7 +678,7 @@ class Action:
             pos.append((step_pos[i], step_size[i], step_rotates[i]))
      
         if delay_mode:
-            if self.obj.get("结束角度"):
+            if self.obj.get("结束角度") != None:
                 self.char.rotate = self.obj.get("结束角度")
                 self.char = self.__get_char(self.char.name)
                 pos[-1] = (pos[-1][0], pos[-1][1], self.char.rotate)
@@ -702,11 +702,11 @@ class Action:
                 big_image.save(images[i])
                 big_image.close()
     
-        if self.obj.get("结束角度"):
+        if self.obj.get("结束角度") != None:
             self.char.rotate = self.obj.get("结束角度")
             self.char = self.__get_char(self.char.name)
         
-        if self.obj.get("结束消失", None) == "是":
+        if self.obj.get("结束消失", "否") == "是":
             self.__disappear()
             
         return []
@@ -856,7 +856,7 @@ class Action:
                 "char": self.char, 
                 "position": delay_positions
             }
-            if self.obj.get("结束消失", None) == "是":
+            if self.obj.get("结束消失", "否") == "是":
                 result["disappear_end"] = True
             return result
             
