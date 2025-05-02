@@ -110,10 +110,19 @@ class Activity:
         if self.subtitle:
             if isinstance(self.subtitle, str):
                 # 处理字幕文件
-                self.subtitle = utils.get_sub_title_list(self.subtitle)
+                self.subtitle = AudioHelper.get_sub_title_list(self.subtitle)
             for sb in self.subtitle:
-                if len(sb) > 3 and sb[3]:
-                    subtitle_length += AudioFileClip(sb[3]).duration
+                sPath = sb[3]
+                if not os.path.exists(sPath):
+                    # 使用科大讯飞接口生成语音
+                    try:
+                        speaker = self.obj.get("发音人")
+                        ttsengine = self.obj.get("发音人引擎")
+                        AudioHelper.covert_text_to_sound(sb[2], sPath, speaker, ttsengine=ttsengine)
+                    except Exception as e:
+                        print(f"Convert text failed: ", sb[2])
+                        raise(e)
+                subtitle_length += AudioFileClip(sPath).duration
 
         # 全部动作的长度
         action_length = 0.0
