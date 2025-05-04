@@ -328,7 +328,7 @@ class Action:
         角色: 鲁智深
         焦点: [0.05, 0.65]  # 焦点 和 变化 不能同时设置，变化的优先级更高
         高亮: 是
-        变化:  # 可以是： 1, 空值, 这种情况人物会上下跳动5个像素; 2, (0 - 1)数字实现拉近效果; 3, 近景； 4, 一组新图片
+        变化:  # 可以是： 1, 空值, 这种情况人物会上下跳动5个像素; 2, (0 - 1)数字实现拉近效果; 3, 近景； 4, 一组新图片； 5, 震惊
         字幕: #Yunyang, Male
             - ['','', '你这斯诈死', '水浒传/第四回/打死镇关西/你这斯诈死.mp3']
             - ['','', '等我回家再与你理会', '水浒传/第四回/打死镇关西/等我回家再与你理会.mp3']
@@ -361,12 +361,16 @@ class Action:
         
         # 为角色说话做准备
         pos = self.char.pos[:]
+        size = self.char.size[:]
         initial = True
         img_index = 0
         initial_char_img = self.char.image
         char_images = self.obj.get("变化") # 只有当变化是多个图片时才有用
                 
-        for img in images:
+        # for img in images:
+        total_image = len(images)
+        for i in range(total_image):
+            img = images[i]
             big_image = None
             if hightlight:
                 big_image = ImageHelper.dark_image(img)
@@ -386,6 +390,10 @@ class Action:
                     img_index = 0
                 self.char.image = char_images[img_index]
                 img_index += 1
+            elif self.obj.get("变化") == "震惊":
+                # 角色最多拉长当前y坐标的50%
+                self.char.pos[1] -= pos[1] * 0.5 * i / total_image
+                self.char.size[1] += pos[1] * 0.5 * i / total_image
             
             for _char in sorted_char_list:
                 if _char.display:
@@ -405,6 +413,7 @@ class Action:
             gif_index += 1
 
         self.char.pos = pos
+        self.char.size = size
         self.char.image = initial_char_img
 
         if self.obj.get("变化", None):
@@ -414,6 +423,7 @@ class Action:
             elif self.obj.get("变化") == "近景":
                 for img in images:
                     ImageHelper.cut_image(img, self.char)
+                
         elif self.obj.get("焦点", None):
             focus = utils.covert_pos(self.obj.get("焦点", None))
             for img in images:
@@ -612,7 +622,7 @@ class Action:
             else:   # [0.2, 0.2] -- 百分比
                 ratio_x = (ratio[1] - ratio[0]) / len(images)
                 ratio_y = ratio_x
-                start_size = (ratio[0] * img_w, ratio[0] * img_h)
+                start_size = [ratio[0] * img_w, ratio[0] * img_h]
         else:
             try:
                 # ratio是最终显示比例， 如 0.4
@@ -654,7 +664,7 @@ class Action:
             
         step_size = []
         for i in range(0, total_image):
-            tmp_size = (int(start_size[0] * (1 + ratio_x * i)), int(start_size[1] * (1 + ratio_y * i)))
+            tmp_size = [int(start_size[0] * (1 + ratio_x * i)), int(start_size[1] * (1 + ratio_y * i))]
             step_size.append(tmp_size)
         
         step_pos = []
