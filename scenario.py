@@ -26,7 +26,14 @@ class Scenario:
         if original_image.lower().endswith(".gif"):
             return original_image
         new_path = os.path.join(config_reader.output_dir, os.path.basename(original_image))
-        shutil.copy(original_image, new_path)
+        if self.dark: # 先不判断值
+            if isinstance(self.dark, int):
+                obj = ImageHelper.dark_image(original_image, reduce_light=self.dark)
+            else:
+                obj = ImageHelper.dark_image(original_image)
+            obj.save(new_path)
+        else:
+            shutil.copy(original_image, new_path)
         ImageHelper.resize_image(new_path)
         return ImageHelper.zoom_in_out_image(new_path, self.focus, self.ratio)
 
@@ -43,6 +50,7 @@ class Scenario:
         self.name = obj.get("名字", None)
         self.focus = obj.get("焦点", "中心")    # 镜头对准的中心点
         self.ratio = float(obj.get("比例", 1)) # 显示背景图片的比例 （注意总大小仍然在config.ini中配置）
+        self.dark = obj.get("天色", None)   # 增加背景图片暗度
         self.background_image = self.__create_bg_image(SuCaiHelper.get_material(obj.get("背景")))
         self.bgm = obj.get("背景音乐", None)
         __chars = []
