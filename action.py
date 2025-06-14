@@ -573,6 +573,7 @@ class Action:
             开始角度: 
             结束角度: 左右
             结束消失: 是
+            延迟: 
             比例:   # 比例变化，开始比例 - 结束比例
             方式:   # 自然 / 旋转 / 眩晕 / 45 -- 如果是数字的话，会从初始位置旋转到给定角度 , 最后恢复原样
             字幕: #Yunyang, Male
@@ -595,6 +596,7 @@ class Action:
         
         start_pos = self.obj["开始位置"] if self.obj.get("开始位置", None) else self.char.pos
         start_pos = utils.covert_pos(start_pos)
+        start_rotate = self.char.rotate
         # end_pos_list可以是一个固定位置， 如 [230, 120]，
         # 也可以是一组位置坐标， 如 [[230, 120]， [330, 180]， [450, 320]]
         end_pos_list = self.obj.get("结束位置", None)
@@ -606,8 +608,16 @@ class Action:
         # [[120, 200], [10, 12]] --> 变化前后的具体像素
         ratio = self.obj["比例"] if self.obj.get("比例") else 1
         mode = self.obj.get("方式", None)
-        
-        self.char.display = True # 强制显示当前角色
+
+        # 延迟执行动作，
+        # 通常用在delay模式下，等待其他角色执行动作后再执行
+        delay = self.obj.get("延迟", 0)
+        if delay and isinstance(delay, float):
+            delay_images_length = int(delay * config_reader.fps)
+        else:
+            delay_images_length = 0
+            
+        walk_images = images[delay_images_length:]
 
         img1 = Image.open(self.char.image)
         img_w, img_h = img1.size    # 角色图片的原始尺寸
@@ -616,11 +626,11 @@ class Action:
         # 计算每一帧的大小变化
         if isinstance(ratio, list):
             if isinstance(ratio[0], list) and isinstance(ratio[1], list): # [(180,220), (80,100)] -- 变化前后的具体像素
-                ratio_x = (ratio[1][0] - ratio[0][0]) / len(images)
-                ratio_y = (ratio[1][1] - ratio[0][1]) / len(images)
+                ratio_x = (ratio[1][0] - ratio[0][0]) / len(walk_images)
+                ratio_y = (ratio[1][1] - ratio[0][1]) / len(walk_images)
                 start_size = ratio[0]
             else:   # [0.2, 0.2] -- 百分比
-                ratio_x = (ratio[1] - ratio[0]) / len(images)
+                ratio_x = (ratio[1] - ratio[0]) / len(walk_images)
                 ratio_y = ratio_x
                 start_size = [ratio[0] * img_w, ratio[0] * img_h]
         else:
@@ -629,7 +639,7 @@ class Action:
                 ratio = float(ratio)
             except:
                 ratio = 1 # 默认比例不变
-            ratio_x = (ratio - 1) / len(images)
+            ratio_x = (ratio - 1) / len(walk_images)
             ratio_y = ratio_x
             start_size = self.char.size
         
@@ -638,11 +648,11 @@ class Action:
             end_pos_list = [end_pos_list]
 
         steps = len(end_pos_list)
-        frames = int(1/steps * len(images)) # 平均分配每一个路线需要的帧数
+        frames = int(1/steps * len(walk_images)) # 平均分配每一个路线需要的帧数
         
         # mode ["自然", "旋转", "眩晕", 数字]:
         step_rotates = []
-        total_image = len(images)
+        total_image = len(walk_images)
         if mode == "旋转":
             _step_rotate = 360 * config_reader.round_per_second / self.activity.fps  # 每秒旋转圈数
             step_rotates = [self.char.rotate + num * _step_rotate for num in range(0, total_image)]
@@ -684,8 +694,18 @@ class Action:
             start_pos = end_pos # 重新设置轨迹的开始坐标
         
         pos = [] # 每一个元素：(tmp_pos, tmp_size, rotate)
-        for i in range(0, total_image):
-            pos.append((step_pos[i], step_size[i], step_rotates[i]))
+        for i in range(len(images)):
+            if i < delay_images_length:
+                if self.char.display:
+                    pos.append((start_pos, start_size, start_rotate))
+                else:
+                    pos.append(())
+            else:
+                # 重新开始计数
+                new_step = i - delay_images_length
+                pos.append((step_pos[new_step], step_size[new_step], step_rotates[new_step]))
+        
+        self.char.display = True # 强制显示当前角色
      
         if delay_mode:
             if self.obj.get("结束角度") != None:
@@ -734,7 +754,7 @@ class Action:
         subtitles = self.obj.get("字幕") if self.obj.get("字幕") else []
         if not isinstance(subtitles, list):
             raise Exception("字幕错误: ", subtitles)
-        start, end = 0, 0
+        end = 0
         for subtitle in subtitles:
             sPath = subtitle[3] # ["start", "end"， “text”， “music file”, xxx, xxx]
             if not os.path.exists(sPath):
@@ -748,10 +768,14 @@ class Action:
                     raise(e)
                     
             _length = AudioFileClip(sPath).duration
-            end = start + _length
-            subtitle[0] = start
-            subtitle[1] = end
-            start = end
+            if not subtitle[0]:
+                # 字母设置了开始时间
+                subtitle[0] = end
+            else:
+                subtitle[0] = float(subtitle[0])
+            subtitle[1] = float(subtitle[0]) + _length
+
+            end = subtitle[1]
             
         return subtitle_color, subtitles
         

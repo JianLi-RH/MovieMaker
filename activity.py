@@ -94,11 +94,10 @@ class Activity:
             rendered_action_list.sort(key=lambda x: int(x[0].get("index", 0)))
         return rendered_action_list
 
-    def __get_timespan(self, obj):
+    def __get_timespan(self):
         """获取活动总时间，单位秒
 
         Pramas:
-            obj: 活动对象的yaml
         Return:
             活动总时长。单位秒
         """
@@ -116,8 +115,8 @@ class Activity:
                 if not os.path.exists(sPath):
                     # 使用科大讯飞接口生成语音
                     try:
-                        speaker = self.obj.get("发音人")
-                        ttsengine = self.obj.get("发音人引擎")
+                        speaker = self.obj.get("发音人", "")
+                        ttsengine = self.obj.get("发音人引擎", "")
                         AudioHelper.covert_text_to_sound(sb[2], sPath, speaker, ttsengine=ttsengine)
                     except Exception as e:
                         print(f"Convert text failed: ", sb[2])
@@ -174,6 +173,7 @@ class Activity:
             obj: script里面的脚本片段
         """
         self.scenario = scenario
+        self.obj = obj
         self.name = obj.get("名字")
         self.description = obj.get("描述", "")
         self.subtitle = obj.get("字幕") if obj.get("字幕") else []
@@ -184,7 +184,7 @@ class Activity:
         self.keep = utils.get_time(obj.get("持续时间", None))
         self.bgm = obj.get("背景音乐", None)
         self.actions = [Action(self, action) for action in obj.get("动作")] if obj.get("动作") else []
-        self.timespan = self.__get_timespan(obj)    # 活动的总长度
+        self.timespan = self.__get_timespan()    # 活动的总长度
         self.fps = int(obj.get("fps")) if obj.get("fps") else config_reader.fps
         self.total_frame = math.ceil(self.timespan * self.fps)   # 根据当前活动的总时长，得到当前活动所需的视频总帧数
         self.action_list = self.__get_render_list()
@@ -270,7 +270,7 @@ class Activity:
                             if isinstance(_char, Character) and not _char.display:
                                 continue
                             for char_pos in delay_positions:
-                                if _char == char_pos["char"]:
+                                if _char == char_pos["char"] and char_pos["position"][j]:
                                     delay_pos = char_pos["position"][j]
                                     _char.pos = delay_pos[0]
                                     _char.size = delay_pos[1]
@@ -279,6 +279,9 @@ class Activity:
                                     if len(delay_pos) > 3:
                                         _char.image = delay_pos[3]
                                     break
+                            
+                            if not char_pos["position"][j]:
+                                continue
                             _, big_image = ImageHelper.paint_char_on_image(char=_char, 
                                                                            image=delay_images[j],
                                                                            image_obj=big_image,
