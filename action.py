@@ -6,6 +6,7 @@ import datetime
 
 from moviepy import *
 from PIL import Image, ImageOps
+from pydub import AudioSegment
 
 import config_reader
 import utils
@@ -425,9 +426,16 @@ class Action:
                     ImageHelper.cut_image(img, self.char)
                 
         elif self.obj.get("焦点", None):
-            focus = utils.covert_pos(self.obj.get("焦点", None))
-            for img in images:
-                ImageHelper.cut_image_by_focus(img, focus)
+            if isinstance(self.obj.get("焦点"), str):
+                _focusChar = self.__get_char(self.obj.get("焦点"))
+                if _focusChar:
+                    focus = (_focusChar.pos[0] + _focusChar.size[0]/2, _focusChar.pos[1] + _focusChar.size[1]/2, )
+            else:
+                focus = utils.covert_pos(self.obj.get("焦点", None))
+
+            if focus:
+                for img in images:
+                    ImageHelper.cut_image_by_focus(img, focus)
         return []
     
     def __turn(self, images, sorted_char_list, delay_mode: bool):
@@ -573,6 +581,7 @@ class Action:
             开始角度: 
             结束角度: 左右
             结束消失: 是
+            结束图层: 8
             延迟: 
             比例:   # 比例变化，开始比例 - 结束比例
             方式:   # 自然 / 旋转 / 眩晕 / 45 -- 如果是数字的话，会从初始位置旋转到给定角度 , 最后恢复原样
@@ -694,7 +703,8 @@ class Action:
             start_pos = end_pos # 重新设置轨迹的开始坐标
         
         pos = [] # 每一个元素：(tmp_pos, tmp_size, rotate)
-        for i in range(len(images)):
+        total_image_length = len(images)
+        for i in range(total_image_length):
             if i < delay_images_length:
                 if self.char.display:
                     pos.append((start_pos, start_size, start_rotate))
@@ -706,16 +716,26 @@ class Action:
                 pos.append((step_pos[new_step], step_size[new_step], step_rotates[new_step]))
         
         self.char.display = True # 强制显示当前角色
+        
+        if self.obj.get("结束角度"):
+            basename = os.path.basename(self.char.image)
+            if "rotate_" in basename and self.obj.get("结束角度") == "左右":
+                pos[-1] = (pos[-1][0], pos[-1][1], 0)
+            else:
+                pos[-1] = (pos[-1][0], pos[-1][1], self.obj.get("结束角度"))
      
         if delay_mode:
-            if self.obj.get("结束角度") != None:
-                self.char.rotate = self.obj.get("结束角度")
-                self.char = self.__get_char(self.char.name)
-                pos[-1] = (pos[-1][0], pos[-1][1], self.char.rotate)
-
             return pos
         
-        for i in range(len(images)):
+        for i in range(total_image_length):
+            if i == (total_image_length - 1):
+                if self.obj.get("结束角度"):
+                    self.char.rotate = self.obj.get("结束角度")
+                    self.char = self.__get_char(self.char.name)
+                if self.obj.get("结束图层"):
+                    self.char.render_index = self.obj.get("结束图层")
+                    self.char = self.__get_char(self.char.name)
+            
             big_image = None
             for _char in sorted_char_list:
                 if _char.name == self.char.name:
@@ -731,10 +751,6 @@ class Action:
             if big_image:
                 big_image.save(images[i])
                 big_image.close()
-    
-        if self.obj.get("结束角度") != None:
-            self.char.rotate = self.obj.get("结束角度")
-            self.char = self.__get_char(self.char.name)
         
         if self.obj.get("结束消失", "否") == "是":
             self.__disappear()
@@ -766,8 +782,15 @@ class Action:
                 except Exception as e:
                     print(f"Convert text failed: ", subtitle)
                     raise(e)
-                    
-            _length = AudioFileClip(sPath).duration
+            try:
+                _length = AudioFileClip(sPath).duration
+            except:
+                try:
+                    _audio = AudioSegment.from_file(sPath)
+                    _length = len(_audio) / 1000.0
+                except Exception as e:
+                    print(f"Get music length failed: ", sPath)
+                    raise(e)
             if not subtitle[0]:
                 # 字母设置了开始时间
                 subtitle[0] = end
