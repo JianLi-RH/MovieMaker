@@ -9,6 +9,22 @@ import config_reader
 
 import random
 
+def is_float(element: any) -> bool:
+    """判断一个变量是不是float
+
+    Params:
+        element: 任意变量
+    Return:
+        true: 是float, false: 不是float
+    """
+    if element is None: 
+        return False
+    try:
+        float(element)
+        return True
+    except ValueError:
+        return False
+
 def get_random_str(length=8):
     """生成一个随即字符串
 
