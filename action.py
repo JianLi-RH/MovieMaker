@@ -3,6 +3,7 @@
 """
 import os
 import datetime
+import random
 
 from moviepy import *
 from PIL import Image, ImageOps
@@ -207,21 +208,24 @@ class Action:
         chars = sorted(chars, key=lambda x: x.pos[0])
 
         delay_positions = []
+        
+        pos1 = (random.randint(-200,200), random.randint(-200,200))
+        pos2 = (random.randint(-200,200), random.randint(-200,200))
+        pos3 = (random.randint(-200,200), random.randint(-200,200))
+        
         for i in range(0, len(chars)):
             self.char = chars[i]
             initial_pos = self.char.pos # 起始位置
             # 固定变化的3个位置
             if i % 2 == 0:
-                x_arr = [200, -100, 200]
-                y_arr = [200, -200, 200]
+                xy_arr = (pos1, pos2, pos3)
             else:
-                x_arr = [-200, 100, -200]
-                y_arr = [-200, 200, -200]
+                xy_arr = ((-pos1[0], -pos1[1]), (-pos2[0], -pos2[1]), (-pos3[0], -pos3[1]))
                 
             self.obj["结束位置"] = [
-                [self.char.pos[0] + x_arr[0], self.char.pos[1] + y_arr[0]],
-                [self.char.pos[0] + x_arr[1], self.char.pos[1] + y_arr[1]],
-                [self.char.pos[0] + x_arr[2], self.char.pos[1] + y_arr[2]],
+                [self.char.pos[0] + xy_arr[0][0], self.char.pos[1] + xy_arr[0][1]],
+                [self.char.pos[0] + xy_arr[1][0], self.char.pos[1] + xy_arr[1][1]],
+                [self.char.pos[0] + xy_arr[2][0], self.char.pos[1] + xy_arr[2][1]],
                 initial_pos]# 使角色恢复起始位置
             self.obj["方式"] = "旋转"
             pos = self.__walk(images, sorted_char_list=sorted_char_list,delay_mode=True)
@@ -357,6 +361,9 @@ class Action:
         if delay_mode:
             return [(self.char.pos, self.char.size, self.char.rotate) for i in range(len(images))]
         
+        # 强制显示角色
+        self.char.display = True
+        
         hightlight = self.obj.get("高亮") == "是"
         gif_index = 0
         
@@ -429,7 +436,9 @@ class Action:
             if isinstance(self.obj.get("焦点"), str):
                 _focusChar = self.__get_char(self.obj.get("焦点"))
                 if _focusChar:
-                    focus = (_focusChar.pos[0] + _focusChar.size[0]/2, _focusChar.pos[1] + _focusChar.size[1]/2, )
+                    x = _focusChar.pos[0] - 100 if _focusChar.pos[0] > 100 else 0
+                    y = _focusChar.pos[1] - 100 if _focusChar.pos[1] > 100 else 0
+                    focus = [x, y]
             else:
                 focus = utils.covert_pos(self.obj.get("焦点", None))
 
@@ -621,7 +630,7 @@ class Action:
         # 延迟执行动作，
         # 通常用在delay模式下，等待其他角色执行动作后再执行
         delay = self.obj.get("延迟", 0)
-        if delay and isinstance(delay, float):
+        if delay and utils.is_float(delay):
             delay_images_length = int(delay * config_reader.fps)
         else:
             delay_images_length = 0
@@ -687,20 +696,21 @@ class Action:
             step_size.append(tmp_size)
         
         step_pos = []
+        current_pos = start_pos[:]
         for i in range(steps):    # 例如：[[120, 200], [10, 12]]
             if i == steps - 1:
                 # 最后一步包含剩余的全部图片
-                frames = len(images) - (steps - 1) * frames
+                frames = len(walk_images) - (steps - 1) * frames
 
             end_pos = utils.covert_pos(end_pos_list[i])
             # 每一步在x,y方向的进度
-            step_x = (end_pos[0] - start_pos[0]) / frames
-            step_y = (end_pos[1] - start_pos[1]) / frames
+            step_x = (end_pos[0] - current_pos[0]) / frames
+            step_y = (end_pos[1] - current_pos[1]) / frames
             
             for j in range(0, frames):
-                tmp_pos = [int(start_pos[0] + step_x * j), int(start_pos[1] + step_y * j)]
+                tmp_pos = [int(current_pos[0] + step_x * j), int(current_pos[1] + step_y * j)]
                 step_pos.append(tmp_pos)
-            start_pos = end_pos # 重新设置轨迹的开始坐标
+            current_pos = end_pos # 重新设置轨迹的开始坐标
         
         pos = [] # 每一个元素：(tmp_pos, tmp_size, rotate)
         total_image_length = len(images)
@@ -717,7 +727,7 @@ class Action:
         
         self.char.display = True # 强制显示当前角色
         
-        if self.obj.get("结束角度"):
+        if self.obj.get("结束角度") != None:
             basename = os.path.basename(self.char.image)
             if "rotate_" in basename and self.obj.get("结束角度") == "左右":
                 pos[-1] = (pos[-1][0], pos[-1][1], 0)
