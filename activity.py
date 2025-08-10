@@ -241,28 +241,37 @@ class Activity:
             actions = self.action_list[i]
             delay_mode = len(actions) > 1   # 当同时运行多个动作的时候，需要在所有动作执行结束再绘制其他角色
             video_start = start/len(images) # action在整段视频中的开始位置，方便后面添加声音
-            delay_start = start
+            # delay_start = start
             action_ends = [0]
             delay_positions = []  # 被推迟的全部角色轨迹序列
+            
+            current_atc_end = start + round(actions[0]["action"].timespan * self.fps)
+            action_ends.append(current_atc_end)
+            if current_atc_end >= len(images):
+                delay_images = images[start:]
+            else:
+                delay_images = images[start:current_atc_end]
+                
             for act in actions:
                 if delay_mode and act["action"].name.lower() in ["更新", "显示", "消失", "镜头", "BGM"]:
                     raise Exception("动作【" + act["action"].name + "】不能使用delay模式（不能和其它动作同时运行）")
                 # 注意：一个活动（activity）中不能有两个`镜头`动作(action)
                 act["start"] = video_start  # 给action增加一个start属性
 
-                current_atc_end = start + round(act["action"].timespan * self.fps)
-                action_ends.append(current_atc_end)
-                if current_atc_end >= len(images):
-                    current_image_list = images[start:]
-                else:
-                    current_image_list = images[start:current_atc_end]
-                temp_delay_positions = act["action"].to_videoframes(current_image_list, self.scenario.chars, delay_mode)
+                # current_atc_end = start + round(act["action"].timespan * self.fps)
+                # action_ends.append(current_atc_end)
+                # if current_atc_end >= len(images):
+                #     current_image_list = images[start:]
+                # else:
+                #     current_image_list = images[start:current_atc_end]
+                # temp_delay_positions = act["action"].to_videoframes(current_image_list, self.scenario.chars, delay_mode)
+                temp_delay_positions = act["action"].to_videoframes(delay_images, self.scenario.chars, delay_mode)
                 
                 if delay_mode:
                     delay_positions.append(temp_delay_positions)
 
             if delay_mode:
-                delay_images = images[delay_start : max(action_ends)]
+                # delay_images = images[delay_start : max(action_ends)]
                 if delay_images:
                     for j in range(len(delay_images)):   # 在每张图片上绘制全部角色
                         big_image = None
@@ -280,13 +289,11 @@ class Activity:
                                         _char.image = delay_pos[3]
                                     break
                             
-                            if not char_pos["position"][j]:
-                                continue
                             _, big_image = ImageHelper.paint_char_on_image(char=_char, 
-                                                                           image=delay_images[j],
-                                                                           image_obj=big_image,
-                                                                           save=False,
-                                                                           gif_index=j)
+                                                                            image=delay_images[j],
+                                                                            image_obj=big_image,
+                                                                            save=False,
+                                                                            gif_index=j)
 
                         if big_image:
                             big_image.save(delay_images[j])
@@ -325,6 +332,21 @@ class Activity:
                     break
             start = max(action_ends)
 
+        draw_char_actions = set([act["action"].name for act_in_same_level in self.action_list for act in act_in_same_level]) - set({"显示", "消失"})
+        if not draw_char_actions:
+            # 如果所有的动作都没有绘制角色，则统一绘制一次
+            for img in images:
+                big_image = None
+                for _char in self.scenario.chars:
+                    if _char.display:
+                        _, big_image = ImageHelper.paint_char_on_image(char=_char, 
+                                                                      image=img, 
+                                                                      image_obj=big_image,
+                                                                      save=False)
+                if big_image:
+                    big_image.save(img)
+                    big_image.close()
+                    
         if self.subtitle:
             print("self.subtitle: \n", self.subtitle)
             # daemon：结束主进程的时候可以同时结束子线程
@@ -341,20 +363,6 @@ class Activity:
 
         # 等待所有线程完成
         q.join()
-        draw_char_actions = set([act["action"].name for act_in_same_level in self.action_list for act in act_in_same_level]) - set({"显示", "消失"})
-        if not draw_char_actions:
-            # 如果所有的动作都没有绘制角色，则统一绘制一次
-            for img in images:
-                big_image = None
-                for _char in self.scenario.chars:
-                    if _char.display:
-                        _, big_image = ImageHelper.paint_char_on_image(char=_char, 
-                                                                      image=img, 
-                                                                      image_obj=big_image,
-                                                                      save=False)
-                if big_image:
-                    big_image.save(img)
-                    big_image.close()
 
         # 先把图片转换成视频
         video = VideoHelper.create_video_clip_from_images(images, self.fps)
