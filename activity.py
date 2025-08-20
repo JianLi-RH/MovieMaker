@@ -29,6 +29,32 @@ def worker():
 class Activity:
     """The Activity(活动) class"""
 
+    def __convert_queue_to_walk_list(self, action_list: list):
+        """convert queue to walk action list
+        Param:
+            action_list: action list
+        """
+        actions = []
+        
+        for act in action_list:
+            if act.name == "队列":
+                chars = act.obj.get("角色").split(" ")
+                import copy
+                first = True
+                for char in chars:
+                    new_act = copy.deepcopy(act)
+                    new_act.name = "行进"
+                    new_act.char = self.__get_char(char)
+                    if not first:
+                        new_act.subtitle = []
+                    else:
+                        first = False
+                    actions.append(new_act)
+            else:
+                actions.append(act)
+        
+        return actions
+
     def __check_images(self):
         """第一次执行action的时候, images会是空的, 所以需要生成一组图片
 
@@ -61,6 +87,34 @@ class Activity:
 
         print("准备背景图片结束，共计", self.total_frame, "张图片")
         return images
+
+    def __get_char(self, name):
+        """查找指定名称的角色"""
+        if not name:
+            return None
+        if ' ' in name:
+            # 打斗等组合动作可以同时操作多个角色
+            # 因此不能在这里获取角色
+            return None
+        for c in self.scenario.chars:
+            if c.name == name:
+                if c.rotate == "左右" and not c.name.lower().startswith("gif"):
+                    basename = os.path.basename(c.image)
+                    if "rotate_" in basename:
+                        basename = basename.replace("rotate_", "")
+                    else:
+                        basename = f"rotate_{basename}"
+                    new_path = os.path.join(os.path.dirname(c.image), basename)
+                    if not os.path.exists(new_path):
+                        im_mirror = ImageOps.mirror(Image.open(c.image))
+                        im_mirror.save(new_path)
+                    c.image = new_path
+                    c.rotate = 0
+                elif c.rotate == "上下":
+                    c.rotate = 180
+                    
+                return c
+        raise Exception(f"角色【{name}】不存在, 渲染顺序：{self.render_index}")
 
     def __get_render_list(self):
         """获取渲染列表
@@ -184,6 +238,8 @@ class Activity:
         self.keep = utils.get_time(obj.get("持续时间", None))
         self.bgm = obj.get("背景音乐", None)
         self.actions = [Action(self, action) for action in obj.get("动作")] if obj.get("动作") else []
+        self.actions = self.__convert_queue_to_walk_list(self.actions)
+        
         self.timespan = self.__get_timespan()    # 活动的总长度
         self.fps = int(obj.get("fps")) if obj.get("fps") else config_reader.fps
         self.total_frame = math.ceil(self.timespan * self.fps)   # 根据当前活动的总时长，得到当前活动所需的视频总帧数
@@ -279,8 +335,15 @@ class Activity:
                             if isinstance(_char, Character) and not _char.display:
                                 continue
                             for char_pos in delay_positions:
-                                if _char == char_pos["char"] and char_pos["position"][j]:
-                                    delay_pos = char_pos["position"][j]
+                                if _char == char_pos["char"]:
+                                    if len(char_pos["position"]) > j:
+                                        delay_pos = char_pos["position"][j]
+                                    elif len(char_pos["position"]) > 0: 
+                                        delay_pos = char_pos["position"][-1]
+                                    else:
+                                        print("_char: ", _char.name)
+                                        continue
+                                    
                                     _char.pos = delay_pos[0]
                                     _char.size = delay_pos[1]
                                     _char.rotate = delay_pos[2]
@@ -288,6 +351,7 @@ class Activity:
                                     if len(delay_pos) > 3:
                                         _char.image = delay_pos[3]
                                     break
+                                    
                             
                             _, big_image = ImageHelper.paint_char_on_image(char=_char, 
                                                                             image=delay_images[j],

@@ -124,11 +124,15 @@ class Action:
         
         Example:
         -
-          名称: 镜头
-          持续时间: 1
-          焦点: 中心
-          变化: 
-          渲染顺序: 0
+            名称: 镜头
+            角色: 高俅
+            持续时间: 
+            焦点: [0.53, 0.68]
+            变化: 0.3
+            字幕: 
+            - ['','', '有如此大船', '水浒传/第二百一十九回/叶春/有如此大船.mp3']
+            - ['','', '梁山可破矣', '水浒传/第二百一十九回/叶春/梁山可破矣.mp3']
+            渲染顺序: 12
         """
         length = len(images)    # 总帧数
         if not self.activity.scenario.focus:
@@ -436,8 +440,8 @@ class Action:
             if isinstance(self.obj.get("焦点"), str):
                 _focusChar = self.__get_char(self.obj.get("焦点"))
                 if _focusChar:
-                    x = _focusChar.pos[0] - 100 if _focusChar.pos[0] > 100 else 0
-                    y = _focusChar.pos[1] - 100 if _focusChar.pos[1] > 100 else 0
+                    x = _focusChar.pos[0] - 50 if _focusChar.pos[0] > 50 else 0
+                    y = _focusChar.pos[1] - 50 if _focusChar.pos[1] > 50 else 0
                     focus = [x, y]
             else:
                 focus = utils.covert_pos(self.obj.get("焦点", None))
@@ -910,6 +914,22 @@ class Action:
                 delay_positions = self.__turn(images, sorted_char_list, delay_mode)
             elif action == "行进":
                 delay_positions = self.__walk(images, sorted_char_list, delay_mode)
+            elif action == "队列":
+                # 这是一个特殊动作， 在活动（activaty）中会被转换成一组walk 动作
+                # example:
+                # -
+                #     名称: 队列
+                #     角色: 宋江 卢俊义 花荣 吴用 公孙胜
+                #     开始位置: 
+                #     开始角度: 左右
+                #     结束位置: [-0.2, 0.73]
+                #     结束消失: 是
+                #     比例: 
+                #     字幕: 
+                #     - ['','', '', 'resources/ShengYin/跑步声.mp3']
+                #     方式: 
+                #     渲染顺序: 23
+                pass
             pass
 
             duration = datetime.datetime.now() - start
