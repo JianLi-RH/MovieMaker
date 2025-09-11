@@ -1,3 +1,8 @@
+# 准备工作
+    阅读 https://modelcontextprotocol.io/quickstart/server#set-up-your-environment 安装 uv
+    $ uv venv
+    $ source .venv/bin/activate
+    $ uv sync
 
 # 程序入口
 run.py
@@ -18,7 +23,7 @@ infos = error.decode("utf-8", errors="ignore")
 文字转语音: 
     https://voicemaker.in/
     https://www.text-to-speech.cn/  **********
-    https://www.zaixianai.cn/voiceCompose# 
+    https://www.zaixianai.cn/voiceCompose# 文字转语音
     https://peiyin.xunfei.cn/make
     https://www.luyinzhushou.com/text2voice/
     https://ttsmaker.com/
@@ -43,6 +48,10 @@ https://github.com/Zulko/moviepy/blob/master/Dockerfile
 生成熊猫举牌：http://c.tianhezulin.com/cx3/2825/
 合并图片： https://www.media.io/image-converter/merge-png.html
 
+# Settings
+本项目有两个配置文件/There are 2 settings file， 这么设计的初衷是为了让同一个项目支持多个用户，每个用户有自己的配置。
+## config.yaml
+## global_config.yaml
 
 # 字幕说明： 开始时间，结束时间，文字， 语音，角色名， 角色动作
 # 示例 (第5位如果指定了gif则使用这个gif， 否则使用第四位角色对应的图片通常隐藏角色可以这样使用)
