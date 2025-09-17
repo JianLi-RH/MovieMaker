@@ -42,9 +42,10 @@ class Activity:
                 import copy
                 first = True
                 for char in chars:
-                    new_act = copy.deepcopy(act)
-                    new_act.name = "行进"
-                    new_act.char = self.__get_char(char)
+                    act_obj = copy.deepcopy(act.obj)
+                    act_obj["名称"] = "行进"
+                    act_obj["角色"] = char
+                    new_act = Action(self, act_obj)
                     if not first:
                         new_act.subtitle = []
                     else:

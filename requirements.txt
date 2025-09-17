@@ -22,7 +22,7 @@ urllib3
 websocket-client
 # ChatTTs for text to sound
 # sudo dnf install python3-devel
-ChatTTS==0.2.3
+ChatTTS==0.2.4
 torchaudio==2.6.0
 transformers==4.48.0
 vector_quantize_pytorch==1.22.15
