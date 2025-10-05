@@ -64,7 +64,7 @@ def get_speaker(speaker='男'):
         return torch.tensor([float(x) for x in spk.split(",")])
     if isinstance(speaker, int):
         # https://www.ttslist.com/
-        # 男： 14 17 19 27 29 101 104 105 106 107 400 502 503 504 506 507 800 4200 6200 6400 8800
+        # 男： 14 17 19 27 29 101 104 105 106 107 400 502 503 504 506 507 800 4200 6200 6400
         # 中： 18
         # 女： 16 102 200 300 508？ 4100 6300 9600
         
@@ -80,7 +80,7 @@ def get_speaker(speaker='男'):
     return torch.tensor(sample, device=device)
 
 def covert_text_to_sound(text, output, speaker=None):
-    """获取发音人
+    """生成语音
     
     Params:
         text: 待生成语音的文本
@@ -96,8 +96,8 @@ def covert_text_to_sound(text, output, speaker=None):
     rand_speaker = get_speaker(speaker)
     params_infer_code = ChatTTS.Chat.InferCodeParams(
         spk_emb = rand_speaker, # add sampled speaker 
-        temperature = 0.3,   # using custom temperature
-        top_P = 0.7,        # top P decode 0 ～ 1
+        temperature = 0.4,   # using custom temperature
+        top_P = 0.8,        # top P decode 0 ～ 1
         top_K = 20,         # top K decode
         prompt="[speed_5]"   # 语速 0 ~ 9
     )

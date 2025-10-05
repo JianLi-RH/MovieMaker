@@ -4,9 +4,10 @@ from pydub import AudioSegment
 import TTSEngine
 import TTSEngine.chat
 import TTSEngine.xunfei_tts
+import TTSEngine.ttspro
 import config_reader
 
-def covert_text_to_sound(text, output, speaker, ttsengine="xunfei"):
+def covert_text_to_sound(text, output, speaker, ttsengine="xunfei", stype="calm"):
     """
     将文字转换成语音
 
@@ -14,6 +15,8 @@ def covert_text_to_sound(text, output, speaker, ttsengine="xunfei"):
         text: 文字
         output: 输出的语音文件
         speaker: 发音人
+        ttsengine: 文自传语音引擎， 暂时支持: chat, xunfei, ttspro
+        style： 语气
     Return:
         语音文件路径
     """
@@ -29,6 +32,8 @@ def covert_text_to_sound(text, output, speaker, ttsengine="xunfei"):
         return TTSEngine.xunfei_tts.covert_text_to_sound(text=text, output=output, speaker=speaker)
     elif ttsengine=="chat":
         return TTSEngine.chat.covert_text_to_sound(text=text, output=output, speaker=speaker)
+    elif ttsengine=="ttspro":
+        return TTSEngine.ttspro.covert_text_to_sound(text=text, output=output, speaker=speaker)
 
 def split_audio(audio_file: str, length=None, start=0):
     """截取音频文件
