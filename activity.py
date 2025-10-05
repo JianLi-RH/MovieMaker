@@ -31,6 +31,23 @@ class Activity:
 
     def __convert_queue_to_walk_list(self, action_list: list):
         """convert queue to walk action list
+        
+        Example:
+          -
+            名称: 队列
+            角色: 卢俊义 枪1 朱武 关胜 刀1 林冲 秦明 呼延灼 董平 徐宁 钩镰枪 杨志 索超 张清 朱仝 史进
+            开始位置: 
+            开始角度: 
+            结束位置: 
+            x:      # 整数， -100, 100
+            y:      # 整数， -100, 100
+            结束消失: 是
+            比例: 
+            字幕: 
+            - ['','', '', 'resources/ShengYin/跑步声.mp3']
+            方式: 
+            渲染顺序: 27
+        
         Param:
             action_list: action list
         """
@@ -45,6 +62,19 @@ class Activity:
                     act_obj = copy.deepcopy(act.obj)
                     act_obj["名称"] = "行进"
                     act_obj["角色"] = char
+                    if not act_obj["结束位置"]:
+                        if not act_obj["x"] and not act_obj["y"]:
+                            raise Exception("必须给出队列的结束位置")
+                        
+                        char_obj = self.__get_char(char)
+                        end_pos = char_obj.pos[:]
+                        if act_obj["x"]:
+                            end_pos[0] += int(act_obj["x"])
+                        if act_obj["y"]:
+                            end_pos[1] += int(act_obj["y"])
+                        
+                        act_obj["结束位置"] = end_pos
+                        
                     new_act = Action(self, act_obj)
                     if not first:
                         new_act.subtitle = []
@@ -115,7 +145,7 @@ class Activity:
                     c.rotate = 180
                     
                 return c
-        raise Exception(f"角色【{name}】不存在, 渲染顺序：{self.render_index}")
+        raise Exception(f"角色【{name}】不存在")
 
     def __get_render_list(self):
         """获取渲染列表
