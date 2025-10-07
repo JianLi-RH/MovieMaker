@@ -336,6 +336,7 @@ class Action:
         名称: 说话
         角色: 鲁智深
         焦点: [0.05, 0.65]  # 焦点 和 变化 不能同时设置，变化的优先级更高
+        角色名牌: 是
         高亮: 是
         变化:  # 可以是： 1, 空值, 这种情况人物会上下跳动5个像素; 2, (0 - 1)数字实现拉近效果; 3, 近景； 4, 一组新图片； 5, 震惊
         字幕: #Yunyang, Male
@@ -347,6 +348,7 @@ class Action:
         角色: 宋江
         焦点: 
         高亮: 
+        角色名牌: 是
         变化: 
             - 水浒传/人物/宋江3.png
             - 水浒传/人物/宋江4.png
@@ -418,6 +420,9 @@ class Action:
                                                                    save=False,
                                                                    gif_index=gif_index,
                                                                    dark=dark)
+                    
+                    if _char.name == self.char.name and self.obj.get("角色名牌"):
+                        big_image = ImageHelper.display_char_name(self.char, big_image, name=self.obj.get("角色名牌"))
 
             if big_image:
                 big_image.save(img)

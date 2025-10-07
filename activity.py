@@ -375,9 +375,12 @@ class Activity:
                                         print("_char: ", _char.name)
                                         continue
                                     
-                                    _char.pos = delay_pos[0]
-                                    _char.size = delay_pos[1]
-                                    _char.rotate = delay_pos[2]
+                                    if len(delay_pos) > 2:
+                                        _char.pos = delay_pos[0]
+                                        _char.size = delay_pos[1]
+                                        _char.rotate = delay_pos[2]
+                                    else:
+                                        break
                                     
                                     if len(delay_pos) > 3:
                                         _char.image = delay_pos[3]

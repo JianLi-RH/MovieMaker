@@ -17,11 +17,38 @@ def __open_image(image):
     An ~PIL.Image.Image object.
     """
     try:
-        return Image.open(image)
+        if isinstance(image, str):
+            return Image.open(image)
+        else:
+            return image
     except Exception as e:
         print(f"Open image failed: {image}")
         raise e
 
+def display_char_name(char, image, name=None):
+    """Display character name on image
+    
+    Params:
+        char: 角色
+        image: 背景图片内存对象 （当需要连续修改同一张图片时建议使用内存对象）
+        name: 角色名，如果没提供则使用char.name
+    Returns:
+        新的 image_obj
+    """
+    im = __open_image(image=image)
+    if name == None:
+        return im
+    if name == "是":
+        name = char.name
+    
+    x,y = char.pos
+    m = ImageDraw.Draw(im)
+    font = ImageFont.truetype(config_reader.font, 30)
+    left, top, right, bottom = m.textbbox((x, y), name, font=font, direction="ttb")
+    m.rectangle((left-5, top-5, right+5, bottom+5), outline=(0,0,0), fill=(255,255,255), width=1)
+    m.text((x, y), name, fill="black", align="center", direction="ttb", font=font)
+    
+    return im
 
 def add_text_to_image(image, text, color = 'white', overwrite_image = False, mode='normal', text_list=None):
     """
@@ -390,7 +417,7 @@ def create_gif(images, file_name = None):
     gif_frames[0].save(gif, save_all=True, append_images=gif_frames[1:], duration=len(images), loop=0)
     return gif
 
-def dark_image(image, reduce_light=100, alpha=1):
+def dark_image(image, reduce_light : int = 100, alpha : int = 1):
     """使图片变暗
     
     Params:
@@ -417,7 +444,12 @@ def dark_image(image, reduce_light=100, alpha=1):
             else:
             # 调整每个颜色通道的亮度（这里简单地减小亮度，可以根据需要调整系数）
                 if image_obj._mode == "RGBA":
-                    new_color = (max(0, pixel_color[0] - reduce_light), max(0, pixel_color[1] - reduce_light), max(0, pixel_color[2] - reduce_light), int(pixel_color[3] * alpha))
+                    try:
+                        new_color = (max(0, pixel_color[0] - reduce_light), max(0, pixel_color[1] - reduce_light), max(0, pixel_color[2] - reduce_light), int(pixel_color[3] * alpha))
+                    except Exception as e:
+                        print("pixel_color[3]: ", pixel_color[3])
+                        print("alpha: " + alpha)
+                        raise(e)
                 else:
                     new_color = (max(0, pixel_color[0] - reduce_light), max(0, pixel_color[1] - reduce_light), max(0, pixel_color[2] - reduce_light))
             # 设置新的颜色值  
