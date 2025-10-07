@@ -27,7 +27,7 @@ dependencies = [
     "soundfile>=0.13.1",
     "torchaudio==2.6.0",
     "tqdm>=4.67.1",
-    "transformers==4.48.0",
+    "transformers==4.53.2",
     "urllib3>=2.5.0",
     "vector-quantize-pytorch==1.22.15",
     "vocos==0.1.0",
