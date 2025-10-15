@@ -598,6 +598,8 @@ class Action:
             结束位置: [-0.2, 0.55]
             开始角度: 
             结束角度: 左右
+            x: 
+            y: 
             结束消失: 是
             结束图层: 8
             延迟: 
@@ -628,7 +630,23 @@ class Action:
         # 也可以是一组位置坐标， 如 [[230, 120]， [330, 180]， [450, 320]]
         end_pos_list = self.obj.get("结束位置", None)
         if not end_pos_list:
-            raise Exception(f"'结束位置'不能为空")
+            act_obj = self.obj
+            if not act_obj.get("x") and not act_obj.get("y"):
+                raise Exception("必须给出队列的结束位置: 结束位置, x, y")
+            else:
+                end_pos = self.char.pos[:]
+                if act_obj["x"] != None:
+                    x = float(act_obj["x"])
+                    if abs(float(act_obj["x"])) <= 1:
+                        x *= config_reader.g_width
+                    end_pos[0] += int(x)
+                if act_obj["y"] != None:
+                    y = float(act_obj["y"])
+                    if abs(float(act_obj["y"])) < 1:
+                        y *= config_reader.g_height
+                    end_pos[1] += int(y)
+                    
+                end_pos_list = end_pos
         # ratio： 显示比例，可以有以下几种形式：
         # 0.4   --> 相对于开始时，最终的显示比例
         # [1, 0.4] --> 变化前后的显示比例
@@ -744,6 +762,13 @@ class Action:
                 pos[-1] = (pos[-1][0], pos[-1][1], self.obj.get("结束角度"))
      
         if delay_mode:
+            if self.obj.get("结束角度"):
+                self.char.rotate = self.obj.get("结束角度")
+            if self.obj.get("结束图层"):
+                self.char.render_index = self.obj.get("结束图层")
+            self.char.pos = pos[-1][0]
+            self.char.size = pos[-1][1]
+            self.char = self.__get_char(self.char.name)
             return pos
         
         for i in range(total_image_length):
@@ -928,8 +953,8 @@ class Action:
                 #     开始位置: 
                 #     开始角度: 
                 #     结束位置: # 可以使用“结束位置”统一设置全部角色的结束位置，也可以使用xy设置各个角色的位移
-                #     x:      # 整数， -100, 100
-                #     y:      # 整数， -100, 100
+                #     x:      # 整数， -100, 100; [-1, 1] 之间的小数（包括-1, 1）, 乘以宽度得出移动距离
+                #     y:      # 整数， -100, 100; [-1, 1] 之间的小数（包括-1, 1）, 乘以高度得出移动距离
                 #     结束消失: 是
                 #     比例: 
                 #     字幕: 

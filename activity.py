@@ -39,8 +39,8 @@ class Activity:
             开始位置: 
             开始角度: 
             结束位置: 
-            x:      # 整数， -100, 100
-            y:      # 整数， -100, 100
+            x:      # 整数， -100, 100; [-1, 1] 之间的小数（包括-1, 1）, 乘以宽度得出移动距离
+            y:      # 整数， -100, 100; [-1, 1] 之间的小数（包括-1, 1）, 乘以高度得出移动距离
             结束消失: 是
             比例: 
             字幕: 
@@ -62,18 +62,6 @@ class Activity:
                     act_obj = copy.deepcopy(act.obj)
                     act_obj["名称"] = "行进"
                     act_obj["角色"] = char
-                    if not act_obj["结束位置"]:
-                        if not act_obj["x"] and not act_obj["y"]:
-                            raise Exception("必须给出队列的结束位置")
-                        
-                        char_obj = self.__get_char(char)
-                        end_pos = char_obj.pos[:]
-                        if act_obj["x"]:
-                            end_pos[0] += int(act_obj["x"])
-                        if act_obj["y"]:
-                            end_pos[1] += int(act_obj["y"])
-                        
-                        act_obj["结束位置"] = end_pos
                         
                     new_act = Action(self, act_obj)
                     if not first:
