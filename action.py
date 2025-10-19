@@ -195,6 +195,7 @@ class Action:
         -
         名称: 打斗
         角色: 武松 西门庆 刀 剑 (前两个是人物，后面两个是武器，武器可以省略)
+        幅度: 小    # 小， 中， 大
         字幕: 
         - ['','', '', 'resources/ShengYin/游戏中打斗声音音效.mp3']
         渲染顺序: 6
@@ -210,12 +211,21 @@ class Action:
         if len(chars) < 2 :
             raise Exception("打斗动作至少包含两个角色")
         chars = sorted(chars, key=lambda x: x.pos[0])
+        
+        amplitude = self.obj.get("幅度", "中")
+        amplitude_value = 100
+        if amplitude == "小":
+            amplitude_value = 50
+        elif amplitude == "中":
+            amplitude_value = 100
+        else:
+            amplitude_value = 200
 
         delay_positions = []
         
-        pos1 = (random.randint(-200,200), random.randint(-200,200))
-        pos2 = (random.randint(-200,200), random.randint(-200,200))
-        pos3 = (random.randint(-200,200), random.randint(-200,200))
+        pos1 = (random.randint(-amplitude_value,amplitude_value), random.randint(-amplitude_value,amplitude_value))
+        pos2 = (random.randint(-amplitude_value,amplitude_value), random.randint(-amplitude_value,amplitude_value))
+        pos3 = (random.randint(-amplitude_value,amplitude_value), random.randint(-amplitude_value,amplitude_value))
         
         for i in range(0, len(chars)):
             self.char = chars[i]
