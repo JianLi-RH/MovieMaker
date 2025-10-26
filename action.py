@@ -338,6 +338,62 @@ class Action:
             sorted_char_list.pop(added_index)
         return delay_pos
 
+    def __switch(self, images, sorted_char_list):
+        """场景切换
+        
+        Example:
+          -
+            名称: 转场
+            背景: 背景  # 作为背景的角色名
+            方式: 旋转缩小  # 转场方式， 目前支持： 旋转缩小
+            字幕: 
+              - ['','', 'bgm', 'resources/ShengYin/bgm.mp3']
+        
+        Params:
+            images: 全部背景图片
+            sorted_char_list: 排序后的角色
+        """     
+        l = len(images)
+        bg = self.__get_char(self.obj.get("背景"))
+        other_chars = list(filter(lambda c: id(c) != id(bg), sorted_char_list))
+        
+        method = self.obj.get("方式", "旋转缩小")
+        
+        # steps = int(self.timespan * self.activity.fps)
+        if method == "旋转缩小":
+            degree = config_reader.round_per_second * 360   # 每秒旋转度数
+            degree_per_step = degree / self.activity.fps    # 每一帧旋转度数
+            step_x = config_reader.g_width / l / 2
+            step_y = config_reader.g_height / l / 2
+        
+            for i in range(0, l):
+                turn_image = None   # 需要旋转的图片
+                for _char in other_chars:
+                    if _char.display:
+                        _, turn_image = ImageHelper.merge_two_image(small_image=_char.image, 
+                                                                    size=_char.size,
+                                                                    pos=_char.pos,
+                                                                    big_image=bg.image,
+                                                                    big_image_obj=turn_image,
+                                                                    rotate=_char.rotate,
+                                                                    save=False)
+             
+                if turn_image:
+                    size = turn_image.size
+                    ratio = 1 - (i + 1)/ l
+                    new_size = [int(size[0] * ratio), int(size[1] * ratio)]
+                    if new_size[0] <= 0 or new_size[1] <= 0:
+                        continue
+                    _, turn_image = ImageHelper.merge_two_image(small_image=turn_image, 
+                                                size=new_size, 
+                                                pos=[step_x * i, step_y * i], 
+                                                big_image=images[i], 
+                                                rotate=degree_per_step*i,
+                                                save=False)
+
+                    turn_image.save(images[i])
+                    turn_image.close()
+
     def __talk(self, images, sorted_char_list, delay_mode):
         """角色说话
         
@@ -880,9 +936,10 @@ class Action:
         
         通用属性：
         -
-          名称:         # 动作名称
-          角色:         # 角色列表中存在的角色“名字”
+          名称:        # 动作名称
+          角色:        # 角色列表中存在的角色“名字”
           字幕颜色:     # 当前动作使用的字母颜色，如: black。如果没设置的话，会使用活动中的字幕颜色
+          持续时间:     # 当前动作的持续时间，单位秒
           渲染顺序:     # 当前动作在本次活动中的渲染顺序，默认是0。可以设置为整数，浮点数等数值类型
         """
         self.activity = activity
@@ -934,6 +991,8 @@ class Action:
 
             if action == "bgm":
                 self.__bgm(images, sorted_char_list)
+            elif action == "转场":
+                self.__switch(images, sorted_char_list)
             elif action == "消失":
                 self.__disappear()
             elif action == "显示":

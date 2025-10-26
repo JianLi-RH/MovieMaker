@@ -322,22 +322,22 @@ def merge_two_image(small_image,
     Return:
         (返回新图片的地址, image_obj)
     """
-    if big_image_obj:
-        img1 = big_image_obj
-    else:
-        mode1 = 'RGBA' if big_image.endswith('.png') else 'RGB'
-        img1 = Image.open(big_image).copy().convert(mode1) # 防止覆盖原图
-        img1 = img1.resize((config_reader.g_width, config_reader.g_height))
+    if not big_image_obj:
+        big_image_obj = Image.open(big_image)
+
+    mode1 = 'RGBA' if big_image.endswith('.png') else 'RGB'
+    img1 = big_image_obj.copy().convert(mode1) # 防止覆盖原图
+    img1 = img1.resize((config_reader.g_width, config_reader.g_height))
 
     if isinstance(small_image, str):
         small_image = Image.open(small_image)
-    mode2 = 'RGBA' if small_image.filename.endswith('.png') else 'RGB'
+        mode2 = 'RGBA' if small_image.filename.endswith('.png') else 'RGB'
+    elif isinstance(small_image, Image.Image):
+        mode2 = small_image.mode
 
     size = utils.covert_pos(size) # 可以使用小数（百分比）表示图片尺寸
-    if isinstance(small_image, str):
-        img2 = Image.open(small_image).resize(size).convert(mode2)
-    else:
-        img2 = small_image.resize(size).convert(mode2)
+    img2 = small_image.resize(size).convert(mode2)
+        
     if rotate:
         if rotate == "左右":
             im_mirror = ImageOps.mirror(img2)
