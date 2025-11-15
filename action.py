@@ -756,6 +756,8 @@ class Action:
         
         # 强制转化为二维数组，使移动不止是直线运动
         if not isinstance(end_pos_list[0], list):
+            if not isinstance(end_pos_list, float):
+                self.char = self.__get_char(self.char.name)
             end_pos_list = [end_pos_list]
 
         steps = len(end_pos_list)
