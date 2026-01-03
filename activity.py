@@ -4,6 +4,7 @@
 import math
 import queue
 import shutil
+import re
 import tempfile
 import threading
 
@@ -175,7 +176,8 @@ class Activity:
             活动总时长。单位秒
         """
         # 活动背景音乐的时长，当没有设置`持续时间`和字幕的时候会根据背景音乐长度设置总时长
-        bgm_length = AudioFileClip(self.bgm).duration if self.bgm else 0
+        # 背景音乐可能比视频时间长，所有不能用背景音乐作为视频长度的判断依据
+        # bgm_length = AudioFileClip(self.bgm).duration if self.bgm else 0
 
         # 活动字幕的时长
         subtitle_length = 0.0
@@ -210,7 +212,8 @@ class Activity:
                 calculated_index.append({'index': act.render_index, 'action': act})
         action_length = sum([l["action"].timespan for l in calculated_index])
 
-        return max([self.keep, bgm_length, subtitle_length, action_length])
+        # return max([self.keep, bgm_length, subtitle_length, action_length])
+        return max([self.keep, subtitle_length, action_length])
 
     def __pre_check(self):
         """预检测yaml文件"""
@@ -245,6 +248,7 @@ class Activity:
             scenario: Scenario对象实例
             obj: script里面的脚本片段
         """
+        start = datetime.datetime.now()
         self.scenario = scenario
         self.obj = obj
         self.name = obj.get("名字")
@@ -256,6 +260,7 @@ class Activity:
         # 在活动节点中设置的时间，与具体动作无关
         self.keep = utils.get_time(obj.get("持续时间", None))
         self.bgm = obj.get("背景音乐", None)
+        self.bgm_mode = obj.get("背景音乐模式", None)
         self.actions = [Action(self, action) for action in obj.get("动作")] if obj.get("动作") else []
         self.actions = self.__convert_queue_to_walk_list(self.actions)
         
@@ -265,7 +270,9 @@ class Activity:
         self.action_list = self.__get_render_list()
         
         self.__pre_check()
-
+        
+        duration = datetime.datetime.now() - start
+        print(f"初始化Activity【{self.name}】， 共花费：{duration.seconds}秒")
 
     def to_video(self):
         """
@@ -455,7 +462,16 @@ class Activity:
         if self.bgm:
             """添加活动背景音乐"""
             print("添加背景音乐：", self.bgm)
-            video = VideoHelper.add_audio_to_video(video, self.bgm)
+            
+            if self.bgm_mode == "循环": 
+                bgm_duration = AudioFileClip(self.bgm).duration
+                _start = 0
+                _end = video.duration - bgm_duration
+                while _start < _end:
+                    video = VideoHelper.add_audio_to_video(video, self.bgm, start=_start, factor=0.2)
+                    _start += bgm_duration
+            else:
+                video = VideoHelper.add_audio_to_video(video, self.bgm)
         if self.subtitle:
             # 添加字幕声音 -- 活动的字幕
             audio_list = [AudioFileClip(st[3]).with_start(st[0]) for st in self.subtitle if len(st) > 3 and st[3]]
