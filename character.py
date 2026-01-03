@@ -1,6 +1,9 @@
+import os
 import yaml
 
 import utils
+
+from PIL import Image, ImageDraw, ImageFont
 
 import config_reader
 try:
@@ -9,7 +12,39 @@ except ImportError:
     import ImageHelper
     import SuCaiHelper
 
+
+
 class Character():
+    def add_char_name(self, char_img, signature=None):
+        """Add character name
+        
+        Params:
+            char_img: 角色图片
+            name: 角色名，如果没提供则使用char.name
+        Returns:
+            新的 image_obj
+        """
+        if signature == None:
+            return char_img
+        if signature == "是":
+            name = self.name
+        
+        im = Image.open(char_img)
+        x, y = im.size
+        
+        size = 80 if x / 4 > 80 else x / 4 # 防止文字太大遮挡图片
+        
+        m = ImageDraw.Draw(im)
+        font = ImageFont.truetype(config_reader.font, size)
+        left, top, right, bottom = m.textbbox((0, 0), name, font=font, direction="ttb")
+        m.rectangle((left-5, top-5, right+5, bottom+5), outline=(0,0,0), fill=(255,255,255), width=1)
+        m.text((0, 0), name, fill="black", align="center", direction="ttb", font=font)
+        
+        file_name, file_extension =  os.path.splitext(char_img)
+        new_img = os.path.join(file_name + "_" + name + file_extension)
+        im.save(new_img)
+        return new_img
+
     def __init__(self, obj) -> None:
         """
         示例：
@@ -22,6 +57,7 @@ class Character():
             大小: [180, 260]
             发音人: x4_lingfeichen_emo
             发音人引擎: chat    # 默认是 xunfei
+            角色名牌: 是
             显示: 
             透明度: 0.1 
             图层: 0
@@ -30,6 +66,9 @@ class Character():
         self.obj = obj
         self.name = obj.get("名字")
         self.image = SuCaiHelper.get_material(obj.get("素材"))
+        
+        self.image = self.add_char_name(self.image, signature=obj.get("角色名牌"))
+        
         if self.image.lower().endswith(".gif"):
             self.gif_frames = ImageHelper.get_frames_from_gif(self.image)
         else:
