@@ -125,13 +125,15 @@ def get_video_section(file_path, start, end):
     else:
         raise Exception(f"Could not find video file on {file_path}")
 
-def add_audio_to_video(video, audio_file, start=None):
+def add_audio_to_video(video, audio_file, start=None, factor=1):
     """
     Add audio to a video
 
     Params:
         video: video file or file path
         audio_file: audio file
+        factor : float
+            Volume multiplication factor.
     Return:
         Returns a Clip instance
     """
@@ -139,12 +141,17 @@ def add_audio_to_video(video, audio_file, start=None):
         raise FileExistsError("Could not find the audio file")
 
     audioclip = AudioFileClip(audio_file)
+    audioclip = audioclip.with_volume_scaled(factor=factor)
     a_du = audioclip.duration
 
     v = __get_video_clip(video)
     v_du = v.duration
     if a_du > v_du:
-        audioclip = audioclip.subclip(0, v_du)
+        print("音频文件长度大于视频文件长度，对音频文件进行裁减")
+        try:
+            audioclip = audioclip.subclip(0, v_du)
+        except:
+            audioclip = audioclip.subclipped(0, v_du)
 
     start = start if start else 0
     audios = [audioclip.with_start(start)]
