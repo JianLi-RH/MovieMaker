@@ -5,6 +5,7 @@ import os
 import datetime
 import json
 import random
+import re
 
 from moviepy import *
 from PIL import Image, ImageOps
@@ -921,11 +922,13 @@ class Action:
             if not os.path.exists(sPath):
                 # 使用科大讯飞接口生成语音
                 try:
-                    speaker = self.obj.get("发音人") if self.name == "gif" else self.char.speaker
-                    ttsengine = self.obj.get("发音人引擎") if self.name == "gif" else self.char.tts_engine
+                    speaker = self.obj.get("发音人") if self.name == "gif" or self.name == "BGM" else self.char.speaker
+                    ttsengine = self.obj.get("发音人引擎") if self.name == "gif" or self.name == "BGM" else self.char.tts_engine
                     AudioHelper.covert_text_to_sound(subtitle[2], sPath, speaker, ttsengine=ttsengine)
                 except Exception as e:
                     print(f"Convert text failed: ", subtitle)
+                    print(json.dumps(self.obj, indent=4, ensure_ascii=False))
+                    print(json.dumps(self.char, indent=4, ensure_ascii=False))
                     raise(e)
             try:
                 _length = AudioFileClip(sPath).duration
