@@ -3,6 +3,7 @@
 """
 import os
 import datetime
+import json
 import random
 
 from moviepy import *
@@ -223,9 +224,12 @@ class Action:
 
         delay_positions = []
         
-        pos1 = (random.randint(-amplitude_value,amplitude_value), random.randint(-amplitude_value,amplitude_value))
-        pos2 = (random.randint(-amplitude_value,amplitude_value), random.randint(-amplitude_value,amplitude_value))
-        pos3 = (random.randint(-amplitude_value,amplitude_value), random.randint(-amplitude_value,amplitude_value))
+        random_list1 = [random.randint(-amplitude_value, amplitude_value) for _ in range(3)]
+        random_list2 = [random.randint(-amplitude_value, amplitude_value) for _ in range(3)]
+        
+        pos1 = (random_list1[0], random_list2[0])
+        pos2 = (random_list1[1], random_list2[1])
+        pos3 = (random_list1[2], random_list2[2])
         
         for i in range(0, len(chars)):
             self.char = chars[i]
@@ -393,6 +397,35 @@ class Action:
 
                     turn_image.save(images[i])
                     turn_image.close()
+
+    def __stop(self, images, sorted_char_list):
+        """场景静止一段时间
+        
+        Example:
+        -
+            名称: 静止
+            持续时间: 2
+            字幕: 
+            - ['','', '', 'resources/ShengYin/回忆转场.mp3']
+            渲染顺序: 1
+        
+        Params:
+            images: 全部背景图片
+            sorted_char_list: 排序后的角色
+        """ 
+        l = len(images)
+        for i in range(0, l):
+            big_image = None
+            for _char in sorted_char_list:
+                if _char.display:
+                    _, big_image = ImageHelper.paint_char_on_image(image=images[i], 
+                                                                    image_obj=big_image,
+                                                                    char=_char, 
+                                                                    save=False,
+                                                                    gif_index=i)
+            if big_image:
+                big_image.save(images[i])
+                big_image.close()
 
     def __talk(self, images, sorted_char_list, delay_mode):
         """角色说话
@@ -944,6 +977,7 @@ class Action:
           持续时间:     # 当前动作的持续时间，单位秒
           渲染顺序:     # 当前动作在本次活动中的渲染顺序，默认是0。可以设置为整数，浮点数等数值类型
         """
+        start = datetime.datetime.now()
         self.activity = activity
         self.obj = obj
         self.name = self.obj.get("名称")
@@ -958,14 +992,17 @@ class Action:
             self.timespan = keep
         elif self.subtitle:
             self.timespan = self.subtitle[-1][1] if self.subtitle else 0 # 最后一个字幕的第二个字段就是全部字幕的时长
-        elif self.activity.bgm:
-            # 以活动的背景声音长度作为动作的长度
-            self.timespan = AudioFileClip(self.activity.bgm).duration
+        # elif self.activity.bgm:
+        #     # 以活动的背景声音长度作为动作的长度
+        #     self.timespan = AudioFileClip(self.activity.bgm).duration
         elif self.activity.keep:
             # 以活动的持续时间作为动作的长度
             self.timespan = utils.get_time(obj.get("持续时间", None))
         else:
             self.timespan = 0
+        
+        duration = datetime.datetime.now() - start
+        print(f"初始化Action【{self.name}】， 共花费：{duration.seconds}秒")
 
     def to_videoframes(self, images, sorted_char_list, delay_mode: bool):
         """
@@ -995,6 +1032,8 @@ class Action:
                 self.__bgm(images, sorted_char_list)
             elif action == "转场":
                 self.__switch(images, sorted_char_list)
+            elif action == "静止":
+                self.__stop(images, sorted_char_list)
             elif action == "消失":
                 self.__disappear()
             elif action == "显示":
@@ -1052,7 +1091,8 @@ class Action:
             
         except Exception as e:
             print(f"Error: 动作名： {self.name} - 渲染顺序： {self.render_index}")
-            raise(e)
+            print(json.dumps(self.obj, indent=4, ensure_ascii=False))
+            raise(self.obj)
 
 if __name__ == "__main__":
     pass
