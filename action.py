@@ -15,6 +15,17 @@ import config_reader
 import utils
 from character import *
 from libs import AudioHelper, ImageHelper
+from logging_config import get_logger
+from exceptions import (
+    CharacterNotFoundError,
+    InsufficientCharactersError,
+    MissingActionParameterError,
+    InvalidSubtitleFormatError,
+    TTSException
+)
+
+# 获取日志记录器
+logger = get_logger(__name__)
 
 
 class Action:
@@ -44,9 +55,10 @@ class Action:
                     c.rotate = 0
                 elif c.rotate == "上下":
                     c.rotate = 180
-                    
+
                 return c
-        raise Exception(f"角色【{name}】不存在, 渲染顺序：{self.render_index}")
+        logger.error(f"角色【{name}】不存在, 渲染顺序：{self.render_index}")
+        raise CharacterNotFoundError(name, self.render_index)
     
     def __bgm(self, images, sorted_char_list):
         """向视频中插入一段背景音
@@ -210,8 +222,9 @@ class Action:
         """
         str_chars = self.obj.get("角色")
         chars = [self.__get_char(x) for x in str_chars.split(" ")]
-        if len(chars) < 2 :
-            raise Exception("打斗动作至少包含两个角色")
+        if len(chars) < 2:
+            logger.error(f"打斗动作角色数量不足: {len(chars)}")
+            raise InsufficientCharactersError("打斗", 2, len(chars))
         chars = sorted(chars, key=lambda x: x.pos[0])
         
         amplitude = self.obj.get("幅度", "中")
@@ -415,18 +428,18 @@ class Action:
             sorted_char_list: 排序后的角色
         """ 
         l = len(images)
+        big_image = None
+        for _char in sorted_char_list:
+            if _char.display:
+                _, big_image = ImageHelper.paint_char_on_image(image=images[0], 
+                                                                image_obj=big_image,
+                                                                char=_char, 
+                                                                save=False,
+                                                                gif_index=0)
+
         for i in range(0, l):
-            big_image = None
-            for _char in sorted_char_list:
-                if _char.display:
-                    _, big_image = ImageHelper.paint_char_on_image(image=images[i], 
-                                                                    image_obj=big_image,
-                                                                    char=_char, 
-                                                                    save=False,
-                                                                    gif_index=i)
-            if big_image:
-                big_image.save(images[i])
-                big_image.close()
+            big_image.save(images[i])
+        big_image.close()
 
     def __talk(self, images, sorted_char_list, delay_mode):
         """角色说话
@@ -717,7 +730,8 @@ class Action:
             [[tmp_pos, tmp_size, rotate, img], [tmp_pos, tmp_size, rotate, img]]
         """
         if not self.char:
-            raise Exception("角色不存在")
+            logger.error(f"行进动作缺少角色，动作名称：{self.name}")
+            raise CharacterNotFoundError("未指定角色")
         
         if self.obj.get("开始角度") != None:
             self.char.rotate = self.obj.get("开始角度")
@@ -732,7 +746,8 @@ class Action:
         if not end_pos_list:
             act_obj = self.obj
             if not act_obj.get("x") and not act_obj.get("y"):
-                raise Exception("必须给出队列的结束位置: 结束位置, x, y")
+                logger.error("行进动作缺少必需参数：结束位置、x或y")
+                raise MissingActionParameterError("行进", "结束位置/x/y")
             else:
                 end_pos = self.char.pos[:]
                 if act_obj["x"] != None:
@@ -915,7 +930,8 @@ class Action:
         subtitle_color = self.obj.get("字幕颜色") if self.obj.get("字幕颜色") else None
         subtitles = self.obj.get("字幕") if self.obj.get("字幕") else []
         if not isinstance(subtitles, list):
-            raise Exception("字幕错误: ", subtitles)
+            logger.error(f"字幕格式错误，应为列表类型: {type(subtitles)}")
+            raise InvalidSubtitleFormatError(subtitles, "字幕必须是列表格式")
         end = 0
         for subtitle in subtitles:
             sPath = subtitle[3] # ["start", "end"， “text”， “music file”, xxx, xxx]
@@ -924,12 +940,15 @@ class Action:
                 try:
                     speaker = self.obj.get("发音人") if self.name == "gif" or self.name == "BGM" else self.char.speaker
                     ttsengine = self.obj.get("发音人引擎") if self.name == "gif" or self.name == "BGM" else self.char.tts_engine
+                    logger.debug(f"生成TTS音频: {subtitle[2]} -> {sPath}")
                     AudioHelper.covert_text_to_sound(subtitle[2], sPath, speaker, ttsengine=ttsengine)
                 except Exception as e:
-                    print(f"Convert text failed: ", subtitle)
-                    print(json.dumps(self.obj, indent=4, ensure_ascii=False))
-                    print(json.dumps(self.char, indent=4, ensure_ascii=False))
-                    raise(e)
+                    logger.error(f"TTS转换失败: {subtitle[2]}")
+                    logger.debug(f"字幕信息: {subtitle}")
+                    logger.debug(f"动作对象: {json.dumps(self.obj, indent=4, ensure_ascii=False)}")
+                    if self.char:
+                        logger.debug(f"角色信息: {json.dumps(self.char.__dict__, indent=4, ensure_ascii=False, default=str)}")
+                    raise TTSException(subtitle[2], str(e), ttsengine)
             try:
                 _length = AudioFileClip(sPath).duration
             except:
@@ -937,8 +956,8 @@ class Action:
                     _audio = AudioSegment.from_file(sPath)
                     _length = len(_audio) / 1000.0
                 except Exception as e:
-                    print(f"Get music length failed: ", sPath)
-                    raise(e)
+                    logger.error(f"获取音频长度失败: {sPath}")
+                    raise
             if not subtitle[0]:
                 # 字母设置了开始时间
                 subtitle[0] = end
@@ -1005,7 +1024,7 @@ class Action:
             self.timespan = 0
         
         duration = datetime.datetime.now() - start
-        print(f"初始化Action【{self.name}】， 共花费：{duration.seconds}秒")
+        logger.debug(f"初始化Action【{self.name}】， 共花费：{duration.seconds}秒")
 
     def to_videoframes(self, images, sorted_char_list, delay_mode: bool):
         """
@@ -1078,12 +1097,12 @@ class Action:
             pass
 
             duration = datetime.datetime.now() - start
-            print(f"执行动作动【{self.name} - {self.render_index}】， 共花费：{duration.seconds}秒")
-        
+            logger.debug(f"执行动作【{self.name} - {self.render_index}】， 共花费：{duration.seconds}秒")
+
             start = datetime.datetime.now()
             self.__add_subtitle(images)
             duration = datetime.datetime.now() - start
-            print(f"添加动作字幕【{self.name} - {self.render_index}】， 共花费：{duration.seconds}秒")
+            logger.debug(f"添加动作字幕【{self.name} - {self.render_index}】， 共花费：{duration.seconds}秒")
             result = {
                 "char": self.char, 
                 "position": delay_positions
@@ -1093,9 +1112,9 @@ class Action:
             return result
             
         except Exception as e:
-            print(f"Error: 动作名： {self.name} - 渲染顺序： {self.render_index}")
-            print(json.dumps(self.obj, indent=4, ensure_ascii=False))
-            raise(self.obj)
+            logger.error(f"动作执行失败: 动作名={self.name}, 渲染顺序={self.render_index}")
+            logger.debug(f"动作对象: {json.dumps(self.obj, indent=4, ensure_ascii=False)}")
+            raise
 
 if __name__ == "__main__":
     pass

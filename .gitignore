@@ -9,8 +9,10 @@ demo
 libs/TTSEngine/speaker
 output/
 tmp/
-水浒传
+/水浒传
+# script/水浒传/
 rotate_*
+
 
 # C extensions
 *.so
