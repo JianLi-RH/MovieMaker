@@ -15,7 +15,6 @@ import config_reader
 import utils
 from character import *
 from libs import AudioHelper, ImageHelper
-from logging_config import get_logger
 from exceptions import (
     CharacterNotFoundError,
     InsufficientCharactersError,
@@ -24,112 +23,11 @@ from exceptions import (
     TTSException
 )
 
-# 获取日志记录器
-logger = get_logger(__name__)
-
+from actions import get_char, logger
+from actions import bgm, disappear, display 
 
 class Action:
     """The Action(动作) class"""
-
-    def __get_char(self, name):
-        """查找指定名称的角色"""
-        if not name:
-            return None
-        if ' ' in name:
-            # 打斗等组合动作可以同时操作多个角色
-            # 因此不能在这里获取角色
-            return None
-        for c in self.activity.scenario.chars:
-            if c.name == name:
-                if c.rotate == "左右" and not c.name.lower().startswith("gif"):
-                    basename = os.path.basename(c.image)
-                    if "rotate_" in basename:
-                        basename = basename.replace("rotate_", "")
-                    else:
-                        basename = f"rotate_{basename}"
-                    new_path = os.path.join(os.path.dirname(c.image), basename)
-                    if not os.path.exists(new_path):
-                        im_mirror = ImageOps.mirror(Image.open(c.image))
-                        im_mirror.save(new_path)
-                    c.image = new_path
-                    c.rotate = 0
-                elif c.rotate == "上下":
-                    c.rotate = 180
-
-                return c
-        logger.error(f"角色【{name}】不存在, 渲染顺序：{self.render_index}")
-        raise CharacterNotFoundError(name, self.render_index)
-    
-    def __bgm(self, images, sorted_char_list):
-        """向视频中插入一段背景音
-        
-        Example:
-          -
-            名称: BGM
-            字幕: 
-              - ['','', 'bgm', 'resources/ShengYin/bgm.mp3']
-        
-        Params:
-            images: 全部背景图片
-            sorted_char_list: 排序后的角色
-        """     
-        l = len(images)
-        for i in range(0, l):
-            big_image = None
-            for _char in sorted_char_list:
-                if _char.display:
-                    _, big_image = ImageHelper.paint_char_on_image(image=images[i], 
-                                                                    image_obj=big_image,
-                                                                    char=_char, 
-                                                                    save=False,
-                                                                    gif_index=i)
-            if big_image:
-                big_image.save(images[i])
-                big_image.close()
-
-    def __display(self):
-        """将当前动作的角色显示在背景上
-        
-        Example:
-          -
-            名称: 显示
-            角色: 花荣 宋江 燕顺 王英 郑天寿
-            渲染顺序: 1
-          -
-            名称: 显示
-            角色: 花荣
-            渲染顺序: 2
-        """
-        if ' ' in self.obj.get("角色"):
-            str_chars = self.obj.get("角色")
-            for str_char in str_chars.split(" "):
-                c = self.__get_char(str_char)
-                if c:
-                    c.display = True
-        else:
-            self.char.display = True
-
-    def __disappear(self):
-        """让角色消失
-        
-        Example:
-          -
-            名称: 消失
-            角色: 花荣 宋江 燕顺 王英 郑天寿
-            渲染顺序: 1
-          -
-            名称: 消失
-            角色: 花荣
-            渲染顺序: 2
-        """
-        if ' ' in self.obj.get("角色"):
-            str_chars = self.obj.get("角色")
-            for str_char in str_chars.split(" "):
-                c = self.__get_char(str_char)
-                if c:
-                    c.display = False
-        else:
-            self.char.display = False
 
     def __camera(self, images, add_chars=False):
         """
@@ -189,8 +87,9 @@ class Action:
                                                                     gif_index=gif_index,
                                                                     dark=False)
             
-                big_image.save(img)
-                big_image.close()
+                if big_image:
+                    big_image.save(img)
+                    big_image.close()
                 gif_index += 1
 
         for i in range(0, length):
@@ -221,7 +120,7 @@ class Action:
             NA
         """
         str_chars = self.obj.get("角色")
-        chars = [self.__get_char(x) for x in str_chars.split(" ")]
+        chars = [get_char(x, self.chars) for x in str_chars.split(" ")]
         if len(chars) < 2:
             logger.error(f"打斗动作角色数量不足: {len(chars)}")
             raise InsufficientCharactersError("打斗", 2, len(chars))
@@ -372,7 +271,7 @@ class Action:
             sorted_char_list: 排序后的角色
         """     
         l = len(images)
-        bg = self.__get_char(self.obj.get("背景"))
+        bg = get_char(self.obj.get("背景"), self.chars)
         other_chars = list(filter(lambda c: id(c) != id(bg), sorted_char_list))
         
         method = self.obj.get("方式", "旋转缩小")
@@ -556,7 +455,7 @@ class Action:
                 
         elif self.obj.get("焦点", None):
             if isinstance(self.obj.get("焦点"), str):
-                _focusChar = self.__get_char(self.obj.get("焦点"))
+                _focusChar = get_char(self.obj.get("焦点"), self.chars)
                 if _focusChar:
                     x = _focusChar.pos[0] - 50 if _focusChar.pos[0] > 50 else 0
                     y = _focusChar.pos[1] - 50 if _focusChar.pos[1] > 50 else 0
@@ -696,7 +595,7 @@ class Action:
         if "图层" in keys:
             self.char.index = int(self.obj.get("图层", 0))
             
-        self.char = self.__get_char(self.char.name)
+        self.char = get_char(self.char.name, self.chars)
     
     def __walk(self, images, sorted_char_list, delay_mode: bool):
         """角色移动
@@ -735,7 +634,7 @@ class Action:
         
         if self.obj.get("开始角度") != None:
             self.char.rotate = self.obj.get("开始角度")
-            self.char = self.__get_char(self.char.name)
+            self.char = get_char(self.char.name, self.chars)
         
         start_pos = self.obj["开始位置"] if self.obj.get("开始位置", None) else self.char.pos
         start_pos = utils.covert_pos(start_pos)
@@ -806,7 +705,7 @@ class Action:
         # 强制转化为二维数组，使移动不止是直线运动
         if not isinstance(end_pos_list[0], list):
             if not isinstance(end_pos_list, float):
-                self.char = self.__get_char(self.char.name)
+                self.char = get_char(self.char.name, self.chars)
             end_pos_list = [end_pos_list]
 
         steps = len(end_pos_list)
@@ -885,17 +784,17 @@ class Action:
                 self.char.render_index = self.obj.get("结束图层")
             self.char.pos = pos[-1][0]
             self.char.size = pos[-1][1]
-            self.char = self.__get_char(self.char.name)
+            self.char = get_char(self.char.name, self.chars)
             return pos
         
         for i in range(total_image_length):
             if i == (total_image_length - 1):
                 if self.obj.get("结束角度"):
                     self.char.rotate = self.obj.get("结束角度")
-                    self.char = self.__get_char(self.char.name)
+                    self.char = get_char(self.char.name, self.chars)
                 if self.obj.get("结束图层"):
                     self.char.render_index = self.obj.get("结束图层")
-                    self.char = self.__get_char(self.char.name)
+                    self.char = get_char(self.char.name, self.chars)
             
             big_image = None
             for _char in sorted_char_list:
@@ -1001,10 +900,17 @@ class Action:
         """
         start = datetime.datetime.now()
         self.activity = activity
+        self.chars = self.activity.scenario.chars
         self.obj = obj
         self.name = self.obj.get("名称")
         self.render_index = float(self.obj.get("渲染顺序")) if self.obj.get("渲染顺序") else 0.0    # 动作执行的顺序，数值一样的同时执行， 从小到达执行
-        self.char = self.__get_char(self.obj.get("角色"))
+        
+        if self.obj.get("角色") and len(self.obj.get("角色")) > 0:
+            self.char = get_char(self.obj.get("角色"), self.chars)
+            if  not self.char:
+                logger.error(f"角色【{self.char.name}】不存在, 渲染顺序：{self.render_index}")
+                raise CharacterNotFoundError(self.char.name, self.render_index)
+
         self.subtitle_color, self.subtitle = self.__get_subtitle()
         if self.subtitle_color == None and self.activity.subtitle_color:
             # 当动作没有设置字幕颜色时，使用活动的字幕颜色覆盖动作的字幕颜色
@@ -1052,14 +958,15 @@ class Action:
 
             if action == "bgm":
                 self.__bgm(images, sorted_char_list)
+                bgm.bgm(images, sorted_char_list)
             elif action == "转场":
                 self.__switch(images, sorted_char_list)
             elif action == "静止":
                 self.__stop(images, sorted_char_list)
             elif action == "消失":
-                self.__disappear()
+                disappear.disappear(self)
             elif action == "显示":
-                self.__display()
+                display.display(self)
             elif action == "镜头":  # 还需要验证
                 self.__camera(images, add_chars=True)
             elif action == "更新":
@@ -1104,7 +1011,7 @@ class Action:
             duration = datetime.datetime.now() - start
             logger.debug(f"添加动作字幕【{self.name} - {self.render_index}】， 共花费：{duration.seconds}秒")
             result = {
-                "char": self.char, 
+                "char": self.char if hasattr(self, "char") else None, 
                 "position": delay_positions
             }
             if self.obj.get("结束消失", "否") == "是":

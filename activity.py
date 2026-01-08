@@ -12,7 +12,7 @@ import yaml
 
 import config_reader
 import utils
-from action import *
+from actions.action import *
 from libs import VideoHelper
 
 sem=threading.Semaphore(10)
