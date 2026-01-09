@@ -1,6 +1,6 @@
 from libs import AudioHelper, ImageHelper
 
-def bgm(images, sorted_char_list):
+def Do(images, sorted_char_list):
     """向视频中插入一段背景音
     
     Params:

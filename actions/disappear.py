@@ -2,7 +2,7 @@ from actions import get_char, get_logger
 
 
 
-def disappear(action: any):
+def Do(action: any):
     """让角色消失
     
     Params:

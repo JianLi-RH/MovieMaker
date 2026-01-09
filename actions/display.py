@@ -1,7 +1,7 @@
 from actions import get_char, get_logger
 
 
-def display(action: any):
+def Do(action: any):
     """将当前动作的角色显示在背景上
     
     Params:

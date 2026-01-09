@@ -24,81 +24,10 @@ from exceptions import (
 )
 
 from actions import get_char, logger
-from actions import bgm, disappear, display 
+from actions import bgm, camera, disappear, display 
 
 class Action:
     """The Action(动作) class"""
-
-    def __camera(self, images, add_chars=False):
-        """
-        处理 `镜头` 相关的动作，例如切换焦点，镜头拉近、拉远
-        ***一个活动中不能有两个`镜头`动作***
-        
-        Example:
-        -
-            名称: 镜头
-            角色: 高俅
-            持续时间: 
-            焦点: [0.53, 0.68]
-            变化: 0.3
-            字幕: 
-            - ['','', '有如此大船', '水浒传/第二百一十九回/叶春/有如此大船.mp3']
-            - ['','', '梁山可破矣', '水浒传/第二百一十九回/叶春/梁山可破矣.mp3']
-            渲染顺序: 12
-        """
-        length = len(images)    # 总帧数
-        if not self.activity.scenario.focus:
-            self.activity.scenario.focus = "中心"
-        original_center = utils.covert_pos(self.activity.scenario.focus)  # 原有的焦点
-
-        if self.obj.get("焦点", None):
-            new_center = utils.covert_pos(self.obj.get("焦点"))
-        else: 
-            if self.char:
-                x, y = self.char.pos
-                w, h = self.char.size
-                new_center = [(x + w / 2), (y + h / 2)]
-            else:
-                new_center = original_center
-
-        step_x = (new_center[0] - original_center[0]) / length
-        step_y = (new_center[1] - original_center[1]) / length
-
-        ratio = self.obj.get("变化")
-        if isinstance(ratio, float):
-            ratio = [1, ratio]
-        from_ratio = ratio[0]
-        to_ratio = ratio[1]
-        ratio_step = (to_ratio - from_ratio) / length
-        
-        self.activity.scenario.ratio = to_ratio
-        
-        if add_chars:
-            # 单独调用镜头动作的时候，需要绘制角色
-            gif_index = 0
-            for img in images:
-                big_image = None
-                for _char in self.activity.scenario.chars:
-                    if _char.display:
-                        _, big_image = ImageHelper.paint_char_on_image(image=img, 
-                                                                    image_obj=big_image,
-                                                                    char=_char, 
-                                                                    save=False,
-                                                                    gif_index=gif_index,
-                                                                    dark=False)
-            
-                if big_image:
-                    big_image.save(img)
-                    big_image.close()
-                gif_index += 1
-
-        for i in range(0, length):
-            tmp_ratio = from_ratio + ratio_step * i
-            x = original_center[0] + step_x * i
-            y = original_center[1] + step_y * i
-
-            tmp_img = ImageHelper.zoom_in_out_image(images[i], center=(x, y), ratio=tmp_ratio)
-            images[i] = tmp_img
 
     def __fight(self, images, sorted_char_list):
         """一组随机的打斗动作， 
@@ -448,7 +377,7 @@ class Action:
         if self.obj.get("变化", None):
             if isinstance(self.obj.get("变化"), float):
                 # 图片有缩放的时候才需要调用镜头方法
-                self.__camera(images, add_chars=False)
+                camera.Do(action=self, images=images, add_chars=False)
             elif self.obj.get("变化") == "近景":
                 for img in images:
                     ImageHelper.cut_image(img, self.char)
@@ -813,7 +742,7 @@ class Action:
                 big_image.close()
         
         if self.obj.get("结束消失", "否") == "是":
-            self.__disappear()
+            disappear.Do(self)
             
         return []
 
@@ -957,18 +886,17 @@ class Action:
             action = self.obj.get("名称").lower()
 
             if action == "bgm":
-                self.__bgm(images, sorted_char_list)
-                bgm.bgm(images, sorted_char_list)
+                bgm.Do(images, sorted_char_list)
             elif action == "转场":
                 self.__switch(images, sorted_char_list)
             elif action == "静止":
                 self.__stop(images, sorted_char_list)
             elif action == "消失":
-                disappear.disappear(self)
+                disappear.Do(self)
             elif action == "显示":
-                display.display(self)
+                display.Do(self)
             elif action == "镜头":  # 还需要验证
-                self.__camera(images, add_chars=True)
+                camera.Do(action=self, images=images, add_chars=True)
             elif action == "更新":
                 self.__update()
                 # 重新排序所有角色
