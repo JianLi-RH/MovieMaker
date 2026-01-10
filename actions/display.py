@@ -20,7 +20,7 @@ def Do(action: any):
     if ' ' in action.obj.get("角色"):
         str_chars = action.obj.get("角色")
         for str_char in str_chars.split(" "):
-            c = get_char(str_char)
+            c = get_char(str_char, action.activity.scenario.chars)
             if c:
                 c.display = True
     else:

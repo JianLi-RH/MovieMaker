@@ -24,7 +24,7 @@ from exceptions import (
 )
 
 from actions import get_char, logger
-from actions import bgm, camera, disappear, display 
+from actions import bgm, camera, disappear, display, stop
 
 class Action:
     """The Action(动作) class"""
@@ -239,35 +239,6 @@ class Action:
 
                     turn_image.save(images[i])
                     turn_image.close()
-
-    def __stop(self, images, sorted_char_list):
-        """场景静止一段时间
-        
-        Example:
-        -
-            名称: 静止
-            持续时间: 2
-            字幕: 
-            - ['','', '', 'resources/ShengYin/回忆转场.mp3']
-            渲染顺序: 1
-        
-        Params:
-            images: 全部背景图片
-            sorted_char_list: 排序后的角色
-        """ 
-        l = len(images)
-        big_image = None
-        for _char in sorted_char_list:
-            if _char.display:
-                _, big_image = ImageHelper.paint_char_on_image(image=images[0], 
-                                                                image_obj=big_image,
-                                                                char=_char, 
-                                                                save=False,
-                                                                gif_index=0)
-
-        for i in range(0, l):
-            big_image.save(images[i])
-        big_image.close()
 
     def __talk(self, images, sorted_char_list, delay_mode):
         """角色说话
@@ -836,9 +807,9 @@ class Action:
         
         if self.obj.get("角色") and len(self.obj.get("角色")) > 0:
             self.char = get_char(self.obj.get("角色"), self.chars)
-            if  not self.char:
-                logger.error(f"角色【{self.char.name}】不存在, 渲染顺序：{self.render_index}")
-                raise CharacterNotFoundError(self.char.name, self.render_index)
+            if  not self.char and not re.search(r'[ ,]', self.obj.get("角色")) :
+                logger.error(f"角色不存在({self.obj.get("角色")}), 渲染顺序：{self.render_index}")
+                raise CharacterNotFoundError(self.obj.get("角色"), self.render_index)
 
         self.subtitle_color, self.subtitle = self.__get_subtitle()
         if self.subtitle_color == None and self.activity.subtitle_color:
@@ -890,7 +861,7 @@ class Action:
             elif action == "转场":
                 self.__switch(images, sorted_char_list)
             elif action == "静止":
-                self.__stop(images, sorted_char_list)
+                stop.Do(images, sorted_char_list)
             elif action == "消失":
                 disappear.Do(self)
             elif action == "显示":
