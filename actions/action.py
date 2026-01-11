@@ -24,7 +24,7 @@ from exceptions import (
 )
 
 from actions import get_char, logger
-from actions import bgm, camera, disappear, display, gif, stop, switch
+from actions import bgm, camera, disappear, display, gif, stop, switch, update
 
 class Action:
     """The Action(动作) class"""
@@ -345,38 +345,6 @@ class Action:
                 big_image.save(images[i])
                 big_image.close()
         return []
-
-    def __update(self):
-        """更新某个角色
-        
-        Example:
-          -
-            名称: 更新
-            角色: 鲁智深
-            素材: 水浒传/人物/鲁智深1.png
-            角度: 左右
-            透明度: 0.2
-            字幕: #Kangkang, Male
-              - ['','', '啪啪啪', 'resources/ShengYin/打耳光.mp3']
-            渲染顺序: 2
-        """
-        keys = self.obj.keys()
-        if "素材" in keys:
-            self.char.image = self.obj.get("素材", None)
-        if "位置" in keys:
-            self.char.pos = utils.covert_pos(self.obj.get("位置", None))
-        if "大小" in keys:
-            self.char.size = self.obj.get("大小")
-        if "角度" in keys:
-            self.char.rotate = self.obj.get("角度")
-        if "透明度" in keys:
-            self.char.transparency = self.obj.get("透明度")
-        if "显示" in keys:
-            self.char.display = True if self.obj.get("显示") == '是' else False
-        if "图层" in keys:
-            self.char.index = int(self.obj.get("图层", 0))
-            
-        self.char = get_char(self.char.name, self.chars)
     
     def __walk(self, images, sorted_char_list, delay_mode: bool):
         """角色移动
@@ -623,9 +591,10 @@ class Action:
                     logger.debug(f"生成TTS音频: {subtitle[2]} -> {sPath}")
                     AudioHelper.covert_text_to_sound(subtitle[2], sPath, speaker, ttsengine=ttsengine)
                 except Exception as e:
-                    logger.error(f"TTS转换失败: {subtitle[2]}")
                     logger.debug(f"字幕信息: {subtitle}")
+                    logger.debug(f"渲染顺序: {self.render_index}")
                     logger.debug(f"动作对象: {json.dumps(self.obj, indent=4, ensure_ascii=False)}")
+                    logger.error(f"TTS转换失败: {subtitle}")
                     if self.char:
                         logger.debug(f"角色信息: {json.dumps(self.char.__dict__, indent=4, ensure_ascii=False, default=str)}")
                     raise TTSException(subtitle[2], str(e), ttsengine)
@@ -750,7 +719,7 @@ class Action:
             elif action == "镜头":  # 还需要验证
                 camera.Do(action=self, images=images, add_chars=True)
             elif action == "更新":
-                self.__update()
+                update.Do(self)
                 # 重新排序所有角色
                 sorted_char_list.sort(key=lambda x: x.index)
             elif action == "打斗":
