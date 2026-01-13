@@ -1,21 +1,20 @@
+from typing import List, Optional, Union
+
+from character import Character
 from libs import AudioHelper, ImageHelper
 
-def Do(images, sorted_char_list):
+def Do(images : List[str], sorted_char_list : List[Character]):
     """向视频中插入一段背景音
     
     Params:
-        images: a list of big images
-        sorted_char_list: sorted char list
+        images: 全部背景图片
+        sorted_char_list: 排序后的角色
     
     Example:
         -
         名称: BGM
         字幕: 
             - ['','', 'bgm', 'resources/ShengYin/bgm.mp3']
-    
-    Params:
-        images: 全部背景图片
-        sorted_char_list: 排序后的角色
     """     
     l = len(images)
     for i in range(0, l):
