@@ -24,11 +24,13 @@ from exceptions import (
 )
 
 from actions import get_char, logger
+
 from actions import (
                     bgm, 
                     camera, 
                     disappear, 
                     display, 
+                    fight,
                     gif, 
                     stop, 
                     switch, 
@@ -41,98 +43,6 @@ from actions import (
 
 class Action:
     """The Action(动作) class"""
-
-    def __fight(self, images, sorted_char_list):
-        """一组随机的打斗动作， 
-            因为不能保证相同渲染顺序的动作不使用同一个角色，所以不可以使用delay模式
-        
-        Example:
-        -
-        名称: 打斗
-        角色: 武松 西门庆 刀 剑 (前两个是人物，后面两个是武器，武器可以省略)
-        幅度: 小    # 小， 中， 大
-        字幕: 
-        - ['','', '', 'resources/ShengYin/游戏中打斗声音音效.mp3']
-        渲染顺序: 6
-        
-        Params:
-            images: 全部背景图片
-            sorted_char_list: 排序后的角色
-        Return:
-            NA
-        """
-        str_chars = self.obj.get("角色")
-        chars = [get_char(x, self.chars) for x in str_chars.split(" ")]
-        if len(chars) < 2:
-            logger.error(f"打斗动作角色数量不足: {len(chars)}")
-            raise InsufficientCharactersError("打斗", 2, len(chars))
-        chars = sorted(chars, key=lambda x: x.pos[0])
-        
-        amplitude = self.obj.get("幅度", "中")
-        amplitude_value = 100
-        if amplitude == "小":
-            amplitude_value = 50
-        elif amplitude == "中":
-            amplitude_value = 100
-        else:
-            amplitude_value = 200
-
-        delay_positions = []
-        
-        random_list1 = [random.randint(-amplitude_value, amplitude_value) for _ in range(3)]
-        random_list2 = [random.randint(-amplitude_value, amplitude_value) for _ in range(3)]
-        
-        pos1 = (random_list1[0], random_list2[0])
-        pos2 = (random_list1[1], random_list2[1])
-        pos3 = (random_list1[2], random_list2[2])
-        
-        for i in range(0, len(chars)):
-            self.char = chars[i]
-            initial_pos = self.char.pos # 起始位置
-            # 固定变化的3个位置
-            if i % 2 == 0:
-                xy_arr = (pos1, pos2, pos3)
-            else:
-                xy_arr = ((-pos1[0], -pos1[1]), (-pos2[0], -pos2[1]), (-pos3[0], -pos3[1]))
-                
-            self.obj["结束位置"] = [
-                [self.char.pos[0] + xy_arr[0][0], self.char.pos[1] + xy_arr[0][1]],
-                [self.char.pos[0] + xy_arr[1][0], self.char.pos[1] + xy_arr[1][1]],
-                [self.char.pos[0] + xy_arr[2][0], self.char.pos[1] + xy_arr[2][1]],
-                initial_pos]# 使角色恢复起始位置
-            self.obj["方式"] = "旋转"
-            pos = walk.Do(action=self, images=images, sorted_char_list=sorted_char_list, delay_mode=True)
-            delay_positions.append({
-                "char": self.char, 
-                "position": pos
-            })
-        
-        
-        for j in range(len(images)):   # 在每张图片上绘制全部角色
-            big_image = None
-            for _char in sorted_char_list:
-                if not _char.display:
-                    continue
-                for char_pos in delay_positions:
-                    if _char == char_pos["char"]:
-                        delay_pos = char_pos["position"][j]
-                        _char.pos = delay_pos[0]
-                        _char.size = delay_pos[1]
-                        _char.rotate = delay_pos[2]
-                        
-                        if len(delay_pos) > 3:
-                            _char.image = delay_pos[3]
-                        break
-                _, big_image = ImageHelper.paint_char_on_image(char=_char, 
-                                                                image=images[j],
-                                                                image_obj=big_image,
-                                                                save=False,
-                                                                gif_index=j)
-
-            if big_image:
-                big_image.save(images[j])
-                big_image.close()
-        pass
 
     def __get_subtitle(self):
         """获取动作的字幕
@@ -291,7 +201,7 @@ class Action:
                 # 重新排序所有角色
                 sorted_char_list.sort(key=lambda x: x.index)
             elif action == "打斗":
-                self.__fight(images, sorted_char_list)
+                fight.Do(action=self, images=images, sorted_char_list=sorted_char_list)
             elif action == "gif":
                 delay_positions = gif.Do(action=self, images=images, sorted_char_list=sorted_char_list, delay_mode=delay_mode)
             elif action == "说话":

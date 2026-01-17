@@ -1,6 +1,6 @@
-import random
-from typing import List, Optional, Union
+import os
 from PIL import Image, ImageOps
+from typing import List, Optional, Union
 
 
 from actions import disappear, get_char, logger
