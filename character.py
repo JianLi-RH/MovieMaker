@@ -57,7 +57,7 @@ class Character():
             大小: [180, 260]
             发音人: x4_lingfeichen_emo
             发音人引擎: chat    # 默认是 xunfei
-            角色名牌: 是
+            角色名牌: 是    # 不建议使用这个属性 - 性能差
             显示: 
             透明度: 0.1 
             图层: 0

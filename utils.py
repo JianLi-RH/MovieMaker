@@ -9,6 +9,9 @@ import config_reader
 
 import random
 
+from logging_config import get_logger
+logger = get_logger(__name__)
+
 def is_float(element: any) -> bool:
     """判断一个变量是不是float
 
@@ -107,7 +110,7 @@ def covert_pos(pos):
 
         return [int(x_center), int(y_center)]
     except Exception as e:
-        print("不支持的坐标: ", pos)
+        logger.error(f"不支持的坐标: {pos}")
         raise(e)
 
 def get_audio_length(audio):
@@ -127,5 +130,5 @@ def get_audio_length(audio):
 
 if __name__ == "__main__":
     # get_sub_title_list("tmp/养生论.txt")
-    print(get_random_str(4))
+    logger.info(f"测试随机字符串: {get_random_str(4)}")
     pass

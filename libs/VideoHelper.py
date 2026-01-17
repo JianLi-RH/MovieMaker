@@ -24,6 +24,9 @@ except ImportError:
     import ImageHelper
     import SuCaiHelper
 
+from logging_config import get_logger
+logger = get_logger(__name__)
+
 
 def __get_video_clip(video):
     """根据给出的视频文件地址或VideoFileClip对象返回一个VideoFileClip实例
@@ -147,7 +150,7 @@ def add_audio_to_video(video, audio_file, start=None, factor=1):
     v = __get_video_clip(video)
     v_du = v.duration
     if a_du > v_du:
-        print("音频文件长度大于视频文件长度，对音频文件进行裁减")
+        logger.warning(f"音频文件长度({a_du:.2f}s)大于视频文件长度({v_du:.2f}s)，对音频文件进行裁减")
         try:
             audioclip = audioclip.subclip(0, v_du)
         except:

@@ -7,6 +7,9 @@ import TTSEngine.xunfei_tts
 import TTSEngine.ttspro
 import config_reader
 
+from logging_config import get_logger
+logger = get_logger(__name__)
+
 def covert_text_to_sound(text, output, speaker, ttsengine="xunfei", stype="calm"):
     """
     将文字转换成语音
@@ -26,7 +29,7 @@ def covert_text_to_sound(text, output, speaker, ttsengine="xunfei", stype="calm"
     
     if not ttsengine:
         ttsengine = config_reader.tts_engine
-    print("使用引擎‘", ttsengine, "'生成音频文件")
+    logger.info(f"使用引擎 '{ttsengine}' 生成音频文件")
 
     if ttsengine=="xunfei":
         return TTSEngine.xunfei_tts.covert_text_to_sound(text=text, output=output, speaker=speaker)
@@ -85,11 +88,11 @@ def get_sub_title_list(file):
     new_path = os.path.join(os.path.dirname(file), os.path.basename(file).split('.')[0]+"_sound.txt")
     with open(new_path, 'w') as fn:
         fn.writelines(new_lines)
-    print(f"字幕信息已写入文件: {new_path}")
+    logger.info(f"字幕信息已写入文件: {new_path}")
     return subtitles
 
 if __name__ == "__main__":
     # split_audio("水浒传/第六回/确认事实/等洒家再去确认.mp3", start=2200, length=2200)
     text = "等洒家再去确认"
-    result = covert_text_to_sound(text, output_folder=f"/home/jianl/1_code/personal/MovieMaker/output/{text}.mp3", speaker="xiaoyan")
-    print(result)
+    result = covert_text_to_sound(text, output_folder=f"output/{text}.mp3", speaker="xiaoyan")
+    logger.info(f"测试结果: {result}")

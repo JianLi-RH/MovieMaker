@@ -14,6 +14,9 @@ import config_reader
 import utils
 from actions.action import *
 from libs import VideoHelper
+from logging_config import get_logger
+
+logger = get_logger(__name__)
 
 sem=threading.Semaphore(10)
 q = queue.Queue(10)
@@ -22,7 +25,7 @@ def worker():
         while True:
             text, images, subtitle_mode, text_list = q.get()
             if text:
-                print("生成字幕：", text)
+                logger.debug(f"生成字幕: {text}")
                 for img in images:
                     ImageHelper.add_text_to_image(img, text, overwrite_image=True, mode=subtitle_mode, text_list=text_list)
             q.task_done()
@@ -83,7 +86,7 @@ class Activity:
         """
         path = os.path.join(config_reader.output_dir, self.name)
         os.makedirs(path, exist_ok=True)
-        print("背景图片将被保存在：", path)
+        logger.info(f"背景图片将被保存在: {path}")
 
         images = []
         background_image = self.scenario.background_image # 已经resize之后的图片
@@ -105,7 +108,7 @@ class Activity:
                 shutil.copy(background_image, new_path)
                 images.append(new_path)
 
-        print("准备背景图片结束，共计", self.total_frame, "张图片")
+        logger.info(f"准备背景图片结束，共计 {self.total_frame} 张图片")
         return images
 
     def __get_char(self, name):
@@ -194,8 +197,8 @@ class Activity:
                         ttsengine = self.obj.get("发音人引擎", "")
                         AudioHelper.covert_text_to_sound(sb[2], sPath, speaker, ttsengine=ttsengine)
                     except Exception as e:
-                        print(f"Convert text failed: ", sb[2])
-                        raise(e)
+                        logger.error(f"TTS转换失败: {sb[2]}")
+                        raise
                 subtitle_length += AudioFileClip(sPath).duration
 
         # 全部动作的长度
@@ -272,7 +275,7 @@ class Activity:
         self.__pre_check()
         
         duration = datetime.datetime.now() - start
-        print(f"初始化Activity【{self.name}】， 共花费：{duration.seconds}秒")
+        logger.debug(f"初始化Activity【{self.name}】， 共花费：{duration.seconds}秒")
 
     def to_video(self):
         """
@@ -364,10 +367,10 @@ class Activity:
                                 if _char == char_pos["char"]:
                                     if len(char_pos["position"]) > j:
                                         delay_pos = char_pos["position"][j]
-                                    elif len(char_pos["position"]) > 0: 
+                                    elif len(char_pos["position"]) > 0:
                                         delay_pos = char_pos["position"][-1]
                                     else:
-                                        print("_char: ", _char.name)
+                                        logger.warning(f"角色 {_char.name} 没有位置信息")
                                         continue
                                     
                                     if len(delay_pos) > 2:
@@ -402,7 +405,7 @@ class Activity:
                 # 当执行最后一个动作的时候， 最后一个绘制角色的图片不是全部背景图片的最后一张的时候
                 # 把剩余的背景图片都绘制上角色
                 missed_images = images[max(action_ends):]
-                print(missed_images)
+                logger.debug(f"处理遗漏的背景图片，共 {len(missed_images)} 张: {missed_images}")
                 gif_index = 0
                 for img in missed_images:
                     big_image = None
@@ -441,7 +444,7 @@ class Activity:
                     big_image.close()
                     
         if self.subtitle:
-            print("self.subtitle: \n", self.subtitle)
+            logger.debug(f"字幕信息:\n{self.subtitle}")
             # daemon：结束主进程的时候可以同时结束子线程
             threading.Thread(target=worker, daemon=True).start()
             l = len(self.subtitle)
@@ -449,7 +452,7 @@ class Activity:
                 # 创建新线程
                 start_num = self.subtitle[i][-1][0]
                 end_number = self.subtitle[i][-1][1]
-                print(f"start_num: {start_num}, end_number: {end_number}")
+                logger.debug(f"处理字幕片段 {i+1}/{l}: start_num={start_num}, end_number={end_number}")
                 tmp_images = images[start_num : end_number]
                 text_list = [x[2] for x in self.subtitle[0 if i < 2 else i - 1 : i + 2]]    # 最多显示3行文字
                 q.put((self.subtitle[i][2], tmp_images, self.subtitle_mode, text_list))
@@ -461,7 +464,7 @@ class Activity:
         video = VideoHelper.create_video_clip_from_images(images, self.fps)
         if self.bgm:
             """添加活动背景音乐"""
-            print("添加背景音乐：", self.bgm)
+            logger.info(f"添加背景音乐: {self.bgm}")
             
             if self.bgm_mode == "循环": 
                 bgm_duration = AudioFileClip(self.bgm).duration
@@ -477,7 +480,7 @@ class Activity:
             audio_list = [AudioFileClip(st[3]).with_start(st[0]) for st in self.subtitle if len(st) > 3 and st[3]]
             if audio_list:
                 fd, tmp_audio_path = tempfile.mkstemp(suffix=".mp3")
-                print(f"把声音组装起来保存到{tmp_audio_path}")
+                logger.debug(f"组装 {len(audio_list)} 个音频片段并保存到临时文件: {tmp_audio_path}")
                 concatenate_audioclips(audio_list).write_audiofile(tmp_audio_path)
                 video = VideoHelper.add_audio_to_video(video, tmp_audio_path, start=self.subtitle[0][0])
         

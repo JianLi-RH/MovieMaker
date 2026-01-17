@@ -7,8 +7,10 @@ from PIL import Image, ImageDraw, ImageFont, ImageSequence, ImageOps
 Image.MAX_IMAGE_PIXELS = 7680000
 
 import config_reader
-from scenario import Scenario
 import utils
+
+from logging_config import get_logger
+logger = get_logger(__name__)
 
 def __open_image(image):
     """open image file
@@ -22,7 +24,7 @@ def __open_image(image):
         else:
             return image
     except Exception as e:
-        print(f"Open image failed: {image}")
+        logger.error(f"打开图片失败: {image}")
         raise e
 
 def display_char_name(char, image, name=None):
@@ -297,7 +299,7 @@ def paint_char_on_image(*, char,
                             overwrite=overwrite,
                             save=save)
     except Exception as e:
-        print("Paint char failed: ", char.obj)
+        logger.error(f"绘制角色失败: {char.obj}")
         raise e
 
 def merge_two_image(small_image, 
@@ -447,8 +449,7 @@ def dark_image(image, reduce_light : int = 100, alpha : int = 1):
                     try:
                         new_color = (max(0, pixel_color[0] - reduce_light), max(0, pixel_color[1] - reduce_light), max(0, pixel_color[2] - reduce_light), int(pixel_color[3] * alpha))
                     except Exception as e:
-                        print("pixel_color[3]: ", pixel_color[3])
-                        print("alpha: " + alpha)
+                        logger.error(f"处理像素颜色失败 - pixel_color[3]: {pixel_color[3]}, alpha: {alpha}")
                         raise(e)
                 else:
                     new_color = (max(0, pixel_color[0] - reduce_light), max(0, pixel_color[1] - reduce_light), max(0, pixel_color[2] - reduce_light))
@@ -479,50 +480,6 @@ def hightlight_char(image_obj, char):
             # 设置新的颜色值  
             image_obj.putpixel((i, j), new_color)    
     return image_obj
-
-def preview(scenario, script, bg_img=None, char_name_list=None):
-    """
-    预览角色在背景图上的显示效果
-    
-    Params:
-        scenario: 场景名
-        script: 脚本文件路径
-        bg_img背景图片，如果没指定背景图片则使用场景的背景图
-        char_name_list： 一组角色名，如果没制定则使用场景中的角色
-    Return:
-        gif图片路径
-    """
-    import shutil
-    scenario_folder = os.path.basename(script).replace(".yaml", "")
-    with open(script, 'rb') as file:
-        script = yaml.safe_load(file)
-
-    scenarios = list(filter(lambda x: x.get("名字", None) == scenario, script["场景"]))
-    if not scenarios:
-        raise Exception("场景不存在")
-    scenario_obj = scenarios[0]
-    scenario = Scenario(scenario_obj, preview=True)
-    if not bg_img:
-        bg_img = scenario.background_image
-    chars = scenario.chars
-    if not char_name_list:
-        char_name_list = [c.name for c in chars]
-    
-    file_name = os.path.basename(bg_img)
-    new_bg_folder = os.path.join(config_reader.output_dir, scenario_folder, "tmp")
-    os.makedirs(new_bg_folder, exist_ok=True)
-    file_path = os.path.join(new_bg_folder, file_name)
-    shutil.copyfile(bg_img, file_path)
-    resize_image(file_path)
-
-    image_obj = None
-    for char in chars:
-        if char.display and char.name in char_name_list:
-            _, image_obj = paint_char_on_image(char=char, image=file_path, image_obj=image_obj, overwrite=True)
-    
-    image_obj.save(file_path)
-    image_obj.close() 
-    return file_path
     
 
 if __name__ == "__main__":

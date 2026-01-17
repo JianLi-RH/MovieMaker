@@ -36,6 +36,9 @@ from pydub.playback import play
 
 sys.path.insert(0, dirname(dirname(abspath(__file__))))
 
+from logging_config import get_logger
+logger = get_logger(__name__)
+
 STATUS_FIRST_FRAME = 0  # 第一帧的标识
 STATUS_CONTINUE_FRAME = 1  # 中间帧标识
 STATUS_LAST_FRAME = 2  # 最后一帧的标识
@@ -125,7 +128,7 @@ class Ws_Param(object):
                 "data": self.Data,
                 }
             d = json.dumps(d)
-            print("------>开始发送文本数据")
+            logger.debug("开始发送文本数据到讯飞TTS服务")
             ws.send(d)
             if os.path.exists(self.output):
                 os.remove(self.output)
@@ -142,26 +145,26 @@ class Ws_Param(object):
             status = message["data"]["status"]
             # print(message)
             if status == 2:
-                print("ws is closed")
+                logger.debug("WebSocket连接已关闭")
                 ws.close()
             if code != 0:
                 errMsg = message["message"]
-                print("sid:%s call error:%s code is:%s" % (sid, errMsg, code))
+                logger.error(f"讯飞TTS调用失败 - sid: {sid}, 错误信息: {errMsg}, 错误码: {code}")
             else:
                 with open(self.output, 'ab') as f:
                     f.write(audio)
 
         except Exception as e:
-            print("receive msg,but parse exception:", e)
+            logger.error(f"接收消息时解析异常: {e}")
 
     # 收到websocket错误的处理
     def on_error(self, ws, error):
-        print("### error:", error)
+        logger.error(f"WebSocket错误: {error}")
 
     # 收到websocket关闭的处理
     def on_close(self, ws, status, msg):
-        print("### closed ###")
-        print(f"{status}:{msg}")
+        logger.debug("WebSocket连接已关闭")
+        logger.debug(f"关闭状态码: {status}, 消息: {msg}")
 
 
 def covert_text_to_sound(text, output, speaker):
@@ -172,7 +175,8 @@ def covert_text_to_sound(text, output, speaker):
                     Text=text,
                     output=output,
                     vcn=speaker)
-    websocket.enableTrace(False)
+    if "enableTrace" in dir(websocket):
+        websocket.enableTrace(False)
     wsUrl = wsParam.create_url()
     ws = websocket.WebSocketApp(wsUrl, 
                                 on_message=wsParam.on_message, 
@@ -180,7 +184,7 @@ def covert_text_to_sound(text, output, speaker):
                                 on_close=wsParam.on_close)
     ws.on_open = wsParam.on_open
     ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
-    print("Convert aution file path: ", wsParam.output)
+    logger.info(f"音频文件转换完成，保存路径: {wsParam.output}")
     return wsParam.output
 
 if __name__ == "__main__":

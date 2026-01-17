@@ -7,6 +7,9 @@
 import os
 import requests
 
+from logging_config import get_logger
+logger = get_logger(__name__)
+
 HEADERS = {
     "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
 }
@@ -29,9 +32,13 @@ speaker = [
     {"晓颜": "zh-CN-XiaoyanNeural"},    # Female
     {"晓悠": "zh-CN-XiaoyouNeural"},    # Female
     {"晓甄": "zh-CN-XiaozhenNeural"},   # Female
+    {"晓晓": "zh-CN-XiaoxiaoNeural"},   # Female
     
     
-    {"云夏": "zh-CN-YunxiaNeural"}, # Male
+    {"云希": "zh-CN-YunxiNeural"}, # Male
+    {"云健": "zh-CN-YunjianNeural"}, # Male
+    {"云扬": "zh-CN-YunyangNeural"}, # Male
+    {"云夏": "zh-CN-YunxiaNeural"}, # Male ？？？ 女的？？？
     {"云杰": "zh-CN-YunjieNeural"}, # Male
     {"云泽": "zh-CN-YunzeNeural"},  # Male
     {"云登": "zh-CN-henan-YundengNeural"},  # Male
@@ -60,7 +67,9 @@ def get_ssml(speaker, text, role="YoungAdultMale", style="calm"):
 <speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/mstts" xml:lang="zh-CN">
 <voice name="{speaker}">
 <mstts:express-as role="{role}" style="{style}">
+<prosody rate="+20.00%">
 {text}
+</prosody>
 </mstts:express-as>
 </voice>
 </speak>
@@ -86,14 +95,15 @@ def covert_text_to_sound(text, output, speaker):
     response = requests.post(url, data=body, headers=HEADERS)
     
     if response.status_code == 200:
+        logger.info(f"TTSpro生成语音成功: {response.text}")
         output_folder = os.path.dirname(output)
         os.makedirs(output_folder, exist_ok=True)
         with open(output, 'wb') as file:
             file.write(response.content)
     else:
-        print(ssml)
-        print(response.content)
-        print(f"请求失败，状态码：{response.status_code}")
+        logger.error(f"TTSpro请求失败，状态码: {response.status_code}")
+        logger.debug(f"SSML内容: {ssml}")
+        logger.debug(f"响应内容: {response.content}")
 
 
 if __name__ == "__main__":
