@@ -1,8 +1,7 @@
 from typing import List, Optional, Union
 
-from actions import get_char
 from character import Character
-from libs import AudioHelper, ImageHelper
+from libs.RenderHelper import RenderHelper
 
     
 def Do(*, action: any, images : List[str], sorted_char_list : List[Character], delay_mode : bool = False):
@@ -45,27 +44,16 @@ def Do(*, action: any, images : List[str], sorted_char_list : List[Character], d
 
     l = len(images)
     delay_pos = []
-    for i in range(0, l):
-        j = i % len(_char.gif_frames)
-        if delay_mode:
+
+    if delay_mode:
+        # Build delay position list for GIF frames
+        for i in range(0, l):
+            j = i % len(_char.gif_frames)
             delay_pos.append((_char.pos, _char.size, _char.rotate, _char.gif_frames[j]))
-            continue
-            
-        big_image = None
-        for _char in sorted_char_list:
-            if _char.display:
-                # 这里存在一个显示层级的bug
-                _, big_image = ImageHelper.paint_char_on_image(image=images[i], 
-                                                                image_obj=big_image,
-                                                                char=_char, 
-                                                                save=False,
-                                                                gif_index=i)
-        
-        if big_image and not delay_mode:
-            big_image.save(images[i])
-            big_image.close()
-    
-    if not delay_mode:
+    else:
+        # Use RenderHelper for frame-by-frame rendering
+        RenderHelper.render_characters_on_frames(images, sorted_char_list)
         # 恢复列表
         sorted_char_list.pop(added_index)
+
     return delay_pos

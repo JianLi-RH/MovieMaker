@@ -1,7 +1,7 @@
 from typing import List, Optional, Union
 
 from character import Character
-from libs import AudioHelper, ImageHelper
+from libs.RenderHelper import RenderHelper
 
 def Do(*, action: any, images : List[str], sorted_char_list : List[Character], delay_mode : bool = False):
     """让角色转动，如左右转身，上下翻转，指定角度翻转
@@ -81,21 +81,21 @@ def Do(*, action: any, images : List[str], sorted_char_list : List[Character], d
     if delay_mode:
         return delay_positions
 
+    # Update character properties and render each frame
     for i in range(total_feames):
-        big_image = None
+        # Update the turning character's properties for this frame
         for _char in sorted_char_list:
-            if _char.display:
-                if _char.name == action.char.name:
-                    _char.pos = delay_positions[i][0]
-                    _char.size = delay_positions[i][1]
-                    _char.rotate = delay_positions[i][2]
+            if _char.name == action.char.name:
+                RenderHelper.apply_character_properties(_char, delay_positions[i])
 
-                _, big_image = ImageHelper.paint_char_on_image(char=_char, 
-                                                                image=images[i], 
-                                                                image_obj=big_image,
-                                                                save=False,
-                                                                gif_index=i)
+        # Render this specific frame with updated properties
+        _, big_image = RenderHelper.render_characters_on_frame(
+            images[i],
+            sorted_char_list,
+            gif_index=i
+        )
         if big_image:
             big_image.save(images[i])
             big_image.close()
+
     return []

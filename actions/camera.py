@@ -1,6 +1,7 @@
 from typing import List, Optional, Union
 
 from libs import AudioHelper, ImageHelper
+from libs.RenderHelper import RenderHelper
 import utils
 
             
@@ -55,22 +56,8 @@ def Do(*, images : List[str], action: any, add_chars : bool=True):
     
     if add_chars:
         # 单独调用镜头动作的时候，需要绘制角色
-        gif_index = 0
-        for img in images:
-            big_image = None
-            for _char in action.activity.scenario.chars:
-                if _char.display:
-                    _, big_image = ImageHelper.paint_char_on_image(image=img, 
-                                                                image_obj=big_image,
-                                                                char=_char, 
-                                                                save=False,
-                                                                gif_index=gif_index,
-                                                                dark=False)
-        
-            if big_image:
-                big_image.save(img)
-                big_image.close()
-            gif_index += 1
+        # Use RenderHelper for frame-by-frame rendering
+        RenderHelper.render_characters_on_frames(images, action.activity.scenario.chars)
 
     for i in range(0, length):
         tmp_ratio = from_ratio + ratio_step * i

@@ -6,6 +6,7 @@ from typing import List, Optional, Union
 from actions import disappear, get_char, logger
 from character import Character
 import config_reader
+from libs.RenderHelper import RenderHelper
 from exceptions import (
     CharacterNotFoundError,
     InsufficientCharactersError,
@@ -14,7 +15,6 @@ from exceptions import (
     TTSException
 )
 
-from libs import AudioHelper, ImageHelper
 import utils
     
 def Do(*, action: any, images : List[str], sorted_char_list : List[Character], delay_mode : bool = False):
@@ -209,6 +209,7 @@ def Do(*, action: any, images : List[str], sorted_char_list : List[Character], d
         action.char = get_char(action.char.name, action.chars)
         return pos
     
+    # Update character properties for each frame, then render all frames
     for i in range(total_image_length):
         if i == (total_image_length - 1):
             if action.obj.get("结束角度"):
@@ -217,19 +218,18 @@ def Do(*, action: any, images : List[str], sorted_char_list : List[Character], d
             if action.obj.get("结束图层"):
                 action.char.render_index = action.obj.get("结束图层")
                 action.char = get_char(action.char.name, action.chars)
-        
-        big_image = None
+
+        # Update the walking character's position for this frame
         for _char in sorted_char_list:
             if _char.name == action.char.name:
-                _char.pos = pos[i][0]
-                _char.size = pos[i][1]
-                _char.rotate = pos[i][2]
-            if _char.display:
-                _, big_image = ImageHelper.paint_char_on_image(char=_char, 
-                                                                image=images[i],
-                                                                image_obj=big_image,
-                                                                save=False,
-                                                                gif_index=i)
+                RenderHelper.apply_character_properties(_char, pos[i])
+
+        # Render this specific frame with updated positions
+        _, big_image = RenderHelper.render_characters_on_frame(
+            images[i],
+            sorted_char_list,
+            gif_index=i
+        )
         if big_image:
             big_image.save(images[i])
             big_image.close()

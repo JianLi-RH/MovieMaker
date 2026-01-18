@@ -3,8 +3,7 @@ from typing import List, Optional, Union
 
 from actions import get_char, camera
 from character import Character
-import config_reader
-from libs import AudioHelper, ImageHelper
+from libs import ImageHelper
 import utils
     
 def Do(*, action: any, images : List[str], sorted_char_list : List[Character], delay_mode : bool = False):

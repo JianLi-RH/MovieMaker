@@ -13,7 +13,7 @@ from exceptions import (
     TTSException
 )
 
-from libs import AudioHelper, ImageHelper
+from libs.RenderHelper import RenderHelper
     
 def Do(*, action: any, images : List[str], sorted_char_list : List[Character]):
     """一组随机的打斗动作， 
@@ -82,28 +82,5 @@ def Do(*, action: any, images : List[str], sorted_char_list : List[Character]):
         })
     
     
-    for j in range(len(images)):   # 在每张图片上绘制全部角色
-        big_image = None
-        for _char in sorted_char_list:
-            if not _char.display:
-                continue
-            for char_pos in delay_positions:
-                if _char == char_pos["char"]:
-                    delay_pos = char_pos["position"][j]
-                    _char.pos = delay_pos[0]
-                    _char.size = delay_pos[1]
-                    _char.rotate = delay_pos[2]
-                    
-                    if len(delay_pos) > 3:
-                        _char.image = delay_pos[3]
-                    break
-            _, big_image = ImageHelper.paint_char_on_image(char=_char, 
-                                                            image=images[j],
-                                                            image_obj=big_image,
-                                                            save=False,
-                                                            gif_index=j)
-
-        if big_image:
-            big_image.save(images[j])
-            big_image.close()
-    pass
+    # Use RenderHelper for position-tracked rendering
+    RenderHelper.render_with_position_tracking(images, delay_positions, sorted_char_list)
