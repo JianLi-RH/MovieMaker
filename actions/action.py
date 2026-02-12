@@ -136,8 +136,8 @@ class Action:
         if self.obj.get("角色") and len(self.obj.get("角色")) > 0:
             self.char = get_char(self.obj.get("角色"), self.chars)
             if  not self.char and not re.search(r'[ ,]', self.obj.get("角色")) :
-                logger.error(f"角色不存在({self.obj.get("角色")}), 渲染顺序：{self.render_index}")
-                raise CharacterNotFoundError(self.obj.get("角色"), self.render_index)
+                logger.error(f"角色不存在({self.obj.get("角色")}), 渲染顺序：{self.render_index}, 活动：{self.activity.name}")
+                raise CharacterNotFoundError(self.obj.get("角色"), self.render_index, self.activity.name)
 
         self.subtitle_color, self.subtitle = self.__get_subtitle()
         if self.subtitle_color == None and self.activity.subtitle_color:

@@ -14,6 +14,7 @@ import config_reader
 import utils
 from actions.action import *
 from libs import VideoHelper
+from libs.RenderHelper import RenderHelper
 from logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -358,42 +359,12 @@ class Activity:
             if delay_mode:
                 # delay_images = images[delay_start : max(action_ends)]
                 if delay_images:
-                    for j in range(len(delay_images)):   # 在每张图片上绘制全部角色
-                        big_image = None
-                        for _char in self.scenario.chars:
-                            if isinstance(_char, Character) and not _char.display:
-                                continue
-                            for char_pos in delay_positions:
-                                if _char == char_pos["char"]:
-                                    if len(char_pos["position"]) > j:
-                                        delay_pos = char_pos["position"][j]
-                                    elif len(char_pos["position"]) > 0:
-                                        delay_pos = char_pos["position"][-1]
-                                    else:
-                                        logger.warning(f"角色 {_char.name} 没有位置信息")
-                                        continue
-                                    
-                                    if len(delay_pos) > 2:
-                                        _char.pos = delay_pos[0]
-                                        _char.size = delay_pos[1]
-                                        _char.rotate = delay_pos[2]
-                                    else:
-                                        break
-                                    
-                                    if len(delay_pos) > 3:
-                                        _char.image = delay_pos[3]
-                                    break
-                                    
-                            
-                            _, big_image = ImageHelper.paint_char_on_image(char=_char, 
-                                                                            image=delay_images[j],
-                                                                            image_obj=big_image,
-                                                                            save=False,
-                                                                            gif_index=j)
-
-                        if big_image:
-                            big_image.save(delay_images[j])
-                            big_image.close()
+                    # Use RenderHelper for position-tracked rendering
+                    RenderHelper.render_with_position_tracking(
+                        delay_images,
+                        delay_positions,
+                        self.scenario.chars
+                    )
                 
                 for char_pos in delay_positions:
                     # 结束后隐藏角色
@@ -406,20 +377,8 @@ class Activity:
                 # 把剩余的背景图片都绘制上角色
                 missed_images = images[max(action_ends):]
                 logger.debug(f"处理遗漏的背景图片，共 {len(missed_images)} 张: {missed_images}")
-                gif_index = 0
-                for img in missed_images:
-                    big_image = None
-                    for _char in self.scenario.chars:
-                        if _char.display:
-                            _, big_image = ImageHelper.paint_char_on_image(char=_char, 
-                                                                           image=img,
-                                                                           image_obj=big_image,
-                                                                           save=False,
-                                                                           gif_index=gif_index)
-                    if big_image:
-                        big_image.save(img)
-                        big_image.close()
-                    gif_index += 1
+                # Use RenderHelper for frame-by-frame rendering
+                RenderHelper.render_characters_on_frames(missed_images, self.scenario.chars)
 
             for _char in self.scenario.chars:
                 # 防止gif对象继续存在与其他动作中，所以需要在执行结束删除它
@@ -431,17 +390,8 @@ class Activity:
         draw_char_actions = set([act["action"].name for act_in_same_level in self.action_list for act in act_in_same_level]) - set({"显示", "消失"})
         if not draw_char_actions:
             # 如果所有的动作都没有绘制角色，则统一绘制一次
-            for img in images:
-                big_image = None
-                for _char in self.scenario.chars:
-                    if _char.display:
-                        _, big_image = ImageHelper.paint_char_on_image(char=_char, 
-                                                                      image=img, 
-                                                                      image_obj=big_image,
-                                                                      save=False)
-                if big_image:
-                    big_image.save(img)
-                    big_image.close()
+            # Use RenderHelper for frame-by-frame rendering
+            RenderHelper.render_characters_on_frames(images, self.scenario.chars)
                     
         if self.subtitle:
             logger.debug(f"字幕信息:\n{self.subtitle}")

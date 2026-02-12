@@ -166,7 +166,7 @@ def validate_script_resources(script_path: str) -> Tuple[bool, List[str]]:
         logger.error("脚本文件缺少'场景'字段")
         return False, ["脚本结构无效：缺少'场景'字段"]
 
-    scenarios = script_data.get("场景", [])
+    scenarios = script_data.get("场景", []) or []
     logger.info(f"脚本包含 {len(scenarios)} 个场景")
 
     for scenario_idx, scenario in enumerate(scenarios, 1):
@@ -194,7 +194,7 @@ def validate_script_resources(script_path: str) -> Tuple[bool, List[str]]:
             missing_resources.add(scenario_bgm)
 
         # 验证角色资源
-        characters = scenario.get("角色", [])
+        characters = scenario.get("角色", []) or []
         logger.debug(f"场景 {scenario_name} 包含 {len(characters)} 个角色")
 
         for char in characters:
@@ -209,7 +209,7 @@ def validate_script_resources(script_path: str) -> Tuple[bool, List[str]]:
                 logger.warning(f"角色 {char_name} 没有指定素材")
 
         # 验证活动资源
-        activities = scenario.get("活动", [])
+        activities = scenario.get("活动", []) or []
         logger.debug(f"场景 {scenario_name} 包含 {len(activities)} 个活动")
 
         for activity_idx, activity in enumerate(activities, 1):
@@ -221,7 +221,7 @@ def validate_script_resources(script_path: str) -> Tuple[bool, List[str]]:
                 missing_resources.add(activity_bgm)
 
             # 验证字幕音频
-            subtitles = activity.get("字幕", [])
+            subtitles = activity.get("字幕", []) or []
             if isinstance(subtitles, str):
                 # 字幕文件路径
                 if not validate_file_exists(subtitles, "字幕文件"):
@@ -240,7 +240,7 @@ def validate_script_resources(script_path: str) -> Tuple[bool, List[str]]:
                             missing_resources.add(gif_path)
 
             # 验证动作资源
-            actions = activity.get("动作", [])
+            actions = activity.get("动作", []) or []
             for action in actions:
                 action_name = action.get("名称", "未命名动作")
 

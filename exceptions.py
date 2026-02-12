@@ -59,6 +59,12 @@ class AudioNotFoundException(ResourceNotFoundException):
     def __init__(self, audio_path: str):
         super().__init__(audio_path, "音频文件")
 
+        
+class VideoNotFoundException(ResourceNotFoundException):
+    """视频文件未找到异常 / Video file not found exception"""
+    def __init__(self, video_path: str):
+        super().__init__(video_path, "视频文件")
+
 
 class ScriptNotFoundException(ResourceNotFoundException):
     """脚本文件未找到异常 / Script file not found exception"""
@@ -100,11 +106,11 @@ class CharacterNotFoundError(CharacterException):
     """
     角色未找到异常 / Character not found exception
     """
-    def __init__(self, char_name: str, render_index: Optional[float] = None):
+    def __init__(self, char_name: str, render_index: Optional[float] = None, activity_name: Optional[str] = None):
         message = f"角色【{char_name}】不存在"
         details = {"char_name": char_name}
         if render_index is not None:
-            message += f", 渲染顺序：{render_index}"
+            message += f", 渲染顺序：{render_index}, 活动：{activity_name}"
             details["render_index"] = render_index
         super().__init__(message, details)
         self.char_name = char_name
