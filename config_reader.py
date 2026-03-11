@@ -30,3 +30,4 @@ g_width = int(config["g_width"])
 g_height = int(config["g_height"])
 round_per_second = config["round_per_second"]
 font_size = int(config["font_size"])
+audio_volume_boost = float(config.get("audio_volume_boost", 1.0))  # 音频音量增强倍数，默认1.0不增强

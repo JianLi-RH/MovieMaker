@@ -414,25 +414,30 @@ class Activity:
         video = VideoHelper.create_video_clip_from_images(images, self.fps)
         if self.bgm:
             """添加活动背景音乐"""
-            logger.info(f"添加背景音乐: {self.bgm}")
-            
-            if self.bgm_mode == "循环": 
+            logger.info(f"添加背景音乐: {self.bgm} (音量: {config_reader.audio_volume_boost}x)")
+
+            if self.bgm_mode == "循环":
                 bgm_duration = AudioFileClip(self.bgm).duration
                 _start = 0
                 _end = video.duration - bgm_duration
+                # BGM循环模式音量较小，应用0.2倍基础音量，再乘以用户设置的增强倍数
+                bgm_volume = 0.2 * config_reader.audio_volume_boost
                 while _start < _end:
-                    video = VideoHelper.add_audio_to_video(video, self.bgm, start=_start, factor=0.2)
+                    video = VideoHelper.add_audio_to_video(video, self.bgm, start=_start, factor=bgm_volume)
                     _start += bgm_duration
             else:
-                video = VideoHelper.add_audio_to_video(video, self.bgm)
+                video = VideoHelper.add_audio_to_video(video, self.bgm, factor=config_reader.audio_volume_boost)
         if self.subtitle:
             # 添加字幕声音 -- 活动的字幕
+            logger.debug(f"活动 {self.name} 有 {len(self.subtitle)} 个字幕")
             audio_list = [AudioFileClip(st[3]).with_start(st[0]) for st in self.subtitle if len(st) > 3 and st[3]]
+            logger.debug(f"从字幕中提取到 {len(audio_list)} 个音频文件")
             if audio_list:
                 fd, tmp_audio_path = tempfile.mkstemp(suffix=".mp3")
                 logger.debug(f"组装 {len(audio_list)} 个音频片段并保存到临时文件: {tmp_audio_path}")
-                concatenate_audioclips(audio_list).write_audiofile(tmp_audio_path)
-                video = VideoHelper.add_audio_to_video(video, tmp_audio_path, start=self.subtitle[0][0])
+                concatenate_audioclips(audio_list).write_audiofile(tmp_audio_path, logger=None)
+                logger.info(f"添加活动字幕音频: {len(audio_list)} 个音频片段 (音量: {config_reader.audio_volume_boost}x)")
+                video = VideoHelper.add_audio_to_video(video, tmp_audio_path, start=self.subtitle[0][0], factor=config_reader.audio_volume_boost)
         
         video_total_length = video.duration
         for actions in self.action_list:
@@ -441,9 +446,11 @@ class Activity:
             start = actions[0]["start"] * video_total_length
             for act in actions:
                 if act["action"].subtitle:
+                    logger.debug(f"动作 {act['action'].name} 有 {len(act['action'].subtitle)} 个字幕音频")
                     action_ends.append(act["action"].subtitle[-1][1])
                     for subtitle in act["action"].subtitle:
-                        video = VideoHelper.add_audio_to_video(video, subtitle[3], start=(start + subtitle[0]))
+                        logger.info(f"添加动作字幕音频: {subtitle[2]} -> {subtitle[3]} (音量: {config_reader.audio_volume_boost}x)")
+                        video = VideoHelper.add_audio_to_video(video, subtitle[3], start=(start + subtitle[0]), factor=config_reader.audio_volume_boost)
         return video
 
 if __name__ == "__main__":
