@@ -3,4 +3,5 @@ g_width: 1080
 g_height: 800
 font_size: 70
 watermark: ''
-round_per_second: 2
+round_per_second: 1
+audio_volume_boost: 2.0  # 音频音量增强倍数 (1.0 = 原音量, 2.0 = 2倍音量, 3.0 = 3倍音量)
