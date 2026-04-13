@@ -16,4 +16,4 @@ def Do(images : List[str], sorted_char_list : List[Character]):
         字幕:
             - ['','', 'bgm', 'resources/ShengYin/bgm.mp3']
     """
-    RenderHelper.render_characters_on_frames(images, sorted_char_list)
+    RenderHelper.create_static_frame(images, sorted_char_list)
