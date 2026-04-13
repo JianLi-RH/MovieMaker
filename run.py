@@ -23,7 +23,7 @@ import config_reader
 from libs import VideoHelper
 from scenario import Scenario
 from logging_config import setup_default_logging, get_logger
-from exceptions import ScriptNotFoundException, ScriptValidationError
+from exceptions import ScriptNotFoundException, ScriptValidationError, VideoNotFoundException
 from validation import validate_script_resources, validate_config
 
 # 初始化日志系统
@@ -68,6 +68,8 @@ def connect_videos(
         if isinstance(f, video.VideoClip.VideoClip):
             final_videos.append(f)
         else:
+            if not os.path.exists(f):
+                raise VideoNotFoundException(f)
             final_videos.append(VideoFileClip(f))
 
     logger.info(f"拼接 {len(final_videos)} 个视频片段")
@@ -84,6 +86,19 @@ def connect_videos(
 
     # 避免出现同名文件导致"xxx bytes wanted but 0 bytes read"错误
     # 更新文件名
+    # 检查是否为目录路径，如果是则生成默认文件名
+    if final_video_name.endswith('/') or final_video_name.endswith('\\'):
+        # 是目录路径，需要生成文件名
+        script_name = os.path.basename(script).replace('.yaml', '')
+        final_video_name = os.path.join(final_video_name, f"{script_name}{config_reader.video_format}")
+        logger.debug(f"输出路径为目录，自动生成文件名: {final_video_name}")
+
+    # 确保输出目录存在
+    output_dir = os.path.dirname(final_video_name)
+    if output_dir and not os.path.exists(output_dir):
+        os.makedirs(output_dir, exist_ok=True)
+        logger.debug(f"创建输出目录: {output_dir}")
+
     if os.path.exists(final_video_name):
         logger.debug(f"删除已存在的输出文件: {final_video_name}")
         os.remove(final_video_name)
@@ -91,7 +106,12 @@ def connect_videos(
         final_video_name = os.path.join(config_reader.output_dir, final_video_name)
 
     logger.info(f"写入最终视频文件: {final_video_name}")
-    final.write_videofile(final_video_name)
+    final.write_videofile(
+        final_video_name,
+        codec='libx264',
+        # audio_codec='aac',
+        fps=config_reader.fps
+    )
     logger.info(f"视频拼接完成: {final_video_name}")
 
     return final_video_name
@@ -109,9 +129,24 @@ def run(script: str, output: Optional[str] = None, scenario: Optional[str] = Non
     """
     logger.info(f"开始处理脚本: {script}")
 
+    # 检查output是否为目录路径，如果是则设置为None让系统自动生成
+    if output and (output.endswith('/') or output.endswith('\\')):
+        # 保存目录路径，稍后使用
+        output_directory = output
+        output = None
+        logger.debug(f"输出参数为目录路径: {output_directory}")
+    else:
+        output_directory = None
+
     # 为每个脚本分配一个输出路径
     script_name = os.path.basename(script).split('.')[0]
-    config_reader.output_dir = os.path.join(config_reader.output_dir, script_name)
+
+    # 如果用户指定了输出目录，使用用户指定的目录
+    if output_directory:
+        config_reader.output_dir = output_directory.rstrip('/\\')
+    else:
+        config_reader.output_dir = os.path.join(config_reader.output_dir, script_name)
+
     os.makedirs(config_reader.output_dir, exist_ok=True)
     logger.debug(f"输出目录: {config_reader.output_dir}")
 
@@ -139,8 +174,8 @@ def run(script: str, output: Optional[str] = None, scenario: Optional[str] = Non
             new_video = VideoHelper.concatenate_videos(*videos)
 
             if scenario_instance.bgm:
-                logger.debug(f"添加背景音乐: {scenario_instance.bgm}")
-                new_video = VideoHelper.add_audio_to_video(new_video, scenario_instance.bgm)
+                logger.info(f"添加场景背景音乐: {scenario_instance.bgm} (音量: {config_reader.audio_volume_boost}x)")
+                new_video = VideoHelper.add_audio_to_video(new_video, scenario_instance.bgm, factor=config_reader.audio_volume_boost)
 
             new_video.with_fps(config_reader.fps)
             final_videos_files.append(new_video)
@@ -241,20 +276,21 @@ def main(argv: List[str]) -> int:
     return run(output=output, scenario=scenario, script=script)
 
 if __name__ == "__main__":
+    file="001"
     try:
-        file="水浒传第三百三十七回"
         if len(sys.argv) > 1:
             result = main(sys.argv[1:])
         else:
             logger.info("使用默认配置运行")
-            result = run(script=f"script/水浒传/{file}.yaml", scenario="躲避")
+            result = run(script=f"demo/{file}.yaml", scenario="迎敌")
         logger.info(f"程序执行完成，退出码: {result}")
         sys.exit(result)
     except Exception as e:
         logger.exception(f"程序执行失败: {e}")
         sys.exit(1)
 
-    # connect_videos(f"output/{file}/{file}.mp4", script=f"script/水浒传/{file}.yaml")
+    # connect_videos(f"output/{file}/{file}.mp4", script=f"demo/{file}.yaml")
 
 
 # source .venv/bin/activate
+# python run.py -s demo/003.yaml -o 003.mp4 -c "史进结识少华山"

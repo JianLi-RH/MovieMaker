@@ -34,7 +34,6 @@ class Scenario:
             obj.save(new_path)
         else:
             shutil.copy(original_image, new_path)
-        ImageHelper.resize_image(new_path)
         return ImageHelper.zoom_in_out_image(new_path, self.focus, self.ratio)
 
     def __init__(self, obj, preview=False):
@@ -71,5 +70,5 @@ class Scenario:
         self.chars = sorted(__chars, key=lambda x: x.index)
         self.activities = []
         if not preview:
-            for a in obj.get("活动", None):
+            for a in obj.get("活动", []):
                 self.activities.append(activity.Activity(self, a))

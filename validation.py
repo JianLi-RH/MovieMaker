@@ -171,6 +171,9 @@ def validate_script_resources(script_path: str) -> Tuple[bool, List[str]]:
 
     for scenario_idx, scenario in enumerate(scenarios, 1):
         scenario_name = scenario.get("名字", f"场景{scenario_idx}")
+        if not scenario_name:
+            return False, ["脚本结构无效：缺少'场景:名字'字段"]
+
         logger.debug(f"验证场景 {scenario_idx}: {scenario_name}")
 
         # 验证背景图片
@@ -187,11 +190,9 @@ def validate_script_resources(script_path: str) -> Tuple[bool, List[str]]:
                     missing_resources.add(background)
         else:
             logger.warning(f"场景 {scenario_name} 没有指定背景")
+            return False, ["脚本结构无效：缺少'场景:背景'字段"]
 
         # 验证场景BGM
-        scenario_bgm = scenario.get("背景音乐")
-        if scenario_bgm and not validate_audio_file(scenario_bgm):
-            missing_resources.add(scenario_bgm)
 
         # 验证角色资源
         characters = scenario.get("角色", []) or []
@@ -207,13 +208,23 @@ def validate_script_resources(script_path: str) -> Tuple[bool, List[str]]:
                     logger.debug(f"角色 {char_name} 的素材缺失: {char_image}")
             else:
                 logger.warning(f"角色 {char_name} 没有指定素材")
+                return False, [f"角色 {char_name} 没有指定素材"]
 
         # 验证活动资源
         activities = scenario.get("活动", []) or []
         logger.debug(f"场景 {scenario_name} 包含 {len(activities)} 个活动")
+        if not activities:
+            return False, ["脚本结构无效：缺少'场景:活动'字段"]
 
         for activity_idx, activity in enumerate(activities, 1):
             activity_name = activity.get("名字", f"活动{activity_idx}")
+            
+            actions = activity.get("动作", []) or []
+            duration = activity.get("持续时间")
+            subtitles = activity.get("字幕", []) or []
+
+            if not actions and not duration and not subtitles:
+                missing_resources.add(f"活动 '{activity_name}' in scenario '{scenario_name}' is incomplete. It must have at least one action, a duration, or subtitles.")
 
             # 验证活动BGM
             activity_bgm = activity.get("背景音乐")
@@ -221,7 +232,6 @@ def validate_script_resources(script_path: str) -> Tuple[bool, List[str]]:
                 missing_resources.add(activity_bgm)
 
             # 验证字幕音频
-            subtitles = activity.get("字幕", []) or []
             if isinstance(subtitles, str):
                 # 字幕文件路径
                 if not validate_file_exists(subtitles, "字幕文件"):
@@ -240,7 +250,6 @@ def validate_script_resources(script_path: str) -> Tuple[bool, List[str]]:
                             missing_resources.add(gif_path)
 
             # 验证动作资源
-            actions = activity.get("动作", []) or []
             for action in actions:
                 action_name = action.get("名称", "未命名动作")
 
@@ -501,3 +510,6 @@ def sanitize_filename(filename: str) -> str:
         sanitized = sanitized.replace(char, '_')
 
     return sanitized
+
+if __name__ == '__main__':
+    print(validate_script_resources('demo/003.yaml'))
